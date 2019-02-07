@@ -1,0 +1,657 @@
+_SECTION_BEGIN("Formula 1");
+//by Anderson Wilson
+//design to be used with database which has Base time interval set to tick
+//set chart interval to 1T and adjust parameters
+//TickSize in Symbol Information should be informed correctly
+
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{VALUES}}"));
+//global currentstat,skgotprice;
+
+function next_value(sklastval,skcheckval,BrickSize)
+{
+valchange=sqrt((skcheckval-sklastval)*(skcheckval-sklastval));
+roundedbrick=int(valchange/BrickSize);
+bricktoadd=IIf(roundedbrick<=0,BrickSize,roundedbrick*BrickSize);
+skupval=sklastval+bricktoadd;
+skdownval=sklastval-bricktoadd;
+//skupval=sklastval+BrickSize;
+//skdownval=sklastval-BrickSize;
+//printf("\nvc:"+valchange+"bka:"+bricktoadd+"rb:"+roundedbrick);
+sknewval=IIf(skcheckval>=skupval,skupval,IIf(skcheckval<=skdownval,skdownval,sklastval));
+//sknewval=IIf(skcheckval>=skupval,skcheckval,IIf(skcheckval<=skdownval,skcheckval,sklastval));
+
+return sknewval;
+
+}
+
+if(1==1)  // define the parameters and display titles 
+{
+x=Param("xposn",1,0,1000,1);
+y=Param("yposn",1,0,1000,1);
+//sktitle = ParamStr("Title","skself1");
+sktitle = ParamStr("Title","sk3");
+
+}
+
+if(1==0) // buy sell patterns for simple trade buy on 2 green and sell on 2 red good when using small brick
+{
+BrickSize = Param( "BrickSize ",2, 0, 200,1 );
+skbuypattern =ParamStr("buypattern","1,1,2,2,2,2,2");
+skbuypattern2=ParamStr("buypattern2","1,1,2,2,2,2,2");
+
+sksellpattern =ParamStr("sksellpattern","0,0,2,2,2,2,2");   // 
+sksellpattern2=ParamStr("sksellpattern2","0,0,2,2,2,2,2");  //
+
+skshortpattern =ParamStr("skshortpattern","0,0,2,2,2,2,2");	//
+skshortpattern2=ParamStr("skshortpattern2","0,0,2,2,2,2,2");
+skshortpatternfull=ParamStr("skshortpattern","0,0,0,0,0,0,0");
+
+skcoverpattern =ParamStr("skcoverpattern","1,1,2,2,2,2,2");
+skcoverpattern2=ParamStr("skcoverpattern2","1,1,2,2,2,2,2");
+}
+
+if(1==1) // buy sell patterns for flip trade buy on red+ green and short on green+red ;sqoff on 4 green or 4 red ; SL on 2green or 2 red 
+{
+BrickSize = Param( "BrickSize ",5, 0, 200,1 );
+skbuypattern =ParamStr("buypattern","2,1,0,0,0,2,2");
+skbuypattern2=ParamStr("buypattern2","1,1,1,1,1,1,2");
+
+skshortpattern =ParamStr("sksellpattern","2,0,1,1,1,2,2");   // 
+skshortpattern2=ParamStr("sksellpattern2","0,0,0,0,0,0,2");  //
+
+sksellpattern =ParamStr("skshortpattern","0,0,2,2,2,2,2");	//
+sksellpattern2=ParamStr("skshortpattern2","0,1,1,1,1,2,2");
+
+skcoverpattern =ParamStr("skcoverpattern","1,1,2,2,2,2,2");
+skcoverpattern2=ParamStr("skcoverpattern2","1,0,0,0,0,2,2");
+}
+
+if(1==0) // buy sell patterns for flip trade buy on red+ green and short on green+red ;ignore last1 ; decision on old ones 
+{
+BrickSize = Param( "BrickSize ",5, 0, 200,1 );
+skbuypattern =ParamStr("buypattern","2,1,1,0,0,0,0");
+skbuypattern2=ParamStr("buypattern2","2,1,1,1,1,1,1");
+
+skshortpattern =ParamStr("skshortpattern","2,0,0,1,1,1,1");   // 
+skshortpattern2=ParamStr("skshortpattern2","2,0,0,0,0,0,0");  //
+
+sksellpattern =ParamStr("sksellpattern","2,0,0,2,2,2,2");	//
+sksellpattern2=ParamStr("sksellpattern2","2,0,1,1,1,1,0");
+
+skcoverpattern =ParamStr("skcoverpattern","2,1,1,2,2,2,2");
+skcoverpattern2=ParamStr("skcoverpattern2","2,1,0,0,0,0,1");   // target of 4 red achived so we can sqoff 
+}
+
+if(1==1) // display the variables 
+{
+//GfxGradientRect( 1, 1, 1400, 40, colorBlack, colorBlack);
+GfxSetBkMode(0);
+GfxSelectFont( "tahmona", 8, 700, False );
+GfxSetTextColor( colorGold );
+GfxTextOut( "buy:"+skbuypattern+"  b2:"+skbuypattern2+"   sqf:"+sksellpattern+"  s2:"+sksellpattern2, x+700, y+5 );
+GfxTextOut( "sel:"+skshortpattern+"  sh2:"+skshortpattern2+"   sqf:"+skcoverpattern+"  c2:"+skcoverpattern2, x+700, y+20 );
+GfxTextOut( sktitle +"|"+ Date(), x+700, y+35 );
+}
+
+if(1==1) // self renko variables and calculations ======================================== 
+{
+periods = Param( "atrPeriods", 15, 1, 200, 1 );
+skatr= ATR(periods);
+maatr=MA(skatr,50);
+avgatrperiods=IIf(skatr<2,2,round((skatr+5)/10)*10) ;
+skts=Interval();
+suggestedbrick_bn=IIf(skts<60,10,IIf(skts<300,20,IIf(skts<900,30,IIf(skts<1800,50,IIf(skts<3601,100,100)))));
+//BrickSize=BrickSize1 = LastValue(avgatrperiods);
+printf("bricks:"+BrickSize);
+//BrickSize=suggestedbrick_bn;
+//BrickSize=10;suggestedbrick_bn
+Plot(BrickSize, " | BrickSize", colorRed, styleNoLine | styleOwnScale | styleNoLabel);
+Plot(skatr, " | atr", colorRed, styleNoLine | styleOwnScale | styleNoLabel);
+Plot(suggestedbrick_bn, " | try", colorRed, styleNoLine | styleOwnScale | styleNoLabel);
+Plot(avgatrperiods, " | avgatr", colorRed, styleNoLine | styleOwnScale | styleNoLabel);
+i=0;k=0;
+//SKPChanged=SKP=SKPC=SKB=SKS=SKPD;
+
+dd = DateNum();
+tt = TimeNum();
+
+nClose[i] = rClose[i] = Close[i];
+nHigh[i] = rHigh[i] = Close[i];
+nOpen[i] = rOpen[i] = Close[i];
+nLow[i] = rLow[i] = Close[i];
+nDD[i] = dd[i];
+nTT[i] = tt[i];
+
+SKRP[0] = SKP[0]=Close[0];
+SKPChanged[0]=0;
+//currentstate[0]=0;
+//skgotprice[0]=0;
+for(i=1; i < BarCount ; i++)
+{
+rClose[i]=next_value(rClose[i-1],Close[i],BrickSize);
+rOpen[i]=next_value(rOpen[i-1],Open[i],BrickSize);
+rHigh[i]=next_value(rHigh[i-1],High[i],BrickSize);
+rLow[i]=next_value(rLow[i-1],Low[i],BrickSize);
+SKP[i]=rClose[i];
+SKPChanged[i]=IIf(rClose[i]==rClose[i-1],0,IIf(rClose[i]<rClose[i-1],-1,1));
+
+//currentstat[i]=IIf(Buy[i],1,IIf(Short[i],2,currentstat[i-1]));
+//skgotprice[i]=IIf(Buy[i],O[i],IIf(Short[i],O[i],skgotprice[i-1]));
+
+if(SKPChanged[i]==1  OR SKPChanged[i]==-1)
+{
+k++;
+//SKRP[k]=SKP[i];
+nClose[k] = rClose[i] ;
+nHigh[k] = rHigh[i] ;
+nOpen[k] = rOpen[i] ;
+nLow[k] = rLow[i];
+nDD[k] = dd[i];
+nTT[k] = tt[i];
+//printf("\nBar:"+i+",SKP:"+SKP[i]+",chg:"+SKPChanged[i]+",rk:"+k);
+//printf("\nSKRP:"+NumToStr(nClose[k]));
+}
+}
+
+shift = i-k -10;
+nDD = Ref(nDD, -shift);
+nTT = Ref(nTT, -shift);
+nOpen = Ref(nOpen, -shift);
+nHigh = Ref(nHigh, -shift);
+nLow = Ref(nLow, -shift);
+nClose = Ref(nClose, -shift);
+//SKRP = Ref(SKRP, -shift);
+
+}
+
+if(1==0) // filter again only changed values .
+{
+j=0;j1=0;
+mClose[j] = nClose[j1] ;
+mHigh[j] = nHigh[j1] ;
+mOpen[j] = nOpen[j1] ;
+mLow[j] = nLow[j1];
+SKPChanged1[0]=0;
+for (j1=1;j1<=k;j1++)
+{
+SKPChanged1[j1]=IIf(nClose[j1]==nClose[j1-1],0,IIf(nClose[j1]<nClose[j1-1],-1,1));
+if(SKPChanged1[j1]==1  OR SKPChanged1[j1]==-1)
+{
+j++;
+mClose[j] = nClose[j1] ;
+mHigh[j] = nHigh[j1] ;
+mOpen[j] = nOpen[j1] ;
+mLow[j] = nLow[j1];
+mDD[k] = nTT[j1];
+mTT[k] = nTT[j1];
+}
+}
+
+printf("\ni:"+i+",k:"+k+",j:"+j);
+shift = k-j - 1;
+mDD = Ref(mDD, -shift);
+mTT = Ref(mTT, -shift);
+mOpen = Ref(mOpen, -shift);
+mHigh = Ref(mHigh, -shift);
+mLow = Ref(mLow, -shift);
+mClose = Ref(mClose, -shift);
+
+}
+
+if(1==0) // other chart comptiability set variables 
+{
+rHigh=rClose=SKRP1;
+rLow=rOpen=Ref(SKRP1,-1);
+}
+
+if(1==1) // plot the chart based on bricksize
+{
+Plot(Close,"Close",colorBlue,styleLine);
+//Plot(nClose,"nClose",colorBlue,styleLine);
+//PlotOHLC(nOpen, nHigh, nLow, nClose, "", colorAqua, styleCandle);
+//PlotOHLC(mOpen, mHigh, mLow, mClose, "", colorDefault, styleCandle);
+//PlotOHLC(rOpen, rHigh, rLow, rClose, "", colorDefault, styleCandle);
+PlotOHLC(rOpen, rHigh, rLow, rClose, "", colorDefault, styleCandle);
+//printf("\nnO:"+nOpen+",nC:"+nClose);
+printf("\nO:"+O+",C:"+Close);
+printf("\nrO:"+rOpen+",rC:"+rClose);
+printf("\nrO1:"+Ref(rOpen,-1)+",rC1:"+Ref(rClose,-1));
+
+}
+
+if(1==0) // plot renko chart 1 
+{
+
+if(1==1) // bricksize setting 
+{
+cTickSize = TickSize ;
+if( cTickSize == 0 )
+	cTickSize = 0.01;
+periods = Param( "atrPeriods", 15, 1, 200, 1 );
+skatr= ATR(periods);
+maatr=MA(skatr,50);
+//avgatrperiods=IIf(skatr<.1,round(skatr*100)/100,IIf(skatr<1,round(skatr*10)/10,IIf(skatr<10,round(skatr*1)/1,IIf(skatr<100,round(skatr/10)*10,skatr))));
+//avgatrperiods=IIf(skatr<2,2,IIf(skatr<10,10,IIf(skatr<50,50,IIf(skatr<100,100,skatr))));
+avgatrperiods=IIf(skatr<2,2,round((skatr+5)/10)*10) ;
+skts=Interval();
+suggestedbrick_bnifty=IIf(skts<60,10,IIf(skts<300,20,IIf(skts<900,30,IIf(skts<1800,50,IIf(skts<3601,100,100)))));
+//SkAtrSize = LastValue(ATR(10)) / cTickSize;
+SkAtrSize = LastValue(avgatrperiods) / cTickSize;
+ //BrickSize = LastValue(ATR(10));
+ BrickSize=BrickSize1 = LastValue(avgatrperiods);
+ printf("bricks:"+BrickSize);
+BrickSize = Param( "BrickSize ",suggestedbrick_bnifty, 1, 200,1 );
+Plot(BrickSize, " | BrickSize", colorRed, styleNoLine | styleOwnScale | styleNoLabel);
+Plot(skatr, " | atr", colorRed, styleNoLine | styleOwnScale | styleNoLabel);
+Plot(suggestedbrick_bnifty, " | try", colorRed, styleNoLine | styleOwnScale | styleNoLabel);
+Plot(avgatrperiods, " | avgatr", colorRed, styleNoLine | styleOwnScale | styleNoLabel);
+//Plot(cTickSize, "\ncTickSize2", colorRed, styleNoLine | styleOwnScale | styleNoLabel);
+// Plot(SkAtrSize, "\nSkAtrSize", colorRed, styleNoLine | styleOwnScale | styleNoLabel);
+BrickSize -= cTickSize;
+}
+
+dd = DateNum();
+tt = TimeNum();
+
+rOpen = Null;
+rHigh = Null;
+rLow = Null;
+rClose = Null;
+rDD = Null;
+rTT = Null;
+
+QtyTicks = Param( "Ticks (x1.000)", 200, 10, 100000, 10) * 1000;
+if( BarCount > QtyTicks )
+	i = BarCount - QtyTicks;
+else
+	i = 0;
+	
+RenkoIndex = i;
+
+LimitInf = BrickSize;
+LimitSup = LimitInf + BrickSize;
+qtyBricks = (Close[i] - LimitSup) \ BrickSize;
+LimitInf = LimitSup + (qtyBricks * BrickSize);
+LimitSup = LimitInf + BrickSize;
+
+rClose[RenkoIndex] = Close[i];
+rHigh[RenkoIndex] = Close[i];
+rOpen[RenkoIndex] = Close[i];
+rLow[RenkoIndex] = Close[i];
+rDD[RenkoIndex] = dd[i];
+rTT[RenkoIndex] = tt[i];
+
+i++;
+
+for(; i < BarCount   AND RenkoIndex < BarCount - 3; i++) {
+	if( Close[i] > LimitSup ) {
+		qtyBricks = (Close[i] - LimitSup) \ BrickSize;
+		rClose[RenkoIndex] = LimitSup;
+		rOpen[RenkoIndex] = LimitSup - BrickSize;
+		
+		RenkoIndex++;
+		
+		rDD[RenkoIndex] = dd[i];
+		rTT[RenkoIndex] = tt[i];
+		rOpen[RenkoIndex] = LimitSup;
+		rLow[RenkoIndex] = rOpen[RenkoIndex];
+		
+		while( qtyBricks > 0 AND RenkoIndex > 3) {
+		
+			rHigh[RenkoIndex] = rOpen[RenkoIndex] + BrickSize;
+			rClose[RenkoIndex] = rHigh[RenkoIndex];
+			
+			nxtOpen = rClose[RenkoIndex];
+			
+			RenkoIndex++;
+			
+			rDD[RenkoIndex] = dd[i];
+			rTT[RenkoIndex] = tt[i];
+			rOpen[RenkoIndex] = nxtOpen;
+			rLow[RenkoIndex] = nxtOpen;
+			
+			qtyBricks--;
+			
+		}
+		if( RenkoIndex > 3) {
+			rHigh[RenkoIndex] = Close[i];
+			rClose[RenkoIndex] = Close[i];
+			LimitInf = rOpen[RenkoIndex] - 2 * BrickSize;
+			LimitSup = rOpen[RenkoIndex] + BrickSize;
+		}
+		
+	} else if( Close[i] < LimitInf ) {
+		qtyBricks = (LimitInf - Close[i]) \ BrickSize;
+		rClose[RenkoIndex] = LimitInf;
+		rOpen[RenkoIndex] = LimitInf + BrickSize;
+		
+		RenkoIndex++;
+		
+		rDD[RenkoIndex] = dd[i];
+		rTT[RenkoIndex] = tt[i];
+		rOpen[RenkoIndex] = LimitInf;
+		rHigh[RenkoIndex] = rOpen[RenkoIndex];
+		
+		while( qtyBricks > 0 AND RenkoIndex > 3) {
+		
+			rLow[RenkoIndex] = rOpen[RenkoIndex] - BrickSize;
+			rClose[RenkoIndex] = rLow[RenkoIndex];
+			
+			nxtOpen = rClose[RenkoIndex];
+			
+			RenkoIndex++;
+			
+			rDD[RenkoIndex] = dd[i];
+			rTT[RenkoIndex] = tt[i];
+			rOpen[RenkoIndex] = nxtOpen;
+			rHigh[RenkoIndex] = nxtOpen;
+			
+			qtyBricks--;
+			
+		}
+		if( RenkoIndex > 3) {
+			rLow[RenkoIndex] = Close[i];
+			rClose[RenkoIndex] = Close[i];
+			LimitInf = rOpen[RenkoIndex] - BrickSize;
+			LimitSup = rOpen[RenkoIndex] + 2 * BrickSize;
+		}
+	} else {
+		if( Close[i] > rHigh[RenkoIndex] )
+			rHigh[RenkoIndex] = Close[i];
+		if( Close[i] < rLow[RenkoIndex] )
+			rLow[RenkoIndex] = Close[i];
+		rClose[RenkoIndex] = Close[i];
+	}
+}
+
+shift = BarCount - RenkoIndex - 1;
+
+rOpen = Ref(rOpen, -shift);
+rHigh = Ref(rHigh, -shift);
+rLow = Ref(rLow, -shift);
+rClose = Ref(rClose, -shift);
+rDD = Ref(rDD, -shift);
+rTT = Ref(rTT, -shift);
+//10000 * (year - 1900) + 100 * month + day, 
+
+PlotOHLC(rOpen, rHigh, rLow, rClose, "", colorDefault, styleCandle);
+yy = rDD \ 10000 + 1900; mm = rDD % 10000 \ 100; dd = rDD % 100; 
+hh = rTT \ 10000; mi = rTT % 10000 \ 100; ss = rTT % 100;
+_N(Title = Title + StrFormat("\n%02g/%02g/%04g %02g:%02g:%02g", dd, mm, yy, hh, mi, ss));
+_N(Title = Title + StrFormat(" Open %g, Hi %g, Lo %g, Close %g", rOpen, rHigh, rLow, rClose));
+_SECTION_END();
+}
+
+function checkcandle(cnumber,cgr)  // based on rClose
+{
+skcp=Ref(rClose,cnumber);
+skop=Ref(rOpen,cnumber);
+skresult1=IIf(skcp>skop,0,1);
+skresult=IIf(skresult1!=cgr,True,False);
+return skresult;
+}
+
+function skpattern(pattern)
+{
+cgr0=StrToNum(StrExtract(pattern,0));
+cgr1=StrToNum(StrExtract(pattern,1));
+cgr2=StrToNum(StrExtract(pattern,2));
+cgr3=StrToNum(StrExtract(pattern,3));
+cgr4=StrToNum(StrExtract(pattern,4));
+cgr5=StrToNum(StrExtract(pattern,5));
+cgr6=StrToNum(StrExtract(pattern,6));
+cgr7=StrToNum(StrExtract(pattern,7));
+cgr8=StrToNum(StrExtract(pattern,8));
+
+skresult = checkcandle(0,cgr0) AND checkcandle(-1,cgr1) AND checkcandle(-2,cgr2) AND checkcandle(-3,cgr3) AND checkcandle(-4,cgr4) AND checkcandle(-5,cgr5) AND checkcandle(-6,cgr6);
+//printf("\n%s","gotresult="+skresult1);
+//printf("\n%s","asked="+pattern1);
+//skresult=IIf(pattern1==skresult1,True,False);
+printf("\nskpP:"+skresult+",P:"+pattern+"R:"+checkcandle(0,cgr0)+checkcandle(-1,cgr1)+checkcandle(-2,cgr2) + checkcandle(-3,cgr3) + checkcandle(-4,cgr4) + checkcandle(-5,cgr5) + checkcandle(-6,cgr6));
+
+return skresult; 
+}
+
+if(1==0) // buy sell signal based on rekno price nClose
+{
+
+//Buy=Cover=Cross(Ref(rClose,-1),Ref(rOpen,-1)) ;
+//Short=Sell=Cross(Ref(rOpen,-1),Ref(rClose,-1))  ;
+// for average bar size . 
+//Buy=Cover=Cross(rClose,rOpen) ;	
+//Short=Sell=Cross(rOpen,rClose) ;
+// for small bar size with double bar check  . 
+Buy=Cover=Cross(Ref(rClose,-1),Ref(rOpen,-1)) AND Cross(rClose,rOpen);
+Short=Sell=Cross(Ref(rOpen,-1),Ref(rClose,-1)) AND Cross(rOpen,rClose) ;
+//Buy=Cover=Cross(rOpen,Ref(rOpen,-1)) ;
+//Short=Sell=Cross(Ref(rOpen,-1),rOpen) ;
+//printf("\n%s","Bar:"+BarCount+",SKP:"+SKP+",chg:"+SKPChanged+",SKRP:"+SKRP);
+//printf("\nBS:"+BrickSize+"B:"+Buy+",S:"+Short);
+
+if(1==1)// remove duplicate buy sell signals untill sell is done no more buy 
+{
+ Buy = ExRem(Buy, Sell);
+ Sell = ExRem(Sell, Buy);
+ Short = ExRem(Short, Cover);
+ Cover = ExRem(Cover, Short);
+printf("\nbuy:"+Buy+typeof(Buy)+",sell:"+Sell+typeof(Sell));
+}
+
+//printf("\nBari:"+i,nC:"+rClose+",chg:"+SKPChanged+",BS:"+BrickSize+"B:"+Buy+",S:"+Sell);
+}
+
+if(1==1) // buy sell signals formation based on bars pattern 
+{
+//Sell=Cover=0;
+Buy=skpattern(skbuypattern) OR skpattern(skbuypattern2) ; 
+Short=skpattern(skshortpattern) OR skpattern(skshortpattern2);
+//Sell=skpattern(sksellpattern) OR skpattern(sksellpattern2) OR skpattern(skshortpattern) OR skpattern(skshortpattern2) ;
+//Cover=skpattern(skcoverpattern) OR skpattern(skcoverpattern2) OR skpattern(skbuypattern) OR skpattern(skbuypattern2) ;
+Sell=skpattern(sksellpattern) OR skpattern(sksellpattern2) ;
+Cover=skpattern(skcoverpattern) OR skpattern(skcoverpattern2);
+
+if(1==1) // target and stop loss calculation for cover and sell price and signal generation 
+{
+currentstat[0]=0;
+skgotprice[0]=0;
+for(i=1; i < BarCount ; i++)
+{
+//currentstat[i]=IIf(Buy[i],1,IIf(Short[i],2,iif(Cover[i],0,IIf(Sell[i],0,currentstat[i-1]))));
+//skgotprice[i]=IIf(Buy[i],O[i],IIf(Short[i],O[i],IIf(Cover[i],0,IIf(Sell[i],0,skgotprice[i-1]))));
+currentstat[i]=IIf(Buy[i],1,IIf(Short[i],2,currentstat[i-1]));
+skgotprice[i]=IIf(Buy[i],O[i],IIf(Short[i],O[i],skgotprice[i-1]));
+}
+
+//1 means buy , 2 means short , 0 means no position 
+//currentstat=IIf(LastValue(Buy),1,IIf(LastValue(Short),2,Ref(currentstat,-1)));
+//skgotprice=IIf(LastValue(Buy),LastValue(O),IIf(LastValue(Short),LastValue(O),Ref(skgotprice,-1)));
+
+////currentstat=IIf(Buy,1,IIf(Short,2,Ref(currentstat,-1)));
+////skgotprice=IIf(Buy,LastValue(O),IIf(Short,LastValue(O),Ref(skgotprice,-1)));
+//currentstat=IIf(Buy,1,IIf(Short,2,IIf(Cover,0,IIf(Sell,0,Ref(currentstat,-1)))));
+//skgotprice=IIf(Buy,LastValue(O),IIf(Short,LastValue(O),IIf(Cover,0,IIf(Sell,0,Ref(skgotprice,-1)))));
+
+//printf("\nifvalue,B:"+LastValue(Buy) +",Sh:"+ LastValue(Short) + ",C:"+ LastValue(Cover) +",s:"+LastValue(Sell));
+
+if(LastValue(currentstat)==1)
+{
+//skp1=LastValue(skgotprice);
+skp1=ValueWhen(Buy,skgotprice);
+sktp=skp1+10*BrickSize;
+skslp=skp1-BrickSize;
+Sell=IIf(sktp>LastValue(C),1,0) OR IIf(skslp>LastValue(C),1,0);
+//currentstat[i]=IIf(Buy[i],1,IIf(Short[i],2,iif(Cover[i],0,IIf(Sell[i],0,currentstat[i-1]))));
+//skgotprice[i]=IIf(Buy[i],O[i],IIf(Short[i],O[i],IIf(Cover[i],0,IIf(Sell[i],0,skgotprice[i-1]))));
+//Sell = ExRem(Sell, Buy);
+printf("\nCstateB:"+ValueWhen(Buy,currentstat)+",GP:"+LastValue(skgotprice));
+}
+
+if(LastValue(currentstat)==2)
+{
+//skp1=LastValue(skgotprice);
+skp1=ValueWhen(Short,skgotprice);
+sktp=skp1-10*BrickSize;
+skslp=skp1+BrickSize;
+Cover=IIf(sktp>LastValue(C),1,0) OR IIf(skslp<LastValue(C),1,0);
+//Cover = ExRem(Cover, Short);
+printf("\nCstateSH:"+ValueWhen(Short,currentstat)+",GP:"+LastValue(skgotprice));
+}
+
+//currentstat[i]=IIf(Buy[i],1,IIf(Short[i],2,iif(Cover[i],0,IIf(Sell[i],0,currentstat[i-1]))));
+//skgotprice[i]=IIf(Buy[i],O[i],IIf(Short[i],O[i],IIf(Cover[i],0,IIf(Sell[i],0,skgotprice[i-1]))));
+currentstat=IIf(Buy,1,IIf(Short,2,IIf(Cover,0,IIf(Sell,0,Ref(currentstat,-1)))));
+skgotprice=IIf(Buy,LastValue(O),IIf(Short,LastValue(O),IIf(Cover,0,IIf(Sell,0,Ref(skgotprice,-1)))));
+
+printf("\nskg:"+skp1+"t1:"+sktp+"sl1="+skslp);
+printf("\nCstate:"+LastValue(currentstat)+",GP:"+LastValue(skgotprice));
+
+}
+
+
+if(1==1)// remove duplicate buy sell signals untill sell is done no more buy 
+{
+ Buy = ExRem(Buy, Sell);
+ Sell = ExRem(Sell, Buy);
+ Short = ExRem(Short, Cover);
+ Cover = ExRem(Cover, Short);
+printf("\nB:"+Buy+",S:"+Sell+",Sh:"+Short+",C:"+Cover+",BP:"+BuyPrice+",SP:"+SellPrice);
+}
+}
+
+
+if(1==1) // set buy sell price 
+{
+/*
+BuyPrice=LastValue(Buy);
+CoverPrice=LastValue(Cover);
+ShortPrice=LastValue(Short);
+SellPrice=LastValue(Sell);
+//*/
+///*
+BuyPrice=ValueWhen(Buy,O);
+CoverPrice=ValueWhen(Cover,O);
+ShortPrice=ValueWhen(Short,O);
+SellPrice=ValueWhen(Sell,O);
+
+/*
+BuyPrice=LastValue(Close);
+CoverPrice=LastValue(Close);
+ShortPrice=LastValue(Close);
+SellPrice=LastValue(Close);
+*/
+}
+
+if(1==1) // buy sell arrow draw based on rLow
+{
+skrvars_print=",o:"+O+"c:"+C;
+
+LongTrue = Flip(Buy, Sell) || Sell;
+ShortTrue = Flip(Short, Cover) || Cover;
+
+Buyshape = Buy * shapeUpArrow;
+SellShape = Sell * shapeStar;
+PlotShapes( Buyshape, colorBrightGreen, 0, rLow, -10 );
+PlotShapes( Buyshape, colorYellow, 0, rLow+10, -10 );
+//PlotText( "BUY@" + BuyPrice[0] + skrvars_print , 0, LastValue(rLow), colorGreen);
+PlotShapes( SellShape, colorBlue, 0, rHigh, -11 );
+
+Shortshape = Short * shapeDownArrow;
+CoverShape = Cover * shapeStar;
+PlotShapes( Shortshape, colorRed, 0, rHigh, -30);
+PlotShapes( Shortshape, coloryellow, 0, rHigh-10, -30);
+//PlotText( "Short@" + ShortPrice[0] + skrvars_print , 0, LastValue(rHigh), colorRed);
+PlotShapes( CoverShape, colorYellow, 0, rLow, -31 )	;
+}
+
+if(1==0) // buy sell arrow draw based on nClose
+{
+skrvars_print=",o:"+nOpen+"c:"+nClose;
+
+//LongTrue = Flip(Buy, Sell) || Sell;
+//ShortTrue = Flip(Short, Cover) || Cover;
+
+Buyshape = Buy * shapeUpArrow;
+SellShape = Sell * shapeStar;
+PlotShapes( Buyshape, colorBrightGreen, 0, nLow, -10 );
+//PlotShapes( Buyshape, colorYellow, 0, nLow+10, -10 );
+//PlotText( "BUY@" + BuyPrice[0] + skrvars_print , 0, LastValue(rLow), colorGreen);
+PlotShapes( SellShape, colorBlue, 0, nHigh, -11 );
+
+Shortshape = Short * shapeDownArrow;
+CoverShape = Cover * shapeStar;
+PlotShapes( Shortshape, colorRed, 0, nHigh, -30);
+//PlotShapes( Shortshape, coloryellow, 0, nHigh-10, -30);
+//PlotText( "Short@" + ShortPrice[0] + skrvars_print , 0, LastValue(rHigh), colorRed);
+PlotShapes( CoverShape, colorYellow, 0, nLow, -31 )	;
+}
+
+
+if(1==1) // write buy sell price on chart 
+{
+//skrvars_print="o:"+skro+"o1:"+skro1+"o2:"+skro2+"c:"+skrc+"c1:"+skrc1+"c2:"+skrc2;
+/*
+BuyPrice=LastValue(Close);
+CoverPrice=LastValue(Close);
+ShortPrice=LastValue(Close);
+SellPrice=LastValue(Close);
+dist = ATR(15);
+dist1 = 1.2*ATR(15);
+dist2 = 0.5*ATR(15);
+*/
+dist=BrickSize;
+dist1=1.2*dist;
+dist2=0.4*dist;
+
+for( i = 0; i < BarCount; i++ ) 
+{ 
+//skrvars_print="-O:"+rOpen[i-1]+"C:"+rClose[i-1];  // for using the last candle for buy sell signals 
+skrvars_print="-O:"+rOpen[i]+"C:"+rClose[i];  // for using the current signal for buy sell signals 
+ if( Buy[i]) 
+ {
+  PlotText( "BUY@" + BuyPrice[ i ] + skrvars_print , i, rLow[ i ]-dist2[i], colorGreen);
+ //Plot(BuyPrice * 100.1/100,"t1", colorGreen,styleDots|styleStaircase, Null, Null, 0, 1, 1);
+ // printf("\nexp:"+BuyPrice[i]+skrvars_print);
+ }
+ if( Short[i] )
+ {
+  PlotText( "Short@" + ShortPrice[ i ] + skrvars_print , i, rHigh[ i ]+dist2[i], colorRed);
+  //Plot(ShortPrice * 99.9/100,"t1", coloryellow,styleDots|styleStaircase, Null, Null, 0, 1, 1);
+ 
+ }
+ if( Cover[i] ) 
+ {
+  PlotText( "Cover@" + CoverPrice[ i ] , i, rLow[ i ]-dist[i], colorBlue );
+ }
+ if( Sell[i] )
+ {
+  PlotText( "Sell@" + SellPrice[ i ]  ,i, rHigh[ i ]+dist[i], colorOrange);
+ 
+ }
+}
+
+}
+
+if(1==1) // buy sell signal sent to amigo 
+{
+
+// from here the buy and sell signals . 
+_SECTION_BEGIN("AmigoTrends");
+// If user want to use external targets/stop loss from afl, please unhide the below code and
+// asign corresponding array values to it.
+
+// LT1 = Null;		// Long Target1 External
+// ST1 = Null;		// Short Target1 External
+
+// LT2 = Null;		// Long Target2 External
+// ST2 = Null;		// Short Targe2 External
+
+// LT3 = Null;		// Long Target3 External
+// ST3 = Null;		// Short Target3 External
+
+// LSL = Null;		// Long Stoploss External
+// SSL = Null;		// Short Stoploss External
+
+ AmigoC1(Open, High, Low, Close, Volume, Buy, Sell, Short, Cover);
+_SECTION_END();
+
+}
