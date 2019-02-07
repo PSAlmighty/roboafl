@@ -33,21 +33,21 @@ sktitle = ParamStr("Title","sk3");
 
 }
 
-if(1==0) // buy sell patterns for simple trade buy on 2 green and sell on 2 red good when using small brick
+if(1==1) // buy sell patterns for simple trade buy on 2 green and sell on 2 red good when using small brick
 {
-BrickSize = Param( "BrickSize ",2, 0, 200,1 );
-skbuypattern =ParamStr("buypattern","1,1,2,2,2,2,2");
-skbuypattern2=ParamStr("buypattern2","1,1,2,2,2,2,2");
+BrickSize = Param( "BrickSize ",5, 0, 200,1 );
+skbuypattern =ParamStr("buypattern","211");
+skbuypattern2=ParamStr("buypattern2","211");
 
-sksellpattern =ParamStr("sksellpattern","0,0,2,2,2,2,2");   // 
-sksellpattern2=ParamStr("sksellpattern2","0,0,2,2,2,2,2");  //
+sksellpattern =ParamStr("sksellpattern","200");   // 
+sksellpattern2=ParamStr("sksellpattern2","200");  //
 
-skshortpattern =ParamStr("skshortpattern","0,0,2,2,2,2,2");	//
-skshortpattern2=ParamStr("skshortpattern2","0,0,2,2,2,2,2");
-skshortpatternfull=ParamStr("skshortpattern","0,0,0,0,0,0,0");
+skshortpattern =ParamStr("skshortpattern","200");	//
+skshortpattern2=ParamStr("skshortpattern2","200");
 
-skcoverpattern =ParamStr("skcoverpattern","1,1,2,2,2,2,2");
-skcoverpattern2=ParamStr("skcoverpattern2","1,1,2,2,2,2,2");
+skcoverpattern =ParamStr("skcoverpattern","211");
+skcoverpattern2=ParamStr("skcoverpattern2","211");
+
 }
 
 if(1==0) // buy sell patterns for flip trade buy on red+ green and short on green+red ;sqoff on 4 green or 4 red ; SL on 2green or 2 red 
@@ -66,7 +66,7 @@ skcoverpattern =ParamStr("skcoverpattern","1,1,2,2,2,2,2");
 skcoverpattern2=ParamStr("skcoverpattern2","1,0,0,0,0,2,2");
 }
 
-if(1==1) // buy sell patterns for flip trade buy on red+ green and short on green+red ;ignore last1 ; decision on old ones 
+if(1==0) // buy sell patterns for flip trade buy on red+ green and short on green+red ;ignore last1 ; decision on old ones 
 {
 BrickSize = Param( "BrickSize ",5, 0, 200,1 );
 skbuypattern =ParamStr("buypattern","2,1,1,0,0,0,0");
@@ -382,6 +382,87 @@ _N(Title = Title + StrFormat(" Open %g, Hi %g, Lo %g, Close %g", rOpen, rHigh, r
 _SECTION_END();
 }
 
+function lastpattern(count)
+{
+str1="";
+for (i=0;i<count;i++)
+{
+k=-1*i;
+skcp=Ref(rClose,k);
+skop=Ref(rOpen,k);
+result1=IIf(skcp>skop,1,0);
+str1+=result1;
+}
+return str1;
+}
+
+function lastpattern_reverse(count)
+{
+str1="last:";
+for (i=count;i>=0;i--)
+{
+k=-1*i;
+skcp=Ref(rClose,k);
+skop=Ref(rOpen,k);
+result1=IIf(skcp>skop,1,0);
+str1+=result1;
+}
+printf("\n"+str1);
+}
+
+function skpatterncheck1(name1,pattern)
+{
+count=StrLen(pattern);
+SKGOTP=lastpattern(count);
+//SKGOTP=pattern;
+skresult=True AND True AND True AND True AND True AND True ;
+str2="";
+str3="";
+strignore="2";
+for(i=0;i<count;i++)
+{
+//skresult1=IIf(SKGOTP[i]>1,1,IIf(SKGOTP[i]==pattern[i],1,0));
+skresult1=IIf(StrMid(pattern,i,1)==strignore,True,IIf(StrMid(SKGOTP,i,1)==StrMid(pattern,i,1),True,False));
+
+str2+=skresult1;
+skresult2[i]=skresult1;
+skresult=skresult AND skresult1;
+//printf("\nC"+i+"s1:"+StrMid(pattern,i,1)+"s2:"+StrMid(SKGOTP,i,1));
+//str3+=StrExtract(pattern,i);
+//skresult = skresult AND skresult1;
+}
+//result=skresult2[0] AND skresult2[1] AND skresult2[2] AND skresult2[3];
+printf("\n["+skresult+"]:"+"type:"+typeof(skresult)+name1+"("+str2+") #P:"+pattern+",G:"+SKGOTP);
+return skresult;
+}
+
+function skpatterncheck(name1,pattern)
+{
+count=StrLen(pattern);
+SKGOTP=lastpattern(count);
+//SKGOTP=pattern;
+skresult=True;
+str2="";
+for(i=0;i<count;i++)
+{
+k=-1*i;
+skcp=Ref(rClose,k);
+skop=Ref(rOpen,k);
+cgr=StrToNum(StrMid(pattern,i,1));
+skresult1=IIf(skcp>skop,0,1);
+skresult2=IIf(skresult1!=cgr,True,False);
+str2+=skresult2;
+skresult=skresult AND skresult2;
+//printf("\nC"+i+"s1:"+StrMid(pattern,i,1)+"s2:"+StrMid(SKGOTP,i,1));
+//str3+=StrExtract(pattern,i);
+//skresult = skresult AND skresult1;
+}
+//result=skresult2[0] AND skresult2[1] AND skresult2[2] AND skresult2[3];
+//printf("\n["+skresult+"]:"+"type:"+typeof(skresult)+name1+"("+str2+") #P:"+pattern+",G:"+SKGOTP);
+printf("\n["+skresult+"]:"+name1+"("+str2+") #P:"+pattern+",G:"+SKGOTP);
+return skresult;
+}
+
 function checkcandle(cnumber,cgr)  // based on rClose
 {
 skcp=Ref(rClose,cnumber);
@@ -402,12 +483,16 @@ cgr5=StrToNum(StrExtract(pattern,5));
 cgr6=StrToNum(StrExtract(pattern,6));
 cgr7=StrToNum(StrExtract(pattern,7));
 cgr8=StrToNum(StrExtract(pattern,8));
+cgr9=StrToNum(StrExtract(pattern,9));
+cgr10=StrToNum(StrExtract(pattern,10));
+cgr11=StrToNum(StrExtract(pattern,11));
+cgr12=StrToNum(StrExtract(pattern,12));
 
 skresult = checkcandle(0,cgr0) AND checkcandle(-1,cgr1) AND checkcandle(-2,cgr2) AND checkcandle(-3,cgr3) AND checkcandle(-4,cgr4) AND checkcandle(-5,cgr5) AND checkcandle(-6,cgr6);
 //printf("\n%s","gotresult="+skresult1);
 //printf("\n%s","asked="+pattern1);
 //skresult=IIf(pattern1==skresult1,True,False);
-printf("\n"+name1+":"+skresult+",P:"+pattern+"R:"+checkcandle(0,cgr0)+checkcandle(-1,cgr1)+checkcandle(-2,cgr2) + checkcandle(-3,cgr3) + checkcandle(-4,cgr4) + checkcandle(-5,cgr5) + checkcandle(-6,cgr6));
+printf("\n"+name1+":"+skresult+"type:"+typeof(skresult)+",P:"+pattern+"R:"+checkcandle(0,cgr0)+checkcandle(-1,cgr1)+checkcandle(-2,cgr2) + checkcandle(-3,cgr3) + checkcandle(-4,cgr4) + checkcandle(-5,cgr5) + checkcandle(-6,cgr6));
 
 return skresult; 
 }
@@ -442,17 +527,29 @@ printf("\nbuy:"+Buy+typeof(Buy)+",sell:"+Sell+typeof(Sell));
 
 if(1==1) // buy sell signals formation based on bars pattern 
 {
-//Sell=Cover=0;
-Buy=skpattern("b1",skbuypattern) OR skpattern("b2",skbuypattern2) ; 
+//Buy=Short=Sell=Cover=0;
+printf("\nLast="+lastpattern(15));
+//skpatterncheck("N1",5,"10101");
+//Buy=skpattern("b1",skbuypattern) ;// OR skpattern("b2",skbuypattern2) ;
+Buy=skpatterncheck("b1",skbuypattern) OR skpatterncheck("b2",skbuypattern2); 
+Sell=skpatterncheck("S1",sksellpattern) OR skpatterncheck("S2",sksellpattern2) ;
 
 //Sell=skpattern(sksellpattern) OR skpattern(sksellpattern2) OR skpattern(skshortpattern) OR skpattern(skshortpattern2) ;
 //Cover=skpattern(skcoverpattern) OR skpattern(skcoverpattern2) OR skpattern(skbuypattern) OR skpattern(skbuypattern2) ;
-Sell=skpattern("S1",sksellpattern) OR skpattern("S2",sksellpattern2) ;
 
-Short=skpattern("Sh1",skshortpattern) OR skpattern("sh2",skshortpattern2);
-Cover=skpattern("C1",skcoverpattern) OR skpattern("C2",skcoverpattern2);
+//Sell=skpattern("S1",sksellpattern) OR skpattern("S2",sksellpattern2) ;
+//Short=skpattern("Sh1",skshortpattern) OR skpattern("sh2",skshortpattern2);
+//Cover=skpattern("C1",skcoverpattern) OR skpattern("C2",skcoverpattern2);
 
-if(1==1) // target and stop loss calculation for cover and sell price and signal generation 
+
+Short=skpatterncheck("Sh1",skshortpattern) OR skpatterncheck("sh2",skshortpattern2);
+Cover=skpatterncheck("C1",skcoverpattern) OR skpatterncheck("C2",skcoverpattern2);
+
+ 
+printf("\nPRE-B:"+Buy+"T:"+typeof(Buy)+",S:"+Sell+",Sh:"+Short+",C:"+Cover+",BP:"+BuyPrice+",SP:"+SellPrice);
+}
+
+if(1==0) // target and stop loss calculation for cover and sell price and signal generation 
 {
 currentstat[0]=0;
 skgotprice[0]=0;
@@ -481,7 +578,7 @@ if(LastValue(currentstat)==1)
 skp1=ValueWhen(Buy,skgotprice);
 sktp=skp1+10*BrickSize;
 skslp=skp1-BrickSize;
-Sell=IIf(sktp>LastValue(C),1,0) OR IIf(skslp>LastValue(C),1,0);
+//Sell=IIf(sktp>LastValue(C),1,0) OR IIf(skslp>LastValue(C),1,0);
 //currentstat[i]=IIf(Buy[i],1,IIf(Short[i],2,iif(Cover[i],0,IIf(Sell[i],0,currentstat[i-1]))));
 //skgotprice[i]=IIf(Buy[i],O[i],IIf(Short[i],O[i],IIf(Cover[i],0,IIf(Sell[i],0,skgotprice[i-1]))));
 //Sell = ExRem(Sell, Buy);
@@ -494,7 +591,7 @@ if(LastValue(currentstat)==2)
 skp1=ValueWhen(Short,skgotprice);
 sktp=skp1-10*BrickSize;
 skslp=skp1+BrickSize;
-Cover=IIf(sktp>LastValue(C),1,0) OR IIf(skslp<LastValue(C),1,0);
+//Cover=IIf(sktp>LastValue(C),1,0) OR IIf(skslp<LastValue(C),1,0);
 //Cover = ExRem(Cover, Short);
 printf("\nCstateSH:"+ValueWhen(Short,currentstat)+",GP:"+LastValue(skgotprice));
 }
@@ -509,16 +606,15 @@ printf("\nCstate:"+LastValue(currentstat)+",GP:"+LastValue(skgotprice));
 
 }
 
-
 if(1==1)// remove duplicate buy sell signals untill sell is done no more buy 
 {
  Buy = ExRem(Buy, Sell);
  Sell = ExRem(Sell, Buy);
  Short = ExRem(Short, Cover);
  Cover = ExRem(Cover, Short);
-printf("\nB:"+Buy+",S:"+Sell+",Sh:"+Short+",C:"+Cover+",BP:"+BuyPrice+",SP:"+SellPrice);
+printf("\nB:"+Buy+"T:"+typeof(Buy)+",S:"+Sell+",Sh:"+Short+",C:"+Cover+",BP:"+BuyPrice+",SP:"+SellPrice);
 }
-}
+
 
 
 if(1==1) // set buy sell price 
@@ -547,8 +643,8 @@ if(1==1) // buy sell arrow draw based on rLow
 {
 skrvars_print=",o:"+O+"c:"+C;
 
-LongTrue = Flip(Buy, Sell) || Sell;
-ShortTrue = Flip(Short, Cover) || Cover;
+//LongTrue = Flip(Buy, Sell) || Sell;
+//ShortTrue = Flip(Short, Cover) || Cover;
 
 Buyshape = Buy * shapeUpArrow;
 SellShape = Sell * shapeStar;
