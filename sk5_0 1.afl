@@ -460,7 +460,7 @@ skresult=skresult AND skresult2;
 printf("\n["+skresult+"]:"+name1+"("+str2+") #P:"+pattern+",GN:"+SKGOTP);
 skifc=StrToNum(NumToStr(IIf(skresult==1,1,0)));
 //printf("\n"+typeof(skifc)+"skifc:"+skifc);
-If(skifc==1) { skaction=skaction +","+ name1 + pattern; }
+If(skifc==1) { skaction=skaction +","+ name1 +"-"+ pattern; }
 return skresult;
 }
 
@@ -485,7 +485,7 @@ skresult=skresult AND skresult2;
 printf("\n["+skresult+"]:"+name1+"("+str2+") #P:"+pattern+",GC:"+SKGOTP);
 skifc=StrToNum(NumToStr(IIf(skresult==1,1,0)));
 //printf("\n"+typeof(skifc)+"skifc:"+skifc);
-If(skifc==1) { skaction=skaction +","+ name1+ pattern; }
+If(skifc==1) { skaction=skaction +","+ name1 +"-"+pattern; }
 return skresult;
 }
 
@@ -510,7 +510,7 @@ skresult=skresult AND skresult2;
 printf("\n["+skresult+"]:"+name1+"("+str2+") #P:"+pattern+",GR:"+SKGOTP);
 skifc=StrToNum(NumToStr(IIf(skresult==1,1,0)));
 //printf("\n"+typeof(skifc)+"skifc:"+skifc);
-If(skifc==1) { skaction=skaction +","+ name1+ pattern; }
+If(skifc==1) { skaction=skaction +","+ name1+"-"+pattern; }
 return skresult;
 }
 

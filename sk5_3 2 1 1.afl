@@ -31,7 +31,6 @@ y=Param("yposn",1,0,1000,1);
 //sktitle = ParamStr("Title","skself1");
 sktitle = ParamStr("Title","sk3");
 skaction="Action";
-skaction1[0]=0;
 
 }
 
@@ -110,7 +109,7 @@ printf("bricks:"+BrickSize);
 Plot(BrickSize, " | BrickSize", colorRed, styleNoLine | styleOwnScale | styleNoLabel);
 Plot(skatr, " | atr", colorRed, styleNoLine | styleOwnScale | styleNoLabel);
 Plot(suggestedbrick_bn, " | try", colorRed, styleNoLine | styleOwnScale | styleNoLabel);
-Plot(avgatrperiods, " | avgatr", colorRed, styleNoLine | styleOwnScale | styleNoLabel);
+Plot(avgatrperiods, "| avgatr", colorRed, styleNoLine | styleOwnScale | styleNoLabel);
 i=0;k=0;
 //SKPChanged=SKP=SKPC=SKB=SKS=SKPD;
 
@@ -208,7 +207,8 @@ rLow=rOpen=Ref(SKRP1,-1);
 
 if(1==1) // plot the chart based on bricksize
 {
-Plot(Close,"Close",colorBlue,styleLine);
+Plot(Close,"\nClose",colorBlue,styleLine);
+Plot(Open,"OPen",colorBlue,styleNoDraw);
 //Plot(nClose,"nClose",colorBlue,styleLine);
 //PlotOHLC(nOpen, nHigh, nLow, nClose, "", colorAqua, styleCandle);
 //PlotOHLC(mOpen, mHigh, mLow, mClose, "", colorDefault, styleCandle);
@@ -461,7 +461,7 @@ skresult=skresult AND skresult2;
 printf("\n["+skresult+"]:"+name1+"("+str2+") #P:"+pattern+",GN:"+SKGOTP);
 skifc=StrToNum(NumToStr(IIf(skresult==1,1,0)));
 //printf("\n"+typeof(skifc)+"skifc:"+skifc);
-If(skifc==1) { skaction=skaction +","+ name1 +"-"+pattern; }
+If(skifc==1) { skaction=skaction +","+ name1 +"-"+ pattern; }
 return skresult;
 }
 
@@ -486,7 +486,7 @@ skresult=skresult AND skresult2;
 printf("\n["+skresult+"]:"+name1+"("+str2+") #P:"+pattern+",GC:"+SKGOTP);
 skifc=StrToNum(NumToStr(IIf(skresult==1,1,0)));
 //printf("\n"+typeof(skifc)+"skifc:"+skifc);
-If(skifc==1) { skaction=skaction +","+ name1+"-"+ pattern; }
+If(skifc==1) { skaction=skaction +","+ name1 +"-"+pattern; }
 return skresult;
 }
 
@@ -511,7 +511,7 @@ skresult=skresult AND skresult2;
 printf("\n["+skresult+"]:"+name1+"("+str2+") #P:"+pattern+",GR:"+SKGOTP);
 skifc=StrToNum(NumToStr(IIf(skresult==1,1,0)));
 //printf("\n"+typeof(skifc)+"skifc:"+skifc);
-If(skifc==1) { skaction=skaction +","+ name1+"-"+ pattern; }
+If(skifc==1) { skaction=skaction +","+ name1+"-"+pattern; }
 return skresult;
 }
 
@@ -547,50 +547,6 @@ skresult = checkcandle(0,cgr0) AND checkcandle(-1,cgr1) AND checkcandle(-2,cgr2)
 printf("\n"+name1+":"+skresult+"type:"+typeof(skresult)+",P:"+pattern+"R:"+checkcandle(0,cgr0)+checkcandle(-1,cgr1)+checkcandle(-2,cgr2) + checkcandle(-3,cgr3) + checkcandle(-4,cgr4) + checkcandle(-5,cgr5) + checkcandle(-6,cgr6));
 
 return skresult; 
-}
-
-function currentaction(buyorsell,signal_to_check,lastskaction)
-{
-//skraction1=IIf((buyorsell=="buy"  AND StrToNum(NumToStr(signal_to_check))==True),"bought",IIf(buyorsell=="sell"  AND StrToNum(NumToStr(signal_to_check))==True,"sold",lastskaction));
-if(StrToNum(NumToStr(signal_to_check))==False )
-skaction1=lastskaction;
-if(buyorsell=="buy"  AND StrToNum(NumToStr(signal_to_check))==True )
-{printf("\nin buy Signal");
-skaction1="bought";}
-if(buyorsell=="sell"  AND StrToNum(NumToStr(signal_to_check))==True )
-{skaction1="sold";}
-return skaction1;
-
-}
-
-function sksignal_exprice(buyorsell,signal_to_check,skexprice,sksl,skt,skcrprice)
-{
-skaction1=currentaction(buyorsell,signal_to_check,skaction1);
-skreturn=False;
-
-if(buyorsell=="buy"  AND StrToNum(NumToStr(signal_to_check))==True )
-{printf("\nin buy Signal");
-skaction1="bought";}
-if(buyorsell=="sell"  AND StrToNum(NumToStr(signal_to_check))==True )
-{skaction1="sold";}
-
-printf("\nAct "+skaction1+"signal:"+signal_to_check+buyorsell+"xp:"+skexprice+"SL:"+sksl+"SKT:"+skt+"CRP:"+skcrprice);
-
-if(buyorsell=="buy"  AND StrToNum(NumToStr(signal_to_check))==True )
-{
-If( (skexprice+skt)<skcrprice OR (skexprice-sksl)>skcrprice)
-	{
-	skreturn=True;
-	}
-}
-
-if(buyorsell=="sell"  AND StrToNum(NumToStr(signal_to_check))==True )
-{	If( (skexprice-skt)>skcrprice OR (skexprice+sksl)<skcrprice)
-	{
-	skreturn=True;
-	}
-}
-return skreturn;
 }
 
 if(1==0) // buy sell signal based on rekno price nClose
@@ -639,48 +595,138 @@ Short=skpatterncheck_rclose("RW1","2000011111") OR skpatterncheck_rclose("RW2","
 Cover=skpatterncheck_rclose("RC1","1111") OR skpatterncheck_rclose("RC2","0101010") OR skpatterncheck_close("CC3","1111") OR skpatterncheck_close("CC4","0101010101010");
 }
 
-if(1==1) // buy sell signals set2
+if(1==1) // buy sell signals set2 based on renko only . buy on 2green and sell on 2 red 
 {
-Buy=skpatterncheck_rclose("RB1","2111100000")  OR skpatterncheck_rclose("RB2","211000")
-OR skpatterncheck_close("CB2","11111111111");
-
-skbuycheck=StrToNum(NumToStr(Buy));
-if(StrToNum(NumToStr(Buy)) )
-{skaction1[1]=1;
-printf("\ninbuy"+skaction1[1]+"lastval:"+LastValue(skaction1));}
-
-//printf("\nsignalexpriceforbuy"+sksignal_exprice("buy",Buy,lastvalue(BuyPrice),10,50,LastValue(Close)));
-Sell=skpatterncheck_rclose("RS1","2000111100000")  OR skpatterncheck_rclose("RS2","20001") OR skpatterncheck_rclose("RS3","111111")
-OR skpatterncheck_close("CS1","201111") OR skpatterncheck_close("CS2","00000") OR skpatterncheck_close("CS3","2111111");
-
-if(StrToNum(NumToStr(Sell))==1 )
-{skaction1[1]=2;
-printf("\ninsell"+skaction1[1]+"lastval:"+LastValue(skaction1));}
-
-Short=skpatterncheck_rclose("RW1","20000111")
-OR skpatterncheck_close("CW1","2000111111") OR skpatterncheck_close("CW2","01110111") ;
-
-if(StrToNum(NumToStr(Short))==1 )
-{skaction1[1]=3;
-printf("\ninshort"+skaction1[1]+"lastval:"+LastValue(skaction1));}
-
-Cover=skpatterncheck_rclose("RC1","211")
-OR skpatterncheck_rclose("CC1","11111") ;
-
-if(StrToNum(NumToStr(Cover))==1 )
-{skaction1[1]=4;
-printf("\nincover"+skaction1[1]+"lastval:"+LastValue(skaction1));}
-
-if(StrToNum(NumToStr(buy))==0 AND StrToNum(NumToStr(sell))==0 AND StrToNum(NumToStr(Short))==0 AND StrToNum(NumToStr(Cover))==0 )
-{
-printf("\ninnothing"+skaction1[1]);
-//skaction1[1]=LastValue(skaction1);
+Buy=skpatterncheck_rclose("RB1","11")  ;
+Sell=skpatterncheck_rclose("RS1","00")  ;
+Short=skpatterncheck_rclose("RW1","00") ;
+Cover=skpatterncheck_rclose("RC1","11") ;
 }
 
-printf("\nskact:B=1,S=2,SQ=0 : current Act: "+LastValue(skaction1) +skaction1[1]+ "check:"+typeof(skbuycheck)+skbuycheck);
+if(1==0) // buy sell signals set3 // very quick buy and short;
+{
+Buy=skpatterncheck_rclose("RB1","21100000")  OR skpatterncheck_rclose("RB2","211111")
+OR skpatterncheck_close("CB2","21111");
+
+Sell=skpatterncheck_rclose("RS1","2000111100000")  OR skpatterncheck_rclose("RS2","20000000001") OR skpatterncheck_rclose("RS3","1111111111")
+OR skpatterncheck_close("CS1","20000111111") OR skpatterncheck_close("CS2","000000000") OR skpatterncheck_close("CS3","21111111111");
+
+Short=skpatterncheck_rclose("RW1","2111111")
+OR skpatterncheck_close("CW1","211111") OR skpatterncheck_close("CW2","00110011") ;
+
+Cover=skpatterncheck_rclose("RC1","2111111")
+OR skpatterncheck_rclose("CC1","1111111") ;
 }
 
-if(1==0) // target and stop loss calculation for cover and sell price and signal generation 
+if(1==0) // buy sell signals set4 Just buy  
+{
+Buy=skpatterncheck_rclose("RB1","200000")  OR skpatterncheck_rclose("RB2","1111")
+OR skpatterncheck_close("CB1","00000") OR skpatterncheck_close("CB2","00100100") OR skpatterncheck_close("CB3","0001000");
+
+Sell=0;Short=0;Cover=0;
+printf("\nPRE-B:"+Buy+",S:"+Sell+",Sh:"+Short+",C:"+Cover+",LP:"+BuyPrice);
+printf("\n** Actions = "+skaction);
+}
+
+if(1==1) // check which action is going on Long or Short 
+{
+sklong=Flip(Buy,Sell);
+skshrt=Flip(Short,Cover);
+LongTrue = Flip(Buy, Sell) || Sell;
+ShortTrue = Flip(Short, Cover) || Cover;
+}
+
+if(1==1)// remove duplicate buy sell signals untill sell is done no more buy 
+{
+printf("\nPRE-B:"+Buy+",S:"+Sell+",Sh:"+Short+",C:"+Cover+",LP:"+BuyPrice);
+printf("\n** Actions = "+skaction);
+ Buy = ExRem(Buy, Sell);
+ Sell = ExRem(Sell, Buy);
+ Short = ExRem(Short, Cover);
+ Cover = ExRem(Cover, Short);
+printf("\nB:"+Buy+",S:"+Sell+",Sh:"+Short+",C:"+Cover+",LP:"+BuyPrice);
+}
+
+if(1==1) // set Price for buy sell prices based on diffirent current prices high , low or open or close 
+{
+if(1==0) // LOWHIGHset buy sell price :using LOW and HIGH in very worst case scenario of price ;if you get profit in this case then noone can give you loss
+{
+BuyPrice=ValueWhen(Buy,H);
+SellPrice=ValueWhen(Sell,L);
+ShortPrice=ValueWhen(Short,L);
+CoverPrice=ValueWhen(Cover,H);
+}
+
+if(1==1) // CLOSE set buy sell price : using 	CLOSE price of bar this should be used though it is tough to see profits with this ; but this is usually actual price of trade.
+{
+BuyPrice=ValueWhen(Buy,C);
+CoverPrice=ValueWhen(Cover,C);
+ShortPrice=ValueWhen(Short,C);
+SellPrice=ValueWhen(Sell,C);
+}
+
+if(1==0) // OHLC set buy sell price : using average price of OHLC ; so it is good to use and usually matches the actual price 
+{
+BuyPrice=ValueWhen(Buy,(O+H+L+C)/4);
+CoverPrice=ValueWhen(Cover,(O+H+L+C)/4);
+ShortPrice=ValueWhen(Short,(O+H+L+C)/4);
+SellPrice=ValueWhen(Sell,(O+H+L+C)/4);
+}
+
+if(1==0) // OPEN set buy sell price : using Open value of the bar ; this can happen only if your decision is based on last candle not current .this usually shows big profits 
+{
+BuyPrice=ValueWhen(Buy,O);
+CoverPrice=ValueWhen(Cover,O);
+ShortPrice=ValueWhen(Short,O);
+SellPrice=ValueWhen(Sell,O);
+}
+
+if(1==0) // notgood :set buy sell price : using latvalue rarely gives proper price 
+{
+BuyPrice=LastValue(Buy);
+CoverPrice=LastValue(Cover);
+ShortPrice=LastValue(Short);
+SellPrice=LastValue(Sell);
+}
+
+}
+
+if(1==1) // draw lines when buy or sell in place 
+{
+sksl=10;
+skexprice=IIf(sklong,BuyPrice,IIf(skshrt,ShortPrice,Null));
+//skslp=IIf(longtrue,BuyPrice-sksl,IIf(ShortTrue,ShortPrice+sksl,Null));
+sklongSLP=Close-sksl;
+buypricediff=Close-BuyPrice;
+skshortSLP=Close+sksl;
+sellpricediff=ShortPrice-Close;
+sklongSLP=IIf(Ref(sklongSLP,-1)>=Close-sksl,Ref(sklongSLP,-1),Close-sksl);
+skshortSLP=IIf(Ref(skshortSLP,-1)<=Close+sksl,Close+sksl,Ref(skshortSLP,-1));
+//sklongSLP1=IIf(sklong,(IIf(buypricediff>=0,(Close+int(buypricediff/sksl)*sksl-sksl),Close-sksl),Null);
+//skshortSLP1=IIf(skshrt,IIf(sellpricediff>=0,(ShortPrice-int(sellpricediff/sksl)*sksl+sksl),ShortPrice+sksl),Null);
+
+sklongSLC=Cross(sklongSLP,Close);
+skshortSLC=Cross(Close,skshortSLP);
+/*
+if(buypricediff>=0) // means price diff is above stoploss 
+{
+skupmultiplier=int(buypricediff/sksl);
+sklongSLP=BuyPrice+skupmultiplier*sksl-sksl
+//sklongSLP=IIf(sklong,BuyPrice-sksl,Null);
+}
+*/
+//sklongSLC=iif(sklongSLP>Close,True,false);
+//skshortSLC=iif(skshortSLP<Close,True,false);
+
+printf("\nLong="+sklong+"skshrt"+skshrt+"XP"+skexprice);
+	Plot(IIf(sklong , BuyPrice, Null), "BuyPrice", colorGreen, styleDots, Null, Null, 0, 1, 1);
+	Plot(IIf(skshrt, ShortPrice, Null), "ShortPrice", colorYellow, styleDots, Null, Null, 0, 1, 1);
+	Plot(IIf(sklong , sklongSLP,Null), "BuySL", colorRed, styleDots, Null, Null, 0, 1, 1);
+	Plot(IIf(skshrt , skshortSLP,Null), "ShortSL", colorRed, styleDots, Null, Null, 0, 1, 1);
+	
+}
+
+if(1==1) // target and stop loss calculation for cover and sell price and signal generation 
 {
 currentstat[0]=0;
 skgotprice[0]=0;
@@ -737,57 +783,10 @@ printf("\nCstate:"+LastValue(currentstat)+",GP:"+LastValue(skgotprice));
 
 }
 
-if(1==1)// remove duplicate buy sell signals untill sell is done no more buy 
+if(1==0) // target and stop loss calculation for cover and sell price and signal generation
 {
-printf("\nPRE-B:"+Buy+",S:"+Sell+",Sh:"+Short+",C:"+Cover+",BP:"+BuyPrice+",SP:"+SellPrice);
-printf("\n** Actions = "+skaction);
- Buy = ExRem(Buy, Sell);
- Sell = ExRem(Sell, Buy);
- Short = ExRem(Short, Cover);
- Cover = ExRem(Cover, Short);
-//printf("\nB:"+Buy+"T:"+typeof(Buy)+",S:"+Sell+",Sh:"+Short+",C:"+Cover+",BP:"+BuyPrice+",SP:"+SellPrice);
-printf("\nB:"+Buy+",S:"+Sell+",Sh:"+Short+",C:"+Cover+",BP:"+BuyPrice+",SP:"+SellPrice);
-}
-
-
-if(1==0) // LOWHIGHset buy sell price :using LOW and HIGH in very worst case scenario of price ;if you get profit in this case then noone can give you loss
-{
-BuyPrice=ValueWhen(Buy,H);
-SellPrice=ValueWhen(Sell,L);
-ShortPrice=ValueWhen(Short,L);
-CoverPrice=ValueWhen(Cover,H);
-}
-
-if(1==1) // CLOSE set buy sell price : using 	CLOSE price of bar this should be used though it is tough to see profits with this ; but this is usually actual price of trade.
-{
-BuyPrice=ValueWhen(Buy,C);
-CoverPrice=ValueWhen(Cover,C);
-ShortPrice=ValueWhen(Short,C);
-SellPrice=ValueWhen(Sell,C);
-}
-
-if(1==0) // OHLC set buy sell price : using average price of OHLC ; so it is good to use and usually matches the actual price 
-{
-BuyPrice=ValueWhen(Buy,(O+H+L+C)/4);
-CoverPrice=ValueWhen(Cover,(O+H+L+C)/4);
-ShortPrice=ValueWhen(Short,(O+H+L+C)/4);
-SellPrice=ValueWhen(Sell,(O+H+L+C)/4);
-}
-
-if(1==0) // OPEN set buy sell price : using Open value of the bar ; this can happen only if your decision is based on last candle not current .this usually shows big profits 
-{
-BuyPrice=ValueWhen(Buy,O);
-CoverPrice=ValueWhen(Cover,O);
-ShortPrice=ValueWhen(Short,O);
-SellPrice=ValueWhen(Sell,O);
-}
-
-if(1==0) // notgood :set buy sell price : using latvalue rarely gives proper price 
-{
-BuyPrice=LastValue(Buy);
-CoverPrice=LastValue(Cover);
-ShortPrice=LastValue(Short);
-SellPrice=LastValue(Sell);
+skslp=10;
+sktgt=100;
 }
 
 if(1==1) // buy sell arrow draw based on rLow
@@ -800,14 +799,14 @@ skrvars_print=",o:"+O+"c:"+C;
 Buyshape = Buy * shapeUpArrow;
 SellShape = Sell * shapeStar;
 PlotShapes( Buyshape, colorBrightGreen, 0, rLow, -10 );
-PlotShapes( Buyshape, colorYellow, 0, rLow+10, -10 );
+//PlotShapes( Buyshape, colorYellow, 0, rLow+10, -10 );
 //PlotText( "BUY@" + BuyPrice[0] + skrvars_print , 0, LastValue(rLow), colorGreen);
 PlotShapes( SellShape, colorBlue, 0, rHigh, -11 );
 
 Shortshape = Short * shapeDownArrow;
 CoverShape = Cover * shapeStar;
 PlotShapes( Shortshape, colorRed, 0, rHigh, -30);
-PlotShapes( Shortshape, coloryellow, 0, rHigh-10, -30);
+//PlotShapes( Shortshape, coloryellow, 0, rHigh-10, -30);
 //PlotText( "Short@" + ShortPrice[0] + skrvars_print , 0, LastValue(rHigh), colorRed);
 PlotShapes( CoverShape, colorYellow, 0, rLow, -31 )	;
 }
@@ -834,7 +833,6 @@ PlotShapes( Shortshape, colorRed, 0, nHigh, -30);
 PlotShapes( CoverShape, colorYellow, 0, nLow, -31 )	;
 }
 
-
 if(1==1) // write buy sell price on chart 
 {
 //skrvars_print="o:"+skro+"o1:"+skro1+"o2:"+skro2+"c:"+skrc+"c1:"+skrc1+"c2:"+skrc2;
@@ -860,13 +858,12 @@ skrvars_print="-O:"+rOpen[i]+"C:"+rClose[i];  // for using the current signal fo
   PlotText( "BUY@" + BuyPrice[ i ] + skrvars_print , i, rLow[ i ]-dist2[i], colorGreen);
  //Plot(BuyPrice * 100.1/100,"t1", colorGreen,styleDots|styleStaircase, Null, Null, 0, 1, 1);
  // printf("\nexp:"+BuyPrice[i]+skrvars_print);
- skexprice=BuyPrice[ i ];
  }
  if( Short[i] )
  {
   PlotText( "Short@" + ShortPrice[ i ] + skrvars_print , i, rHigh[ i ]+dist2[i], colorRed);
   //Plot(ShortPrice * 99.9/100,"t1", coloryellow,styleDots|styleStaircase, Null, Null, 0, 1, 1);
- skexprice=ShortPrice[ i ];
+ 
  }
  if( Cover[i] ) 
  {
