@@ -31,6 +31,7 @@ y=Param("yposn",1,0,1000,1);
 //sktitle = ParamStr("Title","skself1");
 sktitle = ParamStr("Title","sk3");
 skaction="Action";
+skaction1[0]=0;
 
 }
 
@@ -548,6 +549,50 @@ printf("\n"+name1+":"+skresult+"type:"+typeof(skresult)+",P:"+pattern+"R:"+check
 return skresult; 
 }
 
+function currentaction(buyorsell,signal_to_check,lastskaction)
+{
+//skraction1=IIf((buyorsell=="buy"  AND StrToNum(NumToStr(signal_to_check))==True),"bought",IIf(buyorsell=="sell"  AND StrToNum(NumToStr(signal_to_check))==True,"sold",lastskaction));
+if(StrToNum(NumToStr(signal_to_check))==False )
+skaction1=lastskaction;
+if(buyorsell=="buy"  AND StrToNum(NumToStr(signal_to_check))==True )
+{printf("\nin buy Signal");
+skaction1="bought";}
+if(buyorsell=="sell"  AND StrToNum(NumToStr(signal_to_check))==True )
+{skaction1="sold";}
+return skaction1;
+
+}
+
+function sksignal_exprice(buyorsell,signal_to_check,skexprice,sksl,skt,skcrprice)
+{
+skaction1=currentaction(buyorsell,signal_to_check,skaction1);
+skreturn=False;
+
+if(buyorsell=="buy"  AND StrToNum(NumToStr(signal_to_check))==True )
+{printf("\nin buy Signal");
+skaction1="bought";}
+if(buyorsell=="sell"  AND StrToNum(NumToStr(signal_to_check))==True )
+{skaction1="sold";}
+
+printf("\nAct "+skaction1+"signal:"+signal_to_check+buyorsell+"xp:"+skexprice+"SL:"+sksl+"SKT:"+skt+"CRP:"+skcrprice);
+
+if(buyorsell=="buy"  AND StrToNum(NumToStr(signal_to_check))==True )
+{
+If( (skexprice+skt)<skcrprice OR (skexprice-sksl)>skcrprice)
+	{
+	skreturn=True;
+	}
+}
+
+if(buyorsell=="sell"  AND StrToNum(NumToStr(signal_to_check))==True )
+{	If( (skexprice-skt)>skcrprice OR (skexprice+sksl)<skcrprice)
+	{
+	skreturn=True;
+	}
+}
+return skreturn;
+}
+
 if(1==0) // buy sell signal based on rekno price nClose
 {
 
@@ -598,15 +643,38 @@ if(1==1) // buy sell signals set2
 {
 Buy=skpatterncheck_rclose("RB1","2111100000")  OR skpatterncheck_rclose("RB2","211000")
 OR skpatterncheck_close("CB2","11111111111");
+
+if(StrToNum(NumToStr(Buy))==1 )
+{skaction1[1]=1;
+printf("inbuy");}
+
 //printf("\nsignalexpriceforbuy"+sksignal_exprice("buy",Buy,lastvalue(BuyPrice),10,50,LastValue(Close)));
 Sell=skpatterncheck_rclose("RS1","2000111100000")  OR skpatterncheck_rclose("RS2","20001") OR skpatterncheck_rclose("RS3","111111")
 OR skpatterncheck_close("CS1","201111") OR skpatterncheck_close("CS2","00000") OR skpatterncheck_close("CS3","2111111");
 
-Short=skpatterncheck_rclose("RW1","200011111")
+if(StrToNum(NumToStr(Sell))==1 )
+{skaction1[1]=0;
+printf("insell");}
+
+Short=skpatterncheck_rclose("RW1","20000111")
 OR skpatterncheck_close("CW1","2000111111") OR skpatterncheck_close("CW2","01110111") ;
 
-Cover=skpatterncheck_rclose("RC1","2111")
+if(StrToNum(NumToStr(Short))==1 )
+{skaction1[1]=2;
+printf("inshort");}
+
+Cover=skpatterncheck_rclose("RC1","211")
 OR skpatterncheck_rclose("CC1","11111") ;
+
+if(StrToNum(NumToStr(Cover))==1 )
+{skaction1[1]=0;
+printf("incover");}
+
+if(StrToNum(NumToStr(buy))==0 AND StrToNum(NumToStr(sell))==0 AND StrToNum(NumToStr(Short))==0 AND StrToNum(NumToStr(Cover))==0 )
+{skaction1[1]=LastValue(skaction1);
+printf("innothing");}
+
+printf("\nskact:B=1,S=2,SQ=0 : current Act: "+LastValue(skaction1));
 }
 
 if(1==0) // target and stop loss calculation for cover and sell price and signal generation 
@@ -789,12 +857,13 @@ skrvars_print="-O:"+rOpen[i]+"C:"+rClose[i];  // for using the current signal fo
   PlotText( "BUY@" + BuyPrice[ i ] + skrvars_print , i, rLow[ i ]-dist2[i], colorGreen);
  //Plot(BuyPrice * 100.1/100,"t1", colorGreen,styleDots|styleStaircase, Null, Null, 0, 1, 1);
  // printf("\nexp:"+BuyPrice[i]+skrvars_print);
+ skexprice=BuyPrice[ i ];
  }
  if( Short[i] )
  {
   PlotText( "Short@" + ShortPrice[ i ] + skrvars_print , i, rHigh[ i ]+dist2[i], colorRed);
   //Plot(ShortPrice * 99.9/100,"t1", coloryellow,styleDots|styleStaircase, Null, Null, 0, 1, 1);
- 
+ skexprice=ShortPrice[ i ];
  }
  if( Cover[i] ) 
  {
