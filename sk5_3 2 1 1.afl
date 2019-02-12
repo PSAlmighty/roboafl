@@ -597,10 +597,10 @@ Cover=skpatterncheck_rclose("RC1","1111") OR skpatterncheck_rclose("RC2","010101
 
 if(1==1) // buy sell signals set2 based on renko only . buy on 2green and sell on 2 red 
 {
-Buy=skpatterncheck_rclose("RB1","11")  ;
-Sell=skpatterncheck_rclose("RS1","00")  ;
-Short=skpatterncheck_rclose("RW1","00") ;
-Cover=skpatterncheck_rclose("RC1","11") ;
+Buy=skpatterncheck_rclose("RB1","111")  ;
+Sell=skpatterncheck_rclose("RS1"," 00")  ;
+Short=skpatterncheck_rclose("RW1","0000") ;
+Cover=skpatterncheck_rclose("RC1","111") ;
 }
 
 if(1==0) // buy sell signals set3 // very quick buy and short;
@@ -691,17 +691,43 @@ SellPrice=LastValue(Sell);
 
 }
 
-if(1==1) // draw lines when buy or sell in place 
+if(1==0) // draw lines when buy or sell in place 
 {
 sksl=10;
 skexprice=IIf(sklong,BuyPrice,IIf(skshrt,ShortPrice,Null));
 //skslp=IIf(longtrue,BuyPrice-sksl,IIf(ShortTrue,ShortPrice+sksl,Null));
-sklongSLP=Close-sksl;
 buypricediff=Close-BuyPrice;
-skshortSLP=Close+sksl;
+
 sellpricediff=ShortPrice-Close;
-sklongSLP=IIf(Ref(sklongSLP,-1)>=Close-sksl,Ref(sklongSLP,-1),Close-sksl);
-skshortSLP=IIf(Ref(skshortSLP,-1)<=Close+sksl,Close+sksl,Ref(skshortSLP,-1));
+sklongSLP=Close-sksl;
+skshortSLP=Close+sksl;
+//if(Cross(Ref(Close,-1),close))
+//skshortSLP+=(Ref(Close,-1)-Close)
+
+sklongSLP2=IIf(sklong,IIf(buypricediff>=0,(buyprice+int(buypricediff/sksl)*sksl-sksl),Close-sksl),Null);
+skshortSLP2=IIf(skshrt,IIf(sellpricediff>=0,(ShortPrice-int(sellpricediff/sksl)*sksl+sksl),ShortPrice+sksl),Null);
+skshortSLP1=Ref(skshortSLP2,-1);
+sklongSLP1=Ref(sklongSLP2,-1);
+sklongSLP=IIf(sklongSLP2>=sklongSLP1,sklongSLP2,sklongSLP1);
+skshortSLP=IIf(skshortSLP2<=skshortSLP1,skshortSLP2,skshortSLP1);
+
+/*
+sklongSLP1[0]=StrToNum(NumToStr(valuewhen(Buy,Buyprice-sksl)));
+skshortSLP1[0]=StrToNum(NumToStr(ValueWhen(Short,Shortprice+sksl)));
+//sklongSLP1=Close-sksl;
+buypricediff=Close-BuyPrice;
+//skshortSLP1=Close+sksl;
+sellpricediff=ShortPrice-Close;
+
+//sklongSLP1=IIf(Ref(sklongSLP1,-1)>=Close-sksl,Ref(sklongSLP1,-1),Close-sksl);
+sklongSLP=IIf(Cross(Ref(Close,-1),close),Ref(sklongSLP1,-1),Close-sksl);
+skshortSLP=IIf(Cross(Close,Ref(Close,-1)),Ref(skshortSLP1,-1),Close+sksl);
+sklongSLP=sklongSLP1;
+skshortSLP=skshortSLP1;
+//sklongSLP=IIf(sklongSLP>=Close-sksl,sklongSLP,Close-sksl);
+//skshortSLP=IIf(Ref(skshortSLP<=Close+sksl,Close+sksl,skshortSLP);
+*/
+
 //sklongSLP1=IIf(sklong,(IIf(buypricediff>=0,(Close+int(buypricediff/sksl)*sksl-sksl),Close-sksl),Null);
 //skshortSLP1=IIf(skshrt,IIf(sellpricediff>=0,(ShortPrice-int(sellpricediff/sksl)*sksl+sksl),ShortPrice+sksl),Null);
 
@@ -718,15 +744,19 @@ sklongSLP=BuyPrice+skupmultiplier*sksl-sksl
 //sklongSLC=iif(sklongSLP>Close,True,false);
 //skshortSLC=iif(skshortSLP<Close,True,false);
 
-printf("\nLong="+sklong+"skshrt"+skshrt+"XP"+skexprice);
-	Plot(IIf(sklong , BuyPrice, Null), "BuyPrice", colorGreen, styleDots, Null, Null, 0, 1, 1);
-	Plot(IIf(skshrt, ShortPrice, Null), "ShortPrice", colorYellow, styleDots, Null, Null, 0, 1, 1);
 	Plot(IIf(sklong , sklongSLP,Null), "BuySL", colorRed, styleDots, Null, Null, 0, 1, 1);
 	Plot(IIf(skshrt , skshortSLP,Null), "ShortSL", colorRed, styleDots, Null, Null, 0, 1, 1);
-	
 }
 
-if(1==1) // target and stop loss calculation for cover and sell price and signal generation 
+if(1==1) // plot the bp slp 
+{
+//printf("\nLong="+sklong+"skshrt"+skshrt+"XP"+skexprice);
+	Plot(IIf(sklong , BuyPrice, Null), "BuyPrice", colorCustom1, styleDots, Null, Null, 0, 1, 1);
+	Plot(IIf(skshrt, ShortPrice, Null), "ShortPrice", colorYellow, styleDots, Null, Null, 0, 1, 1);
+
+}
+
+if(1==0) // target and stop loss calculation for cover and sell price and signal generation 
 {
 currentstat[0]=0;
 skgotprice[0]=0;
