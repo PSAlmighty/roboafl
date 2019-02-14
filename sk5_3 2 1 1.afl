@@ -928,7 +928,7 @@ _SECTION_BEGIN("AmigoTrends");
 // If user want to use external targets/stop loss from afl, please unhide the below code and
 // asign corresponding array values to it.
 
-// LT1 = Null;		// Long Target1 External
+ //LT1 = sars;		// Long Target1 External
 // ST1 = Null;		// Short Target1 External
 
 // LT2 = Null;		// Long Target2 External
@@ -940,11 +940,12 @@ _SECTION_BEGIN("AmigoTrends");
 // LSL = Null;		// Long Stoploss External
 // SSL = Null;		// Short Stoploss External
 
-LT1 = 50;		// Long Target1 External
-ST1 = 50;
+//LT1 = 50;		// Long Target1 External
+// ST1 = 50;
 
-LSL=5;
-SSL=5;
+//SSL=LSL=20;
+LT1=ValueWhen(Buy,C+20);
+ST1=ValueWhen(Short,C-20);
 
  AmigoC1(Open, High, Low, Close, Volume, Buy, Sell, Short, Cover);
 _SECTION_END();
