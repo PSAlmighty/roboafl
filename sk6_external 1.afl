@@ -602,17 +602,16 @@ Cover=skpatterncheck_rclose("RC1","1111") OR skpatterncheck_rclose("RC2","010101
 
 if(1==1) // buy sell signals set2 ; good for reverse use with amigo trailing stoploss 
 {
-Buy=skpatterncheck_rclose("RB1","2100000")  
-OR  skpatterncheck_close("CB1","2100000")   ;
+Buy=skpatterncheck_rclose("RB1","2100000")  //OR skpatterncheck_rclose("RB1","211")
+OR  skpatterncheck_close("CB1","210000")   ;
 
 Short=skpatterncheck_rclose("RW1","2001111")  
 OR skpatterncheck_close("CW1","2011111")   ;
 
-Sell=skpatterncheck_close("CS1","2000")  
-OR skpatterncheck_close("CS1","200100100")
+Sell=skpatterncheck_close("CS1","200000")  
 OR Short;
 
-Cover=skpatterncheck_close("CC1","2111") 
+Cover=skpatterncheck_close("CC1","211111") 
 OR Buy;
 }
 
@@ -653,17 +652,14 @@ OR skpatterncheck_close("CW1","2011111")   ;
 
 if(1==1) // check which action is going on Long or Short 
 {
-sklong1=Flip(Buy,Sell);
-skshrt1=Flip(Short,Cover);
+sklong=Flip(Buy,Sell);
+skshrt=Flip(Short,Cover);
 LongTrue = Flip(Buy, Sell) || Sell;
 ShortTrue = Flip(Short, Cover) || Cover;
-sklong=(Flip(Buy, Sell) || ExRem(Sell,Buy));
-skshrt=Flip(Short, Cover) || ExRem(Cover,Short);
+//sklong=(Flip(Buy, Sell) || ExRem(Sell,Buy));
+//skshrt=Flip(Short, Cover) || ExRem(Cover,Short);
 
 }
-
-
-
 
 if(1==1)// remove duplicate buy sell signals untill sell is done no more buy 
 {
@@ -914,6 +910,114 @@ PlotShapes( Shortshape, colorRed, 0, nHigh, -30);
 PlotShapes( CoverShape, colorYellow, 0, nLow, -31 )	;
 }
 
+if(1==1) // buy sell signal sent to amigo 
+{
+
+// from here the buy and sell signals . 
+_SECTION_BEGIN("AmigoTrends");
+// If user want to use external targets/stop loss from afl, please unhide the below code and
+// asign corresponding array values to it.
+
+ //LT1 = sars;		// Long Target1 External
+// ST1 = Null;		// Short Target1 External
+
+// LT2 = Null;		// Long Target2 External
+// ST2 = Null;		// Short Targe2 External
+
+// LT3 = Null;		// Long Target3 External
+// ST3 = Null;		// Short Target3 External
+
+// LSL = Null;		// Long Stoploss External
+// SSL = Null;		// Short Stoploss External
+
+//LT1 = 50;		// Long Target1 External
+// ST1 = 50;
+
+//SSL=LSL=20;
+
+if(1==1) // set target and stoploss based on the calculations 
+{
+//specifically for banknifty future 
+// 1 : if profit is more then 50 then sell as soon as red is done . or price goes down by 5 points . 
+// 2 : if immidiately after buy in next 5 bars 3 bars are red then exit with stop loss or if loss of 10 points.
+// 3 : if after buy profit is between 10 -50 points then set stop loss at buyprice+5 ;also exit if 4 continuous bars are red ; 
+// 4 : if after buy immediate 10 point loss then exit with stop loss 
+// 5 : if profit is less then 10 then keep sl buyprice - 10 points.
+// 6 : if profit is between 10-30 . then SL to be buyprice + 8  ; 
+// 7 : if profit is between 30 - 60 . then SL to be buyprice +28 ; 
+// 8 : if profit is between 60-100 . then SL to be 
+//LSL=SSL=0;
+skexprice=IIf(sklong,ValueWhen(Buy,C),IIf(skshrt,ValueWhen(Short,C),Null));
+//printf("\nvargotcond:"+StrToNum(NumToStr(skshrt))+"lng:"+StrToNum(NumToStr(sklong)));
+if(StrToNum(NumToStr(sklong)))
+{
+skdf=C-skexprice;
+SKSLbuy=IIf(skdf<10,-10,IIf(skdf<20,10,IIf(skdf<30,20,IIf(skdf<40,30,IIf(skdf<50,40,IIf(skdf<60,50,IIf(skdf<70,60,IIf(skdf<80,70,IIf(skdf<90,80,IIf(skdf<100,90,100))))))))));
+LSL=BuyPrice+SKSLbuy;
+printf("\ninlong"+SKSLbuy+","+LSL);
+}
+else{
+SKSLbuy=Null;
+LSL=Null;
+}
+if(StrToNum(NumToStr(skshrt)))
+{
+skdf=skexprice-C;
+SKSLshort=IIf(skdf<10,-10,IIf(skdf<20,10,IIf(skdf<30,20,IIf(skdf<40,30,IIf(skdf<50,40,IIf(skdf<60,50,IIf(skdf<70,60,IIf(skdf<80,70,IIf(skdf<90,80,IIf(skdf<100,90,100))))))))));
+SSL=ShortPrice-SKSLshort;
+printf("\ninshrt"+SKSLbuy+","+SSL);
+}
+else{
+SKSLshort=null;
+SSL=Null;
+}
+SKSLbuyL=Ref(SKSLbuy,-1);
+LSL=IIf(sklong,IIf(BarsSince(Buy)==0,BuyPrice+SKSLbuy,IIf(Ref(LSL,-1)<BuyPrice+SKSLbuy,BuyPrice+SKSLbuy,Ref(LSL,-1))),Null);
+SSL=IIf(skshrt,IIf(BarsSince(Short)==0,ShortPrice-SKSLshort,IIf(Ref(SSL,-1)>ShortPrice-SKSLshort,ShortPrice-SKSLshort,Ref(SSL,-1))),Null);
+printf("\nBarB:"+BarsSince(Buy)+"BarS:"+BarsSince(Short)+",LSLN:"+LSL+"LSLL:"+Ref(LSL,-1)+",SSLN:"+SSL+"SSLL:"+Ref(SSL,-1)+
+"\n,skdf:"+skdf+",slb"+SKSLbuy+",lslb:"+Ref(SKSLbuy,-1)+",sls"+SKSLshort+",lsls:"+Ref(SKSLshort,-1));
+
+//Sell=0;Short=0;Cover=0;
+
+//printf("\n** Actions = "+skaction);
+
+Sell=IIf(sklong,Cross(LSL,C),Null) ; // ExRem(Cross(LSL,C),Buy);
+Cover=IIf(skshrt,Cross(O,SSL),Null); // ExRem(Cross(C,SSL),Short);
+Buy=ExRem(Buy,Sell);
+Short=ExRem(Short,Cover);
+
+if(1==1) // check which action is going on Long or Short 
+{
+sklong=Flip(Buy,Sell);
+skshrt=Flip(Short,Cover);
+LongTrue = Flip(Buy, Sell) || Sell;
+ShortTrue = Flip(Short, Cover) || Cover;
+//sklong=(Flip(Buy, Sell) || ExRem(Sell,Buy));
+//skshrt=Flip(Short, Cover) || ExRem(Cover,Short);
+
+}
+
+
+printf("\nFinal-B:"+Buy+",S:"+Sell+",Sh:"+Short+",C:"+Cover+"\nCRP:"+C+",XP:"+skexprice+",SSL:"+SSL+",LSL:"+LSL);
+
+
+Plot(IIf(sklong , LSL,Null), "BuySL", colorAqua, styleDots, Null, Null, 0, 1, 1);
+Plot(IIf(skshrt , SSL,Null), "ShortSL", colorRed, styleDots, Null, Null, 0, 1, 1);
+
+
+}
+//LT1=C+10;
+//ST1=C+10;
+
+
+//LT1=ST1=LSL=SSL=0
+
+ AmigoC1(Open, High, Low, Close, Volume, Buy, Sell, Short, Cover);
+_SECTION_END();
+
+}
+
+
 if(1==1) // write buy sell price on chart 
 {
 //skrvars_print="o:"+skro+"o1:"+skro1+"o2:"+skro2+"c:"+skrc+"c1:"+skrc1+"c2:"+skrc2;
@@ -959,78 +1063,3 @@ skrvars_print="-O:"+rOpen[i]+"C:"+rClose[i];  // for using the current signal fo
 
 }
 
-if(1==1) // buy sell signal sent to amigo 
-{
-
-// from here the buy and sell signals . 
-_SECTION_BEGIN("AmigoTrends");
-// If user want to use external targets/stop loss from afl, please unhide the below code and
-// asign corresponding array values to it.
-
- //LT1 = sars;		// Long Target1 External
-// ST1 = Null;		// Short Target1 External
-
-// LT2 = Null;		// Long Target2 External
-// ST2 = Null;		// Short Targe2 External
-
-// LT3 = Null;		// Long Target3 External
-// ST3 = Null;		// Short Target3 External
-
-// LSL = Null;		// Long Stoploss External
-// SSL = Null;		// Short Stoploss External
-
-//LT1 = 50;		// Long Target1 External
-// ST1 = 50;
-
-//SSL=LSL=20;
-
-if(1==1) // set target and stoploss based on the calculations 
-{
-//specifically for banknifty future 
-// 1 : if profit is more then 50 then sell as soon as red is done . or price goes down by 5 points . 
-// 2 : if immidiately after buy in next 5 bars 3 bars are red then exit with stop loss or if loss of 10 points.
-// 3 : if after buy profit is between 10 -50 points then set stop loss at buyprice+5 ;also exit if 4 continuous bars are red ; 
-// 4 : if after buy immediate 10 point loss then exit with stop loss 
-// 5 : if profit is less then 10 then keep sl buyprice - 10 points.
-// 6 : if profit is between 10-30 . then SL to be buyprice + 8  ; 
-// 7 : if profit is between 30 - 60 . then SL to be buyprice +28 ; 
-// 8 : if profit is between 60-100 . then SL to be 
-SKSLshort=10;
-SKSLbuy=10;
-LSL=BuyPrice+SKSLbuy;
-SSL=ShortPrice+SKSLshort;
-skexprice=IIf(sklong,ValueWhen(Buy,C),IIf(skshrt,ValueWhen(Short,C),Null));
-if(StrToNum(NumToStr(sklong)))
-{
-skdf=C-skexprice;
-SKSLbuy=IIf(skdf<10,-10,IIf(skdf<20,10,IIf(skdf<30,20,IIf(skdf<40,30,IIf(skdf<50,40,IIf(skdf<60,50,IIf(skdf<70,60,IIf(skdf<80,70,IIf(skdf<90,80,IIf(skdf<100,90,100))))))))));
-//LSL=BuyPrice+SKSLbuy;
-printf("\ninlong"+SKSLbuy);
-}
-if(StrToNum(NumToStr(skshrt)))
-{
-skdf=skexprice-C;
-SKSLshort=IIf(skdf<10,-10,IIf(skdf<20,10,IIf(skdf<30,20,IIf(skdf<40,30,IIf(skdf<50,40,IIf(skdf<60,50,IIf(skdf<70,60,IIf(skdf<80,70,IIf(skdf<90,80,IIf(skdf<100,90,100))))))))));
-//SSL=ShortPrice-SKSLshort;
-}
-SKSLbuyM=max(SKSLbuy);
-printf("\nBars:"+BarsSince(Buy)+",LSLN:"+BuyPrice+SKSLbuy+"LSLL:"+Ref(LSL,-1)+",LSL:"+LSL+",skdf:"+skdf+",slb"+SKSLbuy+",lslb:"+SKSLbuyL);
-LSL=IIf(sklong,IIf(BarsSince(Buy)==0,BuyPrice+SKSLbuy,IIf(Ref(LSL,-1)<BuyPrice+SKSLbuy,BuyPrice+SKSLbuy,Ref(LSL,-1))),0);
-SSL=IIf(skshrt,IIf(Ref(SSL,-1)>ShortPrice-SKSLshort,ShortPrice-SKSLshort,Ref(SSL,-1)),0);
-printf("\nBars:"+BarsSince(Buy)+",LSLN:"+BuyPrice+SKSLbuy+"LSLL:"+Ref(LSL,-1)+",LSL:"+LSL+",skdf:"+skdf+",slb"+SKSLbuy);
-
-//Sell=0;Short=0;Cover=0;
-printf("\nFinal-B:"+Buy+",S:"+Sell+",Sh:"+Short+",C:"+Cover+"\nCRP:"+C+",XP:"+BuyPrice+",SSL:"+SSL+",LSL:"+LSL);
-//printf("\n** Actions = "+skaction);
-
-}
-//LT1=C+10;
-//ST1=C+10;
-
-
-//LT1=ST1=LSL=SSL=0
-
- AmigoC1(Open, High, Low, Close, Volume, Buy, Sell, Short, Cover);
-_SECTION_END();
-
-}
