@@ -1005,6 +1005,7 @@ if(StrToNum(NumToStr(sklong)))
 skdf=C-skexprice;
 SKSLbuy=IIf(skdf<10,-10,IIf(skdf<20,10,IIf(skdf<30,20,IIf(skdf<40,30,IIf(skdf<50,40,IIf(skdf<60,50,IIf(skdf<70,60,IIf(skdf<80,70,IIf(skdf<90,80,IIf(skdf<100,90,100))))))))));
 //LSL=BuyPrice+SKSLbuy;
+printf("\ninlong"+SKSLbuy);
 }
 if(StrToNum(NumToStr(skshrt)))
 {
@@ -1012,10 +1013,11 @@ skdf=skexprice-C;
 SKSLshort=IIf(skdf<10,-10,IIf(skdf<20,10,IIf(skdf<30,20,IIf(skdf<40,30,IIf(skdf<50,40,IIf(skdf<60,50,IIf(skdf<70,60,IIf(skdf<80,70,IIf(skdf<90,80,IIf(skdf<100,90,100))))))))));
 //SSL=ShortPrice-SKSLshort;
 }
-
-
+SKSLbuyM=max(SKSLbuy);
+printf("\nBars:"+BarsSince(Buy)+",LSLN:"+BuyPrice+SKSLbuy+"LSLL:"+Ref(LSL,-1)+",LSL:"+LSL+",skdf:"+skdf+",slb"+SKSLbuy+",lslb:"+SKSLbuyL);
 LSL=IIf(sklong,IIf(BarsSince(Buy)==0,BuyPrice+SKSLbuy,IIf(Ref(LSL,-1)<BuyPrice+SKSLbuy,BuyPrice+SKSLbuy,Ref(LSL,-1))),0);
 SSL=IIf(skshrt,IIf(Ref(SSL,-1)>ShortPrice-SKSLshort,ShortPrice-SKSLshort,Ref(SSL,-1)),0);
+printf("\nBars:"+BarsSince(Buy)+",LSLN:"+BuyPrice+SKSLbuy+"LSLL:"+Ref(LSL,-1)+",LSL:"+LSL+",skdf:"+skdf+",slb"+SKSLbuy);
 
 //Sell=0;Short=0;Cover=0;
 printf("\nFinal-B:"+Buy+",S:"+Sell+",Sh:"+Short+",C:"+Cover+"\nCRP:"+C+",XP:"+BuyPrice+",SSL:"+SSL+",LSL:"+LSL);
