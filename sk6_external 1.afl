@@ -649,7 +649,6 @@ Short=skpatterncheck_rclose("RW1","2001111")
 OR skpatterncheck_close("CW1","2011111")   ;
 }
 
-
 if(1==1) // check which action is going on Long or Short 
 {
 sklong=Flip(Buy,Sell);
@@ -724,8 +723,6 @@ SellPrice=LastValue(Sell);
 
 }
 
-
-
 if(1==1) // set target and stoploss based on the calculations 
 {
 //specifically for banknifty future 
@@ -738,6 +735,7 @@ if(1==1) // set target and stoploss based on the calculations
 // 7 : if profit is between 30 - 60 . then SL to be buyprice +28 ; 
 // 8 : if profit is between 60-100 . then SL to be 
 
+LSL=SSL=0;
 skexprice=IIf(sklong,ValueWhen(Buy,C),IIf(skshrt,ValueWhen(Short,C),Null));
 
 //printf("\nvargotcond:"+StrToNum(NumToStr(skshrt))+"lng:"+StrToNum(NumToStr(sklong)));
@@ -747,12 +745,10 @@ skdf=C-skexprice;
 SKSLbuy=IIf(skdf<10,-10,IIf(skdf<20,10,IIf(skdf<30,20,IIf(skdf<40,30,IIf(skdf<50,40,IIf(skdf<60,50,IIf(skdf<70,60,IIf(skdf<80,70,IIf(skdf<90,80,IIf(skdf<100,90,100))))))))));
 SKSLbuy=IIf(BarsSince(Buy)==0,-10,int(skdf/10)*10);
 //LSL=IIf(BarsSince(Buy)==0,BuyPrice+SKSLbuy,Null);
-
 printf("\ninlong"+SKSLbuy);
 }
 else{
 SKSLbuy=Null;
-
 }
 if(StrToNum(NumToStr(skshrt)))
 {
@@ -763,7 +759,6 @@ printf("\ninshrt"+SKSLbuy);
 }
 else{
 SKSLshort=null;
-
 }
 
 if(1==0) // first try 
@@ -785,14 +780,13 @@ printf("\nBarB:"+BarsSince(Buy)+"BarS:"+BarsSince(Short)+",LSLN:"+LSL+"LSLL:"+Re
 "\n,skdf:"+skdf+",slb"+SKSLbuy+",lslb:"+Ref(SKSLbuy,-1)+",sls"+SKSLshort+",lsls:"+Ref(SKSLshort,-1));
 }
 
-
 if(1==1) // third try to retain max price for SL 
 {
-LSL=IIf(sklong,IIf(BarsSince(Buy)==0,BuyPrice+SKSLbuy,BuyPrice+Peak(SKSLbuy,1,1)),null);
-SSL=IIf(skshrt,IIf(BarsSince(Short)==0,ShortPrice-SKSLshort,ShortPrice+Peak(SKSLshort,1,1)),null);
-
-//LSL=IIf(sklong,IIf(BarsSince(Buy)==0,BuyPrice+SKSLbuy,IIf(BuyPrice+SKSLbuy),null);
-//SSL=IIf(skshrt,IIf(BarsSince(Short)==0,ShortPrice-SKSLshort,ShortPrice-SKSLshort),null);
+//LSL=IIf(sklong,IIf(BarsSince(Buy)==0,BuyPrice+SKSLbuy,BuyPrice+Peak(SKSLbuy,1,1)),null);
+//SSL=IIf(skshrt,IIf(BarsSince(Short)==0,ShortPrice-SKSLshort,ShortPrice+Peak(SKSLshort,1,1)),null);
+printf("\nlastskcheck"+(Ref(LSL,-1)-BuyPrice)+"cr"+(LSL-BuyPrice));
+LSL=IIf(sklong,IIf(BarsSince(Buy)==0,BuyPrice+SKSLbuy,IIf((Ref(LSL,-1)-BuyPrice)>SKSLbuy,Ref(LSL,-1),BuyPrice+SKSLbuy)),null);
+SSL=IIf(skshrt,IIf(BarsSince(Short)==0,ShortPrice-SKSLshort,IIf((Ref(SSL,-1)-ShortPrice)<SKSLshort,Ref(SSL,-1),ShortPrice-SKSLshort)),null);
 
 /*
 LSL=0;
