@@ -726,7 +726,7 @@ SellPrice=LastValue(Sell);
 
 
 
-if(1==0) // set target and stoploss based on the calculations 
+if(1==1) // set target and stoploss based on the calculations 
 {
 //specifically for banknifty future 
 // 1 : if profit is more then 50 then sell as soon as red is done . or price goes down by 5 points . 
@@ -745,6 +745,7 @@ if(StrToNum(NumToStr(sklong)))
 {
 skdf=C-skexprice;
 SKSLbuy=IIf(skdf<10,-10,IIf(skdf<20,10,IIf(skdf<30,20,IIf(skdf<40,30,IIf(skdf<50,40,IIf(skdf<60,50,IIf(skdf<70,60,IIf(skdf<80,70,IIf(skdf<90,80,IIf(skdf<100,90,100))))))))));
+SKSLbuy=IIf(BarsSince(Buy)==0,-10,int(skdf/10)*10);
 //LSL=IIf(BarsSince(Buy)==0,BuyPrice+SKSLbuy,Null);
 
 printf("\ninlong"+SKSLbuy);
@@ -757,7 +758,7 @@ if(StrToNum(NumToStr(skshrt)))
 {
 skdf=skexprice-C;
 SKSLshort=IIf(skdf<10,-10,IIf(skdf<20,10,IIf(skdf<30,20,IIf(skdf<40,30,IIf(skdf<50,40,IIf(skdf<60,50,IIf(skdf<70,60,IIf(skdf<80,70,IIf(skdf<90,80,IIf(skdf<100,90,100))))))))));
-
+SKSLshort=IIf(BarsSince(Short)==0,-10,int(skdf/10)*10);
 printf("\ninshrt"+SKSLbuy);
 }
 else{
@@ -787,12 +788,13 @@ printf("\nBarB:"+BarsSince(Buy)+"BarS:"+BarsSince(Short)+",LSLN:"+LSL+"LSLL:"+Re
 
 if(1==1) // third try to retain max price for SL 
 {
-LSL1=IIf(sklong,IIf(BarsSince(Buy)==0,BuyPrice+SKSLbuy,BuyPrice+Peak(SKSLbuy,10,1)),null);
-SSL1=IIf(skshrt,IIf(BarsSince(Short)==0,ShortPrice-SKSLshort,ShortPrice+Peak(SKSLshort,10,1)),null);
-LSL1=IIf(sklong,IIf(BarsSince(Buy)==0,BuyPrice+SKSLbuy,BuyPrice+SKSLbuy),null);
-SSL1=IIf(skshrt,IIf(BarsSince(Short)==0,ShortPrice-SKSLshort,ShortPrice-SKSLshort),null);
+LSL=IIf(sklong,IIf(BarsSince(Buy)==0,BuyPrice+SKSLbuy,BuyPrice+Peak(SKSLbuy,1,1)),null);
+SSL=IIf(skshrt,IIf(BarsSince(Short)==0,ShortPrice-SKSLshort,ShortPrice+Peak(SKSLshort,1,1)),null);
 
+//LSL=IIf(sklong,IIf(BarsSince(Buy)==0,BuyPrice+SKSLbuy,IIf(BuyPrice+SKSLbuy),null);
+//SSL=IIf(skshrt,IIf(BarsSince(Short)==0,ShortPrice-SKSLshort,ShortPrice-SKSLshort),null);
 
+/*
 LSL=0;
 for(i=StrToNum(NumToStr(BarsSince(Buy)));i>=0;i--)
 {
@@ -802,8 +804,10 @@ printf("\nt:"+i+LSL+Ref(LSL1,-i));
 
 SSL=0;
 for(i=StrToNum(NumToStr(BarsSince(Short)));i>=0;i--)
+{
 SSL=Max(SSL,Ref(SSL1,-i));
-
+}
+*/
 
 printf("\nBarB:"+BarsSince(Buy)+"BarS:"+BarsSince(Short)+",LSLN:"+LSL+"LSLL:"+Ref(LSL,-1)+",SSLN:"+SSL+"SSLL:"+Ref(SSL,-1)+
 "\n,skdf:"+skdf+",slb"+SKSLbuy+",lslb:"+Ref(SKSLbuy,-1)+",sls"+SKSLshort+",lsls:"+Ref(SKSLshort,-1));
