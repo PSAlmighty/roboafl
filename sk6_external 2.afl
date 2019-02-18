@@ -31,7 +31,6 @@ y=Param("yposn",1,0,1000,1);
 //sktitle = ParamStr("Title","skself1");
 sktitle = ParamStr("Title","sk3");
 skaction="Action";
-skstepsize=20;
 
 }
 
@@ -601,7 +600,7 @@ Short=skpatterncheck_rclose("RW1","2000011111") OR skpatterncheck_rclose("RW2","
 Cover=skpatterncheck_rclose("RC1","1111") OR skpatterncheck_rclose("RC2","0101010") OR skpatterncheck_close("CC3","1111") OR skpatterncheck_close("CC4","0101010101010");
 }
 
-if(1==0) // buy sell signals set2 ; good for reverse use with amigo trailing stoploss 
+if(1==1) // buy sell signals set2 ; good for reverse use with amigo trailing stoploss 
 {
 Buy=skpatterncheck_rclose("RB1","2100000")  //OR skpatterncheck_rclose("RB1","211")
 OR  skpatterncheck_close("CB1","210000")   ;
@@ -650,74 +649,7 @@ Short=skpatterncheck_rclose("RW1","2001111")
 OR skpatterncheck_close("CW1","2011111")   ;
 }
 
-if(1==1) // set6 for buy sell signals 
-{
-//Buy=Sell=Short=Cover=0;
-
-Buy=skpatterncheck_rclose("RB1","211")  //OR skpatterncheck_rclose("RB1","211")
-OR skpatterncheck_rclose("RB1","2100000")  
-OR  skpatterncheck_close("CB1","2100000")
-OR  skpatterncheck_close("CB1","2111")   ;
-
-Short=skpatterncheck_rclose("RW1","200001111111")  
-OR skpatterncheck_rclose("RW1","2001111")  
-OR skpatterncheck_close("CW1","2011111")
-OR skpatterncheck_close("CW1","200")   ;
-
-Sell=skpatterncheck_close("CS1","2000000000")  ;
-
-Cover=skpatterncheck_close("CC1","2111111111") ;
-}
-
-if(1==1) // set sell and cover dynamically based on LSL and SSL 
-{
-sklong=Flip(Buy,Sell) OR Sell;
-BuyPrice=IIf(sklong,ValueWhen(Buy,c),Null);
-SKSLbuy=IIf(sklong,IIf(BarsSince(Buy)==0,-1*skstepsize,int((C-BuyPrice)/skstepsize)*skstepsize),Null);
-LSL=IIf(sklong,IIf(BarsSince(Buy)==0,BuyPrice+SKSLbuy,BuyPrice+HighestSince(Buy,SKSLbuy,1)),null);//  (SKSLbuy,1,1)),null);
-Sell_LSL=Cross(LSL,C);
-
-Sell=Sell OR Sell_LSL;
-
-skshrt=Flip(Short,Cover) OR Cover;
-Shortprice=IIf(skshrt,ValueWhen(Short,c),Null);
-SKSLshort=IIf(skshrt,IIf(BarsSince(Short)==0,-1*skstepsize,int((C-ShortPrice)/skstepsize)*skstepsize),Null);
-SSL=IIf(skshrt,IIf(BarsSince(Short)==0,ShortPrice-SKSLshort,ShortPrice-HighestSince(Short,SKSLshort,1)),null);
-Cover_SSL=Cross(C,SSL);
-
-Cover= Cover OR Cover_SSL;
-
-Buy = ExRem(Buy, Sell) AND NOT SHORT ;//AND ExRem(Buy,Cover);
-Sell = ExRem(Sell, Buy);
-Short=ExRem(Short,Cover) AND NOT BUY;
-Cover=ExRem(Cover,Short);
-
-sklong=Flip(Buy,Sell) OR Sell; 
-skshrt=Flip(Short,Cover) OR Cover;
-
-if(1==1) // print and draw the  information of stop loss 
-{
-skdf=IIf(sklong,C-BuyPrice,IIf(skshrt,ShortPrice-c,Null));
-skexprice=IIf(sklong,BuyPrice,IIf(skshrt,ShortPrice,Null));
-barsgone=IIf(sklong,BarsSince(Buy),IIf(skshrt,BarsSince(Short),Null));
-SKSL=IIf(sklong,LSL,IIf(skshrt,SSL,Null));
-SKACTION=IIf(sklong,1,IIf(skshrt,-1,0));
-SKSLACTION=IIf(Cover_SSL,-1,IIf(Sell_LSL,1,0));
-printf("\n--------\nFinal-B:"+Buy+",S:"+Sell+",Sh:"+Short+",C:"+Cover+",lng:"+sklong+",shrt:"+skshrt+"SLA:"+SKSLACTION+"\nAction:"+SKACTION+",bars:"+barsgone+",df:"+skdf+",ldf:"+Ref(skdf,-1)+"\nCRP:"+C+",XP:"+skexprice+",SL:"+SKSL);
-Plot(IIf(sklong , LSL,Null), "BuySL",colorAqua , styleDashed, Null, Null, 0, 1, 1);
-Plot(IIf(sklong , BuyPrice,Null), "XP", colorBlue, styleDots, Null, Null, 0, 1, 1);
-
-Plot(IIf(skshrt , SSL,Null), "ShortSL", colorAqua, styleDashed, Null, Null, 0, 1, 1);
-Plot(IIf(skshrt , ShortPrice,Null), "XP", colorYellow, styleDots, Null, Null, 0, 1, 1);
-}
-
-
-//SSL=IIf(skshrt,IIf(BarsSince(Short)==0,ShortPrice-SKSLshort,ShortPrice-HighestSince(Short,SKSLshort,1)),Null); // ),null);
-printf("\nlastskcheck"+"BP"+BuyPrice+"preLSL"+Ref(LSL,-1)+"LSL"+LSL);
-
-}
-
-if(1==0) // check which action is going on Long or Short 
+if(1==1) // check which action is going on Long or Short 
 {
 sklong=Flip(Buy,Sell);
 skshrt=Flip(Short,Cover);
@@ -728,7 +660,7 @@ ShortTrue = Flip(Short, Cover) || Cover;
 
 }
 
-if(1==0)// remove duplicate buy sell signals untill sell is done no more buy 
+if(1==1)// remove duplicate buy sell signals untill sell is done no more buy 
 {
 printf("\nPRE-B:"+Buy+",S:"+Sell+",Sh:"+Short+",C:"+Cover+",LP:"+BuyPrice);
 printf("\n** Actions = "+skaction);
@@ -739,7 +671,7 @@ printf("\n** Actions = "+skaction);
 printf("\nB:"+Buy+",S:"+Sell+",Sh:"+Short+",C:"+Cover+",LP:"+BuyPrice);
 }
 
-if(1==0) // color set of bars  
+if(1==1) // color set of bars  
 {
 Candlecol=IIf(BarsSince(Buy)<BarsSince(Short) AND BarsSince(Buy)!=0,colorBlue,
 		  IIf(BarsSince(Buy)>BarsSince(Short) AND BarsSince(Short)!=0,4,1));
@@ -747,7 +679,7 @@ cc1=IIf(Buy,colorBlue,IIf(Short,colorRed,Candlecol));
 SetBarFillColor(Cc1);
 }
 
-if(1==0) // set Price for buy sell prices based on diffirent current prices high , low or open or close 
+if(1==1) // set Price for buy sell prices based on diffirent current prices high , low or open or close 
 {
 if(1==0) // LOWHIGHset buy sell price :using LOW and HIGH in very worst case scenario of price ;if you get profit in this case then noone can give you loss
 {
@@ -791,7 +723,7 @@ SellPrice=LastValue(Sell);
 
 }
 
-if(1==0) // set target and stoploss based on the calculations 
+if(1==1) // set target and stoploss based on the calculations 
 {
 //specifically for banknifty future 
 // 1 : if profit is more then 50 then sell as soon as red is done . or price goes down by 5 points . 
@@ -803,8 +735,10 @@ if(1==0) // set target and stoploss based on the calculations
 // 7 : if profit is between 30 - 60 . then SL to be buyprice +28 ; 
 // 8 : if profit is between 60-100 . then SL to be 
 
-
+LSL=SSL=0;
+LSL1=Ref(LSL,-1);
 skexprice=IIf(sklong,ValueWhen(Buy,C),IIf(skshrt,ValueWhen(Short,C),Null));
+
 //printf("\nvargotcond:"+StrToNum(NumToStr(skshrt))+"lng:"+StrToNum(NumToStr(sklong)));
 if(StrToNum(NumToStr(sklong)))
 {
@@ -900,7 +834,7 @@ ShortTrue = Flip(Short, Cover) || Cover;
 
 if(1==1) // print and draw the extra information of stop loss 
 {
-printf("\n--------\nFinal-B:"+Buy+",S:"+Sell+",Sh:"+Short+",C:"+Cover+"\nCRP:"+C+",df"+skdf+",ldf:"+Ref(skdf,-1)+",XP:"+skexprice+",SSL:"+SSL+",LSL:"+LSL);
+xprintf("\n--------\nFinal-B:"+Buy+",S:"+Sell+",Sh:"+Short+",C:"+Cover+"\nCRP:"+C+",df"+skdf+",ldf:"+Ref(skdf,-1)+",XP:"+skexprice+",SSL:"+SSL+",LSL:"+LSL);
 Plot(IIf(sklong , LSL,Null), "BuySL", colorAqua, styleDots, Null, Null, 0, 1, 1);
 Plot(IIf(skshrt , SSL,Null), "ShortSL", colorRed, styleDots, Null, Null, 0, 1, 1);
 }
@@ -1128,6 +1062,7 @@ _SECTION_BEGIN("AmigoTrends");
 _SECTION_END();
 
 }
+
 
 if(1==1) // write buy sell price on chart 
 {
