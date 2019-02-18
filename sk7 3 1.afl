@@ -669,32 +669,42 @@ Sell=skpatterncheck_close("CS1","2000000000")  ;
 Cover=skpatterncheck_close("CC1","2111111111") ;
 }
 
-if(1==1) // set sell and cover dynamically based on LSL and SSL 
+if(1==0) // try 1 set sell and cover dynamically based on LSL and SSL 
 {
 sklong=Flip(Buy,Sell) OR Sell;
 BuyPrice=IIf(sklong,ValueWhen(Buy,(O+C+H+L)/4),Null);
 SKSLbuy=IIf(sklong,IIf(BarsSince(Buy)==0 OR (C-BuyPrice)<skstepsize ,-1*skstepsize,int((C-BuyPrice)/skstepsize)*skstepsize),Null);
 LSL2=IIf(sklong,IIf(BarsSince(Buy)==0,BuyPrice+SKSLbuy,BuyPrice+HighestSince(Buy,SKSLbuy,1)),null);//  (SKSLbuy,1,1)),null);
-Sell_LSL=Cross(LSL2,Ref(C,-1));
+//Sell_LSL=Cross(Ref(LSL2,-1),Ref(C,-1));
+Sell_LSL=Cross(LSL2,C);
 
-Sell=Sell OR Sell_LSL;
+Sell=Sell OR Ref(Sell_LSL,-1);
 
 skshrt=Flip(Short,Cover) OR Cover;
 Shortprice=IIf(skshrt,ValueWhen(Short,(O+C+H+L)/4),Null);
 SDstep=int((ShortPrice-C)/skstepsize)*skstepsize;
 SKSLshort=IIf(skshrt,IIf(BarsSince(Short)==0 OR (ShortPrice-C)<skstepsize,-1*skstepsize,int((ShortPrice-C)/skstepsize)*skstepsize),Null);
 SSL2=IIf(skshrt,IIf(BarsSince(Short)==0,ShortPrice-SKSLshort,ShortPrice-HighestSince(Short,SKSLshort,1)),null);
-Cover_SSL=Cross(Ref(C,-1),SSL2);
+//Cover_SSL=Cross(Ref(C,-1),Ref(SSL2,-1));
+Cover_SSL=Cross(C,SSL2);
 
-Cover= Cover OR Cover_SSL;
 
-Buy = ExRem(Buy, Sell) AND NOT SHORT ;//AND ExRem(Buy,Cover);
+Cover= Cover OR Ref(Cover_SSL,-1);
+
+sklong=Flip(Buy,Sell) ; 
+skshrt=Flip(Short,Cover) ;
+
+Buy = ExRem(Buy, Sell) AND NOT skshrt ;//AND ExRem(Buy,Cover);
 Sell = ExRem(Sell, Buy);
-Short=ExRem(Short,Cover) AND NOT BUY;
+Short=ExRem(Short,Cover) AND NOT sklong;
 Cover=ExRem(Cover,Short);
 
-sklong=Flip(Buy,Sell) OR Sell; 
-skshrt=Flip(Short,Cover) OR Cover;
+sklong=Flip(Buy,Sell) ; 
+skshrt=Flip(Short,Cover) ;
+
+//sklong=Flip(Buy,Sell) OR Sell; 
+//skshrt=Flip(Short,Cover) OR Cover;
+
 
 BuyPrice=IIf(sklong,ValueWhen(Buy,(O+C+H+L)/4),Null);
 Shortprice=IIf(skshrt,ValueWhen(Short,(O+C+H+L)/4),Null);
@@ -713,7 +723,7 @@ SKSLDF=IIf(sklong,BuyPrice-LSL2,IIf(skshrt,SSL2-ShortPrice,Null));
 SKACTION=IIf(sklong,1,IIf(skshrt,-1,0));
 SKSLACTION=IIf(Cover,IIf(Cover_SSL,-1,null),IIf(Sell,IIF(Sell_LSL,1,0),Null));
 printf("\n--------StepSL:"+skstepsize+
-"\nFinal-B:"+Buy+",S:"+Sell+",Sh:"+Short+",C:"+Cover+",lng:"+sklong+",shrt:"+skshrt+",SLA:"+SKSLACTION+
+"\nFinal-B:"+Buy+",S:"+Sell+",Sh:"+Short+",C:"+Cover+",lng:"+sklong+",shrt:"+skshrt+",SLA:"+SKSLACTION+"CA:"+Cover_SSL+"SA:"+Sell_LSL+
 "\nAction:"+SKACTION+",bars:"+barsgone+",df:"+skdf+",ldf:"+Ref(skdf,-1)+
 "\nCRP:"+C+",XP:"+skexprice+",SL:"+SKSL+",SLL:"+Ref(SKSL,-1)+
 "\nSLDF:"+SKSLDF+",LSLDF:"+Ref(SKSLDF,-1));
@@ -729,6 +739,78 @@ Plot(IIf(skshrt , skexprice,Null), "XP", colorYellow, styleDots, Null, Null, 0, 
 //printf("\nlastskcheck"+"BP"+BuyPrice+"preLSL"+Ref(LSL,-1)+"LSL"+LSL);
 
 }
+
+if(1==1) // set sell and cover dynamically based on LSL and SSL 
+{
+sklong=Flip(Buy,Sell) OR Sell;
+BuyPrice=IIf(sklong,ValueWhen(Buy,(O+C+H+L)/4),Null);
+SKSLbuy=IIf(sklong,IIf(BarsSince(Buy)==0 OR (C-BuyPrice)<skstepsize ,-1*skstepsize,int((C-BuyPrice)/skstepsize)*skstepsize),Null);
+LSL2=IIf(sklong,IIf(BarsSince(Buy)==0,BuyPrice+SKSLbuy,BuyPrice+HighestSince(Buy,SKSLbuy,1)),null);//  (SKSLbuy,1,1)),null);
+//Sell_LSL=Cross(Ref(LSL2,-1),Ref(C,-1));
+Sell_LSL=Cross(LSL2,Ref(C,-1));
+
+Sell=Sell OR Sell_LSL; // Ref(Sell_LSL,-1); 
+
+skshrt=Flip(Short,Cover) OR Cover;
+Shortprice=IIf(skshrt,ValueWhen(Short,(O+C+H+L)/4),Null);
+SDstep=int((ShortPrice-C)/skstepsize)*skstepsize;
+SKSLshort=IIf(skshrt,IIf(BarsSince(skshrt)==0 OR (ShortPrice-C)<skstepsize,-1*skstepsize,int((ShortPrice-C)/skstepsize)*skstepsize),Null);
+SSL2=IIf(skshrt,IIf(BarsSince(skshrt)==0,ShortPrice-SKSLshort,ShortPrice-lowestsince(skshrt,SKSLshort,1)),null);
+//Cover_SSL=Cross(Ref(C,-1),Ref(SSL2,-1));
+Cover_SSL=Cross(Ref(C,-1),SSL2);
+printf("\nskcheck1,C:"+C+"CL:"+Ref(C,-1)+"SSL2:"+SSL2+"LSSL2:"+Ref(SSL2,-1)+"CSSL:"+Cover_SSL+"LCSSL:"+Ref(Cover_SSL,-1));
+
+Cover= Cover OR Cover_SSL ;// Ref(Cover_SSL,-1);
+
+sklong=Flip(Buy,Sell) ; 
+skshrt=Flip(Short,Cover) ;
+
+Buy = ExRem(Buy, Sell) AND NOT skshrt ;//AND ExRem(Buy,Cover);
+Sell = ExRem(Sell, Buy);
+Short=ExRem(Short,Cover) AND NOT sklong;
+Cover=ExRem(Cover,Short);
+
+sklong=Flip(Buy,Sell) ; 
+skshrt=Flip(Short,Cover) ;
+
+//sklong=Flip(Buy,Sell) OR Sell; 
+//skshrt=Flip(Short,Cover) OR Cover;
+
+
+BuyPrice=IIf(sklong,ValueWhen(Buy,(O+C+H+L)/4),Null);
+Shortprice=IIf(skshrt,ValueWhen(Short,(O+C+H+L)/4),Null);
+SKSLbuy=IIf(sklong,IIf(BarsSince(Buy)==0 OR (C-BuyPrice)<skstepsize ,-1*skstepsize,int((C-BuyPrice)/skstepsize)*skstepsize),Null);
+LSL2=IIf(sklong,IIf(BarsSince(Buy)==0,BuyPrice+SKSLbuy,BuyPrice+HighestSince(Buy,SKSLbuy,1)),null);//  (SKSLbuy,1,1)),null);
+SKSLshort=IIf(skshrt,IIf(BarsSince(Short)==0 OR (ShortPrice-C)<skstepsize ,-1*skstepsize,int((ShortPrice-C)/skstepsize)*skstepsize),Null);
+SSL2=IIf(skshrt,IIf(BarsSince(Short)==0,ShortPrice-SKSLshort,ShortPrice-HighestSince(Short,SKSLshort,1)),null);
+
+if(1==1) // print and draw the  information of stop loss 
+{
+skdf=IIf(sklong,C-BuyPrice,IIf(skshrt,ShortPrice-c,Null));
+skexprice=IIf(sklong,BuyPrice,IIf(skshrt,ShortPrice,Null));
+barsgone=IIf(sklong,BarsSince(Buy),IIf(skshrt,BarsSince(Short),Null));
+SKSL=IIf(sklong,LSL2,IIf(skshrt,SSL2,Null));
+SKSLDF=IIf(sklong,BuyPrice-LSL2,IIf(skshrt,SSL2-ShortPrice,Null));
+SKACTION=IIf(sklong,1,IIf(skshrt,-1,0));
+SKSLACTION=IIf(Cover,IIf(Cover_SSL,-1,null),IIf(Sell,IIF(Sell_LSL,1,0),Null));
+printf("\n--------StepSL:"+skstepsize+
+"\nFinal-B:"+Buy+",S:"+Sell+",Sh:"+Short+",C:"+Cover+",lng:"+sklong+",shrt:"+skshrt+",SLA:"+SKSLACTION+"CA:"+Cover_SSL+"SA:"+Sell_LSL+
+"\nAction:"+SKACTION+",bars:"+barsgone+",df:"+skdf+",ldf:"+Ref(skdf,-1)+
+"\nCRP:"+C+",XP:"+skexprice+",SL:"+SKSL+",SLL:"+Ref(SKSL,-1)+
+"\nSLDF:"+SKSLDF+",LSLDF:"+Ref(SKSLDF,-1));
+
+Plot(IIf(sklong , LSL2,Null), "BuySL",colorAqua , styleDashed, Null, Null, 0, 1, 1);
+Plot(IIf(sklong , skexprice,Null), "XP", colorBlue, styleDots, Null, Null, 0, 1, 1);
+Plot(IIf(skshrt , SSL2,Null), "ShortSL", colorAqua, styleDashed, Null, Null, 0, 1, 1);
+Plot(IIf(skshrt , skexprice,Null), "XP", colorYellow, styleDots, Null, Null, 0, 1, 1);
+}
+
+
+//SSL=IIf(skshrt,IIf(BarsSince(Short)==0,ShortPrice-SKSLshort,ShortPrice-HighestSince(Short,SKSLshort,1)),Null); // ),null);
+//printf("\nlastskcheck"+"BP"+BuyPrice+"preLSL"+Ref(LSL,-1)+"LSL"+LSL);
+
+}
+
 
 if(1==0) // check which action is going on Long or Short 
 {

@@ -688,13 +688,19 @@ Cover_SSL=Cross(Ref(C,-1),SSL2);
 
 Cover= Cover OR Cover_SSL;
 
-Buy = ExRem(Buy, Sell) AND NOT SHORT ;//AND ExRem(Buy,Cover);
+//sklong=Flip(Buy,Sell); 
+//skshrt=Flip(Short,Cover) ;
+
+Buy = ExRem(Buy, Sell) AND NOT short ;//AND ExRem(Buy,Cover);
 Sell = ExRem(Sell, Buy);
-Short=ExRem(Short,Cover) AND NOT BUY;
+Short=ExRem(Short,Cover) AND NOT buy;
 Cover=ExRem(Cover,Short);
 
-sklong=Flip(Buy,Sell) OR Sell; 
-skshrt=Flip(Short,Cover) OR Cover;
+//sklong=Flip(Buy,Sell) OR Sell; 
+//skshrt=Flip(Short,Cover) OR Cover;
+
+sklong=Flip(Buy,Sell); 
+skshrt=Flip(Short,Cover) ;
 
 BuyPrice=IIf(sklong,ValueWhen(Buy,(O+C+H+L)/4),Null);
 Shortprice=IIf(skshrt,ValueWhen(Short,(O+C+H+L)/4),Null);
