@@ -755,8 +755,8 @@ Sell=Sell OR Sell_LSL; // Ref(Sell_LSL,-1);
 skshrt=Flip(Short,Cover) OR Cover;
 Shortprice=IIf(skshrt,ValueWhen(Short,(O+C+H+L)/4),Null);
 SDstep=int((ShortPrice-C)/skstepsize)*skstepsize;
-SKSLshort=IIf(skshrt,IIf(BarsSince(Short)==0 OR (ShortPrice-C)<skstepsize,-1*skstepsize,int((ShortPrice-C)/skstepsize)*skstepsize),Null);
-SSL2=IIf(skshrt,IIf(BarsSince(Short)==0,ShortPrice-SKSLshort,ShortPrice-HighestSince(skshrt,SKSLshort,1)),null);
+SKSLshort=IIf(skshrt,IIf(BarsSince(skshrt)==0 OR (ShortPrice-C)<skstepsize,-1*skstepsize,int((ShortPrice-C)/skstepsize)*skstepsize),Null);
+SSL2=IIf(skshrt,IIf(BarsSince(skshrt)==0,ShortPrice-SKSLshort,ShortPrice-HighestSince(skshrt,SKSLshort,1)),null);
 //Cover_SSL=Cross(Ref(C,-1),Ref(SSL2,-1));
 Cover_SSL=Cross(Ref(C,-1),SSL2);
 
