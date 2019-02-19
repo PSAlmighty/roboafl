@@ -208,6 +208,7 @@ rLow=rOpen=Ref(SKRP1,-1);
 
 if(1==1) // plot the chart based on bricksize
 {
+Plot(Ref(Close,-1),"\nPClose",IIf(Close>Open,colorGreen,colorRed ),styleDots);
 Plot(Close,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleDots);
 Plot(Open,"OPen",colorBlue,styleNoDraw);
 //Plot(nClose,"nClose",colorBlue,styleLine);
@@ -216,7 +217,7 @@ Plot(Open,"OPen",colorBlue,styleNoDraw);
 //PlotOHLC(rOpen, rHigh, rLow, rClose, "", colorDefault, styleCandle);
 PlotOHLC(rOpen, rHigh, rLow, rClose, "", colorDefault, styleCandle);
 //printf("\nnO:"+nOpen+",nC:"+nClose);
-printf("\nO:"+O+",C:"+Close);
+printf("\nPO:"+Ref(o,-1)+",O:"+O+",PC:"+Ref(C,-1)+",C:"+Close);
 printf("\nrO:"+rOpen+",rC:"+rClose);
 printf("\nrO1:"+Ref(rOpen,-1)+",rC1:"+Ref(rClose,-1));
 
@@ -754,28 +755,28 @@ Sell=Sell OR Sell_LSL; // Ref(Sell_LSL,-1);
 skshrt=Flip(Short,Cover) OR Cover;
 Shortprice=IIf(skshrt,ValueWhen(Short,(O+C+H+L)/4),Null);
 SDstep=int((ShortPrice-C)/skstepsize)*skstepsize;
-SKSLshort=IIf(skshrt,IIf(BarsSince(skshrt)==0 OR (ShortPrice-C)<skstepsize,-1*skstepsize,int((ShortPrice-C)/skstepsize)*skstepsize),Null);
-SSL2=IIf(skshrt,IIf(BarsSince(skshrt)==0,ShortPrice-SKSLshort,ShortPrice-lowestsince(skshrt,SKSLshort,1)),null);
+SKSLshort=IIf(skshrt,IIf(BarsSince(Short)==0 OR (ShortPrice-C)<skstepsize,-1*skstepsize,int((ShortPrice-C)/skstepsize)*skstepsize),Null);
+SSL2=IIf(skshrt,IIf(BarsSince(Short)==0,ShortPrice-SKSLshort,ShortPrice-HighestSince(skshrt,SKSLshort,1)),null);
 //Cover_SSL=Cross(Ref(C,-1),Ref(SSL2,-1));
 Cover_SSL=Cross(Ref(C,-1),SSL2);
-printf("\nskcheck1,C:"+C+"CL:"+Ref(C,-1)+"SSL2:"+SSL2+"LSSL2:"+Ref(SSL2,-1)+"CSSL:"+Cover_SSL+"LCSSL:"+Ref(Cover_SSL,-1));
 
 Cover= Cover OR Cover_SSL ;// Ref(Cover_SSL,-1);
+printf("\nskcheck1,BS:"+barssince(Short)+"SSL2:"+SSL2+"LSSL2:"+Ref(SSL2,-1)+"CSSL:"+Cover_SSL+"LCSSL:"+Ref(Cover_SSL,-1)+"Cover:"+Cover);
 
 sklong=Flip(Buy,Sell) ; 
 skshrt=Flip(Short,Cover) ;
 
-Buy = ExRem(Buy, Sell) AND NOT skshrt ;//AND ExRem(Buy,Cover);
+Buy = ExRem(Buy, Sell) AND NOT skshrt ;//AND ExRem (Buy,Cover);
 Sell = ExRem(Sell, Buy);
 Short=ExRem(Short,Cover) AND NOT sklong;
 Cover=ExRem(Cover,Short);
 
 sklong=Flip(Buy,Sell) ; 
 skshrt=Flip(Short,Cover) ;
-
+printf("\n--------StepSL:"+skstepsize+
+"\nFinal2-B:"+Buy+",S:"+Sell+",Sh:"+Short+",C:"+Cover+",lng:"+sklong+",shrt:"+skshrt);
 //sklong=Flip(Buy,Sell) OR Sell; 
 //skshrt=Flip(Short,Cover) OR Cover;
-
 
 BuyPrice=IIf(sklong,ValueWhen(Buy,(O+C+H+L)/4),Null);
 Shortprice=IIf(skshrt,ValueWhen(Short,(O+C+H+L)/4),Null);
@@ -784,7 +785,7 @@ LSL2=IIf(sklong,IIf(BarsSince(Buy)==0,BuyPrice+SKSLbuy,BuyPrice+HighestSince(Buy
 SKSLshort=IIf(skshrt,IIf(BarsSince(Short)==0 OR (ShortPrice-C)<skstepsize ,-1*skstepsize,int((ShortPrice-C)/skstepsize)*skstepsize),Null);
 SSL2=IIf(skshrt,IIf(BarsSince(Short)==0,ShortPrice-SKSLshort,ShortPrice-HighestSince(Short,SKSLshort,1)),null);
 
-if(1==1) // print and draw the  information of stop loss 
+if(1==1) // print and draw the information of stop loss 
 {
 skdf=IIf(sklong,C-BuyPrice,IIf(skshrt,ShortPrice-c,Null));
 skexprice=IIf(sklong,BuyPrice,IIf(skshrt,ShortPrice,Null));
@@ -798,7 +799,6 @@ printf("\n--------StepSL:"+skstepsize+
 "\nAction:"+SKACTION+",bars:"+barsgone+",df:"+skdf+",ldf:"+Ref(skdf,-1)+
 "\nCRP:"+C+",XP:"+skexprice+",SL:"+SKSL+",SLL:"+Ref(SKSL,-1)+
 "\nSLDF:"+SKSLDF+",LSLDF:"+Ref(SKSLDF,-1));
-
 Plot(IIf(sklong , LSL2,Null), "BuySL",colorAqua , styleDashed, Null, Null, 0, 1, 1);
 Plot(IIf(sklong , skexprice,Null), "XP", colorBlue, styleDots, Null, Null, 0, 1, 1);
 Plot(IIf(skshrt , SSL2,Null), "ShortSL", colorAqua, styleDashed, Null, Null, 0, 1, 1);
