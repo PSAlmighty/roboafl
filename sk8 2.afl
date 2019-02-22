@@ -260,19 +260,20 @@ if(1==1) // set6 for buy sell signals
 {
 //Buy=Sell=Short=Cover=0;
 
-Buy=skpatterncheck_rclose("RB1","211")  //OR skpatterncheck_rclose("RB1","211")
+Buy=skpatterncheck_rclose("RB1","21")  //OR skpatterncheck_rclose("RB1","211")
 OR skpatterncheck_rclose("RB1","2100000")  
 OR  skpatterncheck_close("CB1","2100000")
-OR  skpatterncheck_close("CB1","211")   ;
+OR  skpatterncheck_close("CB1","2100")   ;
 
 Short=skpatterncheck_rclose("RW1","200001111111")  
 OR skpatterncheck_rclose("RW1","2001111")  
 OR skpatterncheck_close("CW1","2011111")
 OR skpatterncheck_close("CW1","200")   ;
 
-Sell=False OR skpatterncheck_close("CS1","200111") ;
+Short = 0 ;
+sellsignal=Sell=False OR skpatterncheck_close("CS1","20011111") OR Short;
 
-Cover=False OR skpatterncheck_close("CC1","211000");
+coversignal=Cover=False OR skpatterncheck_close("CC1","2110000") OR Buy;
 }
 
 if(1==1) // set sell and cover dynamically based on LSL and SSL 
@@ -300,16 +301,15 @@ Cover_SSL=IIf(Ref(C,-1)>Ref(SSL2,-1),True,false);
 Cover_ST1=IIf(C<SKST1 AND O<C AND Ref(O,-1)<Ref(C,-1),True,false);
 printf("\nSKLT1:"+SKLT1+"Prof:"+skstepsizeP+"bp:"+BuyPrice+"sellt1:"+Sell_LT1);
 
-Cover= Cover OR Cover_SSL OR Cover_ST1 ;// Ref(Cover_SSL,-1);
-//Cover= Cover_SSL OR Cover_ST1 ;// Ref(Cover_SSL,-1);
+//Cover= Cover OR Cover_SSL OR Cover_ST1 ;// Ref(Cover_SSL,-1);
+Cover= Cover_SSL OR Cover_ST1 ;// Ref(Cover_SSL,-1);
 printf("\nskcheck1,SSL2:"+SSL2+"LSSL2:"+Ref(SSL2,-1)+"CSSL:"+Cover_SSL+"LCSSL:"+Ref(Cover_SSL,-1)+"Cover:"+Cover);
 Cover=ExRem(Cover,Short);
 
 sklong=Flip(Buy,Sell) OR Sell ; 
 skshrt=Flip(Short,Cover) OR Cover ;
 
-Buy = Buy AND NOT skshrt;
-Short = Short AND NOT sklong;
+
 printf("\n--------StepSL:"+skstepsize+
 "\nFinal2-B:"+Buy+",S:"+Sell+",Sh:"+Short+",C:"+Cover+",lng:"+sklong+",shrt:"+skshrt);
 //sklong=Flip(Buy,Sell) OR Sell; 
@@ -321,9 +321,6 @@ printf("\n--------StepSL:"+skstepsize+
 //LSL2=IIf(sklong,IIf(BarsSince(Buy)==0,BuyPrice+SKSLbuy,BuyPrice+HighestSince(Buy,SKSLbuy,1)),null);//  (SKSLbuy,1,1)),null);
 //SKSLshort=IIf(skshrt,IIf(BarsSince(Short)==0 OR (ShortPrice-C)<skstepsize ,-1*skstepsize,int((ShortPrice-C)/skstepsize)*skstepsize),Null);
 //SSL2=IIf(skshrt,IIf(BarsSince(Short)==0,ShortPrice-SKSLshort,ShortPrice-HighestSince(Short,SKSLshort,1)),null);
-
-Buy = Buy AND NOT Short;
-Short = Short AND NOT Buy;
 
 if(1==1) // print and draw the information of stop loss 
 {
@@ -337,14 +334,16 @@ SKSLACTION=IIf(Cover,IIf(Cover_SSL,-1,null),IIf(Sell,IIF(Sell_LSL,1,0),Null));
 
 if(1==1) // draw the area of the profit or loss as bars 
 {
-skprofit=IIf(Sell,SellPrice-BuyPrice,IIf(Cover,ShortPrice-CoverPrice,Null));
+skprofit=IIf(Sell,O-BuyPrice,IIf(Cover,O-CoverPrice,Null));
 skprofitcolor=IIf(skprofit>=0,IIf(Sell,colorGreen,colorBlue),IIf(Sell,colorRed,colorBrown));
-Plot(skprofit, "Profit", skprofitcolor, styleArea|styleOwnScale	, Null, Null, 0, 1, 1);
+Plot(skprofit, "Profit", skprofitcolor, styleArea|styleOwnScale, -50, 50, 0, 1,1);
 
 SLtriggershape=(ExRem(Cover_SSL,Short) OR ExRem(Sell_LSL,Buy) ) * shapeHollowCircle;
 TGtriggershape=(ExRem(Cover_ST1,Short) OR ExRem(Sell_LT1,Buy) ) * shapeHollowSquare;
+sellcovertriggershape=(ExRem(coversignal,Short) OR ExRem(sellsignal,Buy) ) * shapeHollowSquare;
 PlotShapes( SLtriggershape, IIf(skprofit>0,colorGreen,colorRed), 0, skexprice, -1);
-PlotShapes( TGtriggershape, IIf(skprofit>0,colorGreen,colorRed), 0, skexprice, -1);
+PlotShapes( TGtriggershape, IIf(skprofit>0,colorRed,colorRed), 0, skexprice, -1);
+PlotShapes( TGtriggershape, IIf(skprofit>0,colorAqua,colorRed), 0, skexprice, -1);
 printf("\nProfit="+skprofit);
 //plottext("P="+skprofit,0,LastValue(skexprice),colorGreen);
 }
