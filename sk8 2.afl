@@ -15,6 +15,12 @@ TimeFrameRestore();
 TimeFrameSet(1);
 }
 
+function changeinmins(skminutes) // tells the diffirence since last candles 
+{
+skchange=C-Ref(C,-1*skminutes);
+return skchange;
+}
+
 function next_value(sklastval,skcheckval,BrickSize)
 {
 valchange=sqrt((skcheckval-sklastval)*(skcheckval-sklastval));
@@ -117,7 +123,7 @@ nClose = Ref(nClose, -shift);
 if(1==1) // plot the chart based on bricksize
 {
 Plot(Ref(Close,-1),"\nPClose",IIf(Close>Open,colorGreen,colorRed ),styleNoDraw);
-Plot(Close,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleBar);
+//Plot(Close,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleBar);
 Plot(Open,"OPen",colorBlue,styleNoDraw);
 //Plot(nClose,"nClose",colorBlue,styleLine);
 //PlotOHLC(nOpen, nHigh, nLow, nClose, "", colorAqua, styleCandle);
@@ -259,7 +265,7 @@ printf("\nLast,C="+lastpattern_close(10)+"R="+lastpattern_rclose(10)+",N="+lastp
 if(1==1) // set6 for buy sell signals 
 {
 //Buy=Sell=Short=Cover=0;
-
+/*
 Buy=skpatterncheck_rclose("RB1","21")  //OR skpatterncheck_rclose("RB1","211")
 OR skpatterncheck_rclose("RB1","2100000")  
 OR  skpatterncheck_close("CB1","2100000")
@@ -269,11 +275,17 @@ Short=skpatterncheck_rclose("RW1","200001111111")
 OR skpatterncheck_rclose("RW1","2001111")  
 OR skpatterncheck_close("CW1","2011111")
 OR skpatterncheck_close("CW1","200")   ;
-
+*/
+//printf("\nchange:10min:"+changeinmins(10));
 Short = 0 ;
-sellsignal=Sell=False OR skpatterncheck_close("CS1","20011111") OR Short;
+//Buy=skpatterncheck_close("CB1","201001")   ;
+Buy=IIf(changeinmins(20)>20,1,0) AND IIf(changeinmins(10)>10,1,0);
+//sellsignal=Sell=False OR skpatterncheck_close("CS1","200111") OR Short;
+sellsignal=Sell=IIf(changeinmins(10)<40,1,0);
 
-coversignal=Cover=False OR skpatterncheck_close("CC1","2110000") OR Buy;
+Short=IIf(changeinmins(20)<-20,1,0) AND IIf(changeinmins(10)<-10,1,0);
+//coversignal=Cover=False OR skpatterncheck_rclose("CC1","2110000") OR Buy;
+coversignal=Cover=IIf(changeinmins(10)>10,1,0);
 }
 
 if(1==1) // set sell and cover dynamically based on LSL and SSL 
@@ -299,7 +311,7 @@ SSL2=IIf(skshrt,IIf(BarsSince(Short)==0,ShortPrice-SKSLshort,ShortPrice-HighestS
 SKST1=ShortPrice-skstepsizeP;
 Cover_SSL=IIf(Ref(C,-1)>Ref(SSL2,-1),True,false);
 Cover_ST1=IIf(C<SKST1 AND O<C AND Ref(O,-1)<Ref(C,-1),True,false);
-printf("\nSKLT1:"+SKLT1+"Prof:"+skstepsizeP+"bp:"+BuyPrice+"sellt1:"+Sell_LT1);
+printf("\nSKST1:"+SKST1+"SP:"+ShortPrice+"CT1:"+COVER_ST1);
 
 //Cover= Cover OR Cover_SSL OR Cover_ST1 ;// Ref(Cover_SSL,-1);
 Cover= Cover_SSL OR Cover_ST1 ;// Ref(Cover_SSL,-1);
@@ -338,12 +350,13 @@ skprofit=IIf(Sell,O-BuyPrice,IIf(Cover,O-CoverPrice,Null));
 skprofitcolor=IIf(skprofit>=0,IIf(Sell,colorGreen,colorBlue),IIf(Sell,colorRed,colorBrown));
 Plot(skprofit, "Profit", skprofitcolor, styleArea|styleOwnScale, -50, 50, 0, 1,1);
 
-SLtriggershape=(ExRem(Cover_SSL,Short) OR ExRem(Sell_LSL,Buy) ) * shapeHollowCircle;
-TGtriggershape=(ExRem(Cover_ST1,Short) OR ExRem(Sell_LT1,Buy) ) * shapeHollowSquare;
-sellcovertriggershape=(ExRem(coversignal,Short) OR ExRem(sellsignal,Buy) ) * shapeHollowSquare;
-PlotShapes( SLtriggershape, IIf(skprofit>0,colorGreen,colorRed), 0, skexprice, -1);
-PlotShapes( TGtriggershape, IIf(skprofit>0,colorRed,colorRed), 0, skexprice, -1);
-PlotShapes( TGtriggershape, IIf(skprofit>0,colorAqua,colorRed), 0, skexprice, -1);
+SLtriggershape=(Cover_SSL OR Sell_LSL ) * shapeHollowCircle * ( Sell OR Cover ) ;
+TGtriggershape=(Cover_ST1 OR Sell_LT1 ) * shapeStar * ( Sell OR Cover );
+sellcovertriggershape=(coversignal OR sellsignal ) * shapeHollowSquare * ( Sell OR Cover ) ;
+
+PlotShapes( SLtriggershape, IIf(skprofit>0,colorGreen,colorRed), 0, skexprice, -1,0);
+PlotShapes( TGtriggershape, IIf(skprofit>0,colorGreen,colorRed), 0, skexprice, -1,1);
+PlotShapes( sellcovertriggershape, IIf(skprofit>0,colorGreen,colorRed), 0, skexprice, -1,2);
 printf("\nProfit="+skprofit);
 //plottext("P="+skprofit,0,LastValue(skexprice),colorGreen);
 }
@@ -365,11 +378,6 @@ Plot(IIf(skshrt , ShortPrice,Null), "XP", colorRed, styleThick	, Null, Null, 0, 
 
 }
 
-function changeinmins(skminutes) // tells the diffirence since last candles 
-{
-skchange=C-Ref(C,-1*skminutes);
-return skchange;
-}
 
 if(1==1) // buy sell arrow draw based on rLow
 {
@@ -383,7 +391,7 @@ SellShape = Sell * shapeStar;
 PlotShapes( Buyshape, colorGreen, 1, BuyPrice, -1 );
 //PlotShapes( Buyshape, colorYellow, 0, rLow+10, -10 );
 //PlotText( "BUY@" + BuyPrice[0] + skrvars_print , 0, LastValue(rLow), colorGreen);
-PlotShapes( SellShape, colorBlue, 0, SellPrice, -1 );
+//PlotShapes( SellShape, colorBlue, 0, SellPrice, -1 );
 
 Shortshape = Short * shapeSmallDownTriangle;
 CoverShape = Cover * shapeStar;
@@ -395,7 +403,7 @@ PlotShapes( CoverShape, colorBrown, 0, CoverPrice, -1 )	;
 
 }
 
-if(1==1) // buy sell signal sent to amigo 
+if(1==0) // buy sell signal sent to amigo 
 {
 
 // from here the buy and sell signals . 
