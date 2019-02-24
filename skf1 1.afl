@@ -17,7 +17,8 @@ TimeFrameSet(1);
 
 function changeinmins(skminutes) // tells the diffirence since last candles 
 {
-skchange=C-Ref(C,-1*skminutes);
+//skchange=Ref(C,-1)-Ref(C,-1*(skminutes-1));
+skchange=O-Ref(o,-1*skminutes);
 return skchange;
 }
 
@@ -277,22 +278,23 @@ OR skpatterncheck_close("CW1","2011111")
 OR skpatterncheck_close("CW1","200")   ;
 */
 //printf("\nchange:10min:"+changeinmins(10));
-Short = 0 ;
+//Short = 0 ;
 //Buy=skpatterncheck_close("CB1","201001")   ;
-Buy=IIf(changeinmins(20)>20,1,0) AND IIf(changeinmins(10)>10,1,0);
+Buy=IIf(changeinmins(30)<0,1,0) AND IIf(changeinmins(10)>10,1,0);
 //sellsignal=Sell=False OR skpatterncheck_close("CS1","200111") OR Short;
-sellsignal=Sell=IIf(changeinmins(10)<40,1,0);
+sellsignal=Sell=IIf(changeinmins(10)<0,1,0);
 
-Short=IIf(changeinmins(20)<-20,1,0) AND IIf(changeinmins(10)<-10,1,0);
+Short=IIf(changeinmins(30)>0,1,0) AND IIf(changeinmins(10)<-10,1,0);
 //coversignal=Cover=False OR skpatterncheck_rclose("CC1","2110000") OR Buy;
-coversignal=Cover=IIf(changeinmins(10)>10,1,0);
+coversignal=Cover=IIf(changeinmins(10)>0,1,0);
 }
 
 if(1==1) // set sell and cover dynamically based on LSL and SSL 
 {
 Buy=ExRem(Buy,Sell) AND NOT SHORT;
 sklong=Flip(Buy,Sell) OR Sell;
-BuyPrice=IIf(sklong,ValueWhen(Buy,(O+C+H+L)/4),Null);
+//BuyPrice=IIf(sklong,ValueWhen(Buy,(O+C+H+L)/4),Null);
+BuyPrice=IIf(sklong,ValueWhen(Buy,O),Null);
 SKSLbuy=IIf(sklong,IIf(BarsSince(Buy)==0 OR (C-BuyPrice)<skstepsize/2 ,-1*skstepsize,int((C-BuyPrice)/skstepsize)*skstepsize),Null);
 LSL2=IIf(sklong,IIf(BarsSince(Buy)==0,BuyPrice+SKSLbuy,BuyPrice+HighestSince(Buy,SKSLbuy,1)),null);//  (SKSLbuy,1,1)),null);
 SKLT1=BuyPrice+skstepsizeP;//  (SKSLbuy,1,1)),null);
@@ -302,10 +304,12 @@ printf("\nSKLT1:"+SKLT1+"Prof:"+skstepsizeP+"bp:"+BuyPrice+"sellt1:"+Sell_LT1);
 Sell=Sell OR Sell_LSL OR Sell_LT1; // Ref(Sell_LSL,-1); 
 //Sell=Sell_LSL OR Sell_LT1; // Ref(Sell_LSL,-1); 
 Sell = ExRem(Sell, Buy);
+SellPrice=ValueWhen(Sell,O);
 
 Short=ExRem(Short,Cover) AND NOT BUY;
 skshrt=Flip(Short,Cover) OR Cover;
-Shortprice=IIf(skshrt,ValueWhen(Short,(O+C+H+L)/4),Null);
+//Shortprice=IIf(skshrt,ValueWhen(Short,(O+C+H+L)/4),Null);
+Shortprice=IIf(skshrt,ValueWhen(Short,O),Null);
 SKSLshort=IIf(skshrt,IIf(BarsSince(Short)==0 OR (ShortPrice-C)<skstepsize/2,-1*skstepsize,int((ShortPrice-C)/skstepsize)*skstepsize),Null);
 SSL2=IIf(skshrt,IIf(BarsSince(Short)==0,ShortPrice-SKSLshort,ShortPrice-HighestSince(Short,SKSLshort,1)),null);
 SKST1=ShortPrice-skstepsizeP;
@@ -317,6 +321,7 @@ printf("\nSKST1:"+SKST1+"SP:"+ShortPrice+"CT1:"+COVER_ST1);
 Cover= Cover_SSL OR Cover_ST1 ;// Ref(Cover_SSL,-1);
 printf("\nskcheck1,SSL2:"+SSL2+"LSSL2:"+Ref(SSL2,-1)+"CSSL:"+Cover_SSL+"LCSSL:"+Ref(Cover_SSL,-1)+"Cover:"+Cover);
 Cover=ExRem(Cover,Short);
+CoverPrice=ValueWhen(Cover,O);
 
 sklong=Flip(Buy,Sell) OR Sell ; 
 skshrt=Flip(Short,Cover) OR Cover ;

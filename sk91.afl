@@ -17,7 +17,7 @@ TimeFrameSet(1);
 
 function changeinmins(skminutes) // tells the diffirence since last candles 
 {
-skchange=C-Ref(C,-1*skminutes);
+skchange=Ref(C,-1)-Ref(C,-1*skminutes);
 return skchange;
 }
 
@@ -349,6 +349,8 @@ if(1==1) // draw the area of the profit or loss as bars
 skprofit=IIf(Sell,O-BuyPrice,IIf(Cover,O-CoverPrice,Null));
 skprofitcolor=IIf(skprofit>=0,IIf(Sell,colorGreen,colorBlue),IIf(Sell,colorRed,colorBrown));
 Plot(skprofit, "Profit", skprofitcolor, styleArea|styleOwnScale, -50, 50, 0, 1,1);
+skchange=changeinmins(20);
+Plot(skchange, "change20", IIf(skchange>0,colorGreen,colorRed), styleStaircase|styleOwnScale, -50, 50, 0, 1,1);
 
 SLtriggershape=(Cover_SSL OR Sell_LSL ) * shapeHollowCircle * ( Sell OR Cover ) ;
 TGtriggershape=(Cover_ST1 OR Sell_LT1 ) * shapeStar * ( Sell OR Cover );
@@ -367,8 +369,11 @@ printf("\n--------StepSL:"+skstepsize+
 "\nCRP:"+C+",XP:"+skexprice+",SL:"+SKSL+",SLL:"+Ref(SKSL,-1)+
 "\nSLDF:"+SKSLDF+",LSLDF:"+Ref(SKSLDF,-1));
 Plot(IIf(sklong , LSL2,Null), "BuySL",colorAqua , styleDots, Null, Null, 0, 1, 1);
+Plot(IIf(sklong , SKLT1,Null), "BuySL",colorAqua , styleDashed, Null, Null, 0, 1, 1);
 Plot(IIf(sklong , BuyPrice,Null), "XP", colorGreen, styleThick, Null, Null, 0, 1, 1);
 Plot(IIf(skshrt , SSL2,Null), "ShortSL", colorAqua, styleDots, Null, Null, 0, 1, 1);
+Plot(IIf(skshrt , SKST1,Null), "ST1", colorAqua, styleDashed, Null, Null, 0, 1, 1);
+
 Plot(IIf(skshrt , ShortPrice,Null), "XP", colorRed, styleThick	, Null, Null, 0, 1, 1);
 }
 
@@ -440,7 +445,7 @@ _SECTION_END();
 
 }
 
-if(1==0) // write buy sell price on chart 
+if(1==1) // write buy sell price on chart 
 {
 dist=BrickSize;
 dist1=1.2*dist;
