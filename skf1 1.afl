@@ -8,7 +8,7 @@ y=Param("yposn",1,0,1000,1);
 //sktitle = ParamStr("Title","skself1");
 sktitle = ParamStr("Title","sk3");
 skaction="Action";
-skstepsize=Param( "StepSL", 10, 0, 200 );
+skstepsize=Param( "StepSL", 40, 0, 200 );
 skstepsizeP=Param( "StepProfit", 20, 0, 200 );
 BrickSize = Param( "BrickSize ",5, 0, 200,1 );
 TimeFrameRestore();
@@ -280,7 +280,7 @@ OR skpatterncheck_close("CW1","200")   ;
 //printf("\nchange:10min:"+changeinmins(10));
 //Short = 0 ;
 //Buy=skpatterncheck_close("CB1","201001")   ;
-Buy=IIf(changeinmins(30)<0,1,0) AND IIf(changeinmins(10)>10,1,0);
+Buy=IIf(changeinmins(40)<0,1,0) AND IIf(changeinmins(10)>10,1,0);
 //sellsignal=Sell=False OR skpatterncheck_close("CS1","200111") OR Short;
 sellsignal=Sell=IIf(changeinmins(10)<0,1,0);
 
