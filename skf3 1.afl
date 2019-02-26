@@ -128,7 +128,7 @@ nClose = Ref(nClose, -shift);
 if(1==1) // plot the chart based on bricksize
 {
 Plot(Ref(Close,-1),"\nPClose",IIf(Close>Open,colorGreen,colorRed ),styleNoDraw);
-//Plot(Close,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleBar);
+Plot(Close,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleBar);
 Plot(Open,"OPen",colorBlue,styleNoDraw);
 //Plot(nClose,"nClose",colorBlue,styleLine);
 //PlotOHLC(nOpen, nHigh, nLow, nClose, "", colorAqua, styleCandle);
@@ -492,7 +492,7 @@ _SECTION_END();
 
 }
 
-if(1==0) // write buy sell price on chart 
+if(1==1) // write buy sell price on chart 
 {
 dist=BrickSize;
 dist1=1.2*dist;
