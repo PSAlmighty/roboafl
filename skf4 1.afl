@@ -11,8 +11,9 @@ skaction="Action";
 skstepsize=Param( "StepSL", 50, 0, 200 );
 skstepsizeP=Param( "StepProfit", 30, 0, 200 );
 BrickSize = Param( "BrickSize ",5, 0, 200,1 );
-TimeFrameRestore();
-TimeFrameSet(1);
+skts=Interval();
+//TimeFrameRestore();
+//TimeFrameSet(1);
 }
 
 function changeinmins(skminutes) // tells the diffirence since last candles 
@@ -22,7 +23,7 @@ function changeinmins(skminutes) // tells the diffirence since last candles
 //skchange=int(O-Ref(O,-1*skminutes));
 skchange=int(O-Ref(c,-1*skminutes));	// open - last close 
 //skchange=int(Ref(O,-1)-Ref(O,-1*(skminutes+1)));
-printf("\nchangein:"+skminutes+":"+O+"-"+Ref(c,-1*skminutes)+"="+skchange);
+printf("\nchangein:"+skminutes*skts/60+":"+O+"-"+Ref(c,-1*skminutes)+"="+skchange);
 return skchange;
 }
 
@@ -60,7 +61,7 @@ periods = Param( "atrPeriods", 15, 1, 200, 1 );
 skatr= ATR(periods);
 maatr=MA(skatr,50);
 avgatrperiods=IIf(skatr<2,2,round((skatr+5)/10)*10) ;
-skts=Interval();
+
 suggestedbrick_bn=IIf(skts<60,10,IIf(skts<300,20,IIf(skts<900,30,IIf(skts<1800,50,IIf(skts<3601,100,100)))));
 //BrickSize=BrickSize1 = LastValue(avgatrperiods);
 printf("bricks:"+BrickSize);
@@ -129,26 +130,27 @@ if(1==1) // plot the chart based on bricksize
 {
 Plot(Ref(Close,-1),"\nPClose",IIf(Close>Open,colorGreen,colorRed ),styleNoDraw);
 Plot(Close,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleBar);
-//Plot(Open,"OPen",colorBlue,styleNoDraw);
+Plot(Open,"OPen",colorBlue,styleNoDraw);
 //Plot(nClose,"nClose",colorBlue,styleLine);
 //PlotOHLC(nOpen, nHigh, nLow, nClose, "", colorAqua, styleCandle);
 //PlotOHLC(mOpen, mHigh, mLow, mClose, "", colorDefault, styleCandle);
 //PlotOHLC(rOpen, rHigh, rLow, rClose, "", colorDefault, styleCandle);
 //PlotOHLC(rOpen, rHigh, rLow, rClose, "", colorDefault, styleCandle);
-
 //Plot(skchange30,"\nClose",IIf(skchange30>0,colorGreen,colorRed ),styleArea|styleOwnScale);
 //Plot(skchange10,"\nClose",IIf(skchange10>0,colorBlue,colorBrown ),styleArea|styleOwnScale);
 //printf("\nchg30:"+skchange30+",chg20:"+skchange20+",chg10:"+skchange10);
-
 }
 
-if(1==0) // get the changes in last minutes 
+if(1==1) // get the last change last bars 
 {
-skchange60=int(changeinmins(60));
-skchange30=int(changeinmins(30));
-skchange20=int(changeinmins(20));
-skchange10=int(changeinmins(10));
-skchange5=int(changeinmins(5));
+//printf("\ninterval:"+skts);
+skchange120=int(changeinmins(120*60/skts));
+skchange60=int(changeinmins(60*60/skts));
+skchange30=int(changeinmins(30*60/skts));
+skchange20=int(changeinmins(20*60/skts));
+skchange10=int(changeinmins(10*60/skts));
+skchange5=int(changeinmins(5*60/skts));
+skchange1=int(changeinmins(1*60/skts));
 }
 
 if(1==1) // print some information about close and OPen candles 
@@ -317,7 +319,7 @@ Short=sellsignal=Sell=IIf(skchange20<-20,1,0);
 coversignal=Cover=IIf(skchange10>20,1,0);
 }
 
-if(1==0) // set2 // if there is less fluctuations direction bound . 
+if(1==1) // set2 // if there is less fluctuations direction bound . 
 {
 Buy=IIf(skchange20>40,1,0) AND IIf(skchange10>10,1,0) AND IIf(skchange5<0,1,0);
 //sellsignal=Sell=False OR skpatterncheck_close("CS1","200111") OR Short;
@@ -338,17 +340,28 @@ coversignal=Cover=IIf(skchange10>20,1,0);
 }
 
 
-if(1==0) // set sell and cover dynamically based on LSL and SSL 
+if(1==0) // set4 for 5second bars // if there is less fluctuations direction bound . 
+{
+Buy=IIf(skchange60>20,1,0) AND IIf(skchange30>10,1,0) AND IIf(skchange10<0,1,0);
+//sellsignal=Sell=False OR skpatterncheck_close("CS1","200111") OR Short;
+Short=IIf(skchange60<-40,1,0) AND IIf(skchange10<-30,1,0) AND IIf(skchange5>0,1,0);
+
+sellsignal=Sell=IIf(skchange30<-20,1,0) OR Short;
+coversignal=Cover=IIf(skchange30>20,1,0) OR Buy;
+}
+
+
+if(1==1) // set sell and cover dynamically based on LSL and SSL 
 {
 Buy=ExRem(Buy,Sell) AND NOT SHORT;
 sklong=Flip(Buy,Sell) OR Sell;
 //BuyPrice=IIf(sklong,ValueWhen(Buy,(O+C+H+L)/4),Null);
 BuyPrice=IIf(sklong,ValueWhen(Buy,O),Null);
-SKSLbuy=IIf(sklong,IIf(BarsSince(Buy)==0 OR (C-BuyPrice)<skstepsize/2 ,-1*skstepsize,int((C-BuyPrice)/skstepsize)*skstepsize),Null);
+SKSLbuy=IIf(sklong,IIf(BarsSince(Buy)==0 OR (C-BuyPrice)<skstepsize/2 ,-1*skstepsize,int((C-BuyPrice)/skstepsize)*skstepsize+skstepsize/4),Null);
 LSL2=IIf(sklong,IIf(BarsSince(Buy)==0,BuyPrice+SKSLbuy,BuyPrice+HighestSince(Buy,SKSLbuy,1)),null);//  (SKSLbuy,1,1)),null);
 SKLT1=BuyPrice+skstepsizeP;//  (SKSLbuy,1,1)),null);
 Sell_LSL=IIF(Ref(LSL2,-1) >Ref(C,-1),True,false);
-Sell_LT1=IIf(C>SKLT1 AND O>C AND Ref(O,-1)>Ref(C,-1),True,false);
+Sell_LT1=IIf(O>SKLT1 AND O>C AND Ref(O,-1)>Ref(C,-1),True,false);
 printf("\nSKLT1:"+SKLT1+"Prof:"+skstepsizeP+"bp:"+BuyPrice+"sellt1:"+Sell_LT1);
 Sell=Sell OR Sell_LSL OR Sell_LT1; // Ref(Sell_LSL,-1); 
 //Sell=Sell_LSL OR Sell_LT1; // Ref(Sell_LSL,-1); 
@@ -421,10 +434,10 @@ printf("\n--------StepSL:"+skstepsize+
 "\nCRP:"+C+",XP:"+skexprice+",SL:"+SKSL+",SLL:"+Ref(SKSL,-1)+
 "\nSLDF:"+SKSLDF+",LSLDF:"+Ref(SKSLDF,-1));
 Plot(IIf(sklong , LSL2,Null), "BuySL",colorAqua , styleDots, Null, Null, 0, 1, 1);
-//Plot(IIf(sklong , SKLT1,Null), "BuySL",colorAqua , styleDashed, Null, Null, 0, 1, 1);
+Plot(IIf(sklong , SKLT1,Null), "BuySL",colorAqua , styleDashed, Null, Null, 0, 1, 1);
 Plot(IIf(sklong , BuyPrice,Null), "XP", colorGreen, styleThick, Null, Null, 0, 1, 1);
 Plot(IIf(skshrt , SSL2,Null), "ShortSL", colorAqua, styleDots, Null, Null, 0, 1, 1);
-//Plot(IIf(skshrt , SKST1,Null), "ST1", colorAqua, styleDashed, Null, Null, 0, 1, 1);
+Plot(IIf(skshrt , SKST1,Null), "ST1", colorAqua, styleDashed, Null, Null, 0, 1, 1);
 Plot(IIf(skshrt , ShortPrice,Null), "XP", colorRed, styleThick	, Null, Null, 0, 1, 1);
 }
 
@@ -435,7 +448,7 @@ Plot(IIf(skshrt , ShortPrice,Null), "XP", colorRed, styleThick	, Null, Null, 0, 
 }
 
 
-if(1==0) // buy sell arrow draw based on rLow
+if(1==1) // buy sell arrow draw based on rLow
 {
 skrvars_print=",o:"+O+"c:"+C;
 
@@ -459,7 +472,7 @@ PlotShapes( CoverShape, colorBrown, 0, CoverPrice, -1 )	;
 
 }
 
-if(1==0) // buy sell signal sent to amigo 
+if(1==1) // buy sell signal sent to amigo 
 {
 
 // from here the buy and sell signals . 
@@ -496,7 +509,7 @@ _SECTION_END();
 
 }
 
-if(1==0) // write buy sell price on chart 
+if(1==1) // write buy sell price on chart 
 {
 dist=BrickSize;
 dist1=1.2*dist;
