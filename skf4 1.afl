@@ -43,19 +43,6 @@ if(StrToNum(NumToStr(skval))==1)
 skactionmsg+=skmsg;
 }
 
-function changeinmins(skminutes) // tells the diffirence since last candles 
-{
-//skchange=Ref(C,-1)-Ref(C,-1*(skminutes+1)); 	// last 1 close - last close 
-//skchange=int(C-Ref(C,-1*skminutes));	// 
-//skchange=int(O-Ref(O,-1*skminutes));
-skchange=int(O-Ref(c,-1*skminutes));	// open - last close 
-//skchange=int(Ref(O,-1)-Ref(O,-1*(skminutes+1)));
-printf("\nchangein:"+skminutes*skts/60+":"+O+"-"+Ref(c,-1*skminutes)+"="+skchange+"at:"+sktime);
-return skchange;
-}
-
-
-
 function next_value(sklastval,skcheckval,BrickSize)
 {
 valchange=sqrt((skcheckval-sklastval)*(skcheckval-sklastval));
@@ -153,6 +140,20 @@ nLow = Ref(nLow, -shift);
 nClose = Ref(nClose, -shift);
 //SKRP = Ref(SKRP, -shift);
 
+}
+
+
+function changeinmins(skminutes) // tells the diffirence since last candles 
+{
+global tt;
+//skchange=Ref(C,-1)-Ref(C,-1*(skminutes+1)); 	// last 1 close - last close 
+//skchange=int(C-Ref(C,-1*skminutes));	// 
+//skchange=int(O-Ref(O,-1*skminutes));
+skchange=int(O-Ref(c,-1*skminutes));	// open - last close 
+sktimeatchange=Ref(tt,-1*skminutes);
+//skchange=int(Ref(O,-1)-Ref(O,-1*(skminutes+1)));
+printf("\nchangein:"+skminutes*skts/60+":"+O+"-"+Ref(c,-1*skminutes)+"="+skchange+"at:"+sktime+"-"+sktimeatchange);
+return skchange;
 }
 
 if(1==1) // plot the chart based on bricksize
@@ -359,7 +360,7 @@ coversignal=Cover=IIf(skchange10>40,1,0) OR Buy;
 }
 
 
-if(1==1) // set21 based on stepsize // if there is less fluctuations direction bound . 
+if(1==0) // set21 based on stepsize // if there is less fluctuations direction bound . 
 {
 Buy=IIf(skchange20>skstepsize,1,0) AND IIf(skchange10>skstepsize/2,1,0) AND IIf(skchange5<0,1,0);
 //sellsignal=Sell=False OR skpatterncheck_close("CS1","200111") OR Short;
@@ -370,14 +371,14 @@ coversignal=Cover=IIf(skchange10>40,1,0) OR Buy;
 
 }
 
-if(1==0) // set21 based on stepsize // if there is less fluctuations direction bound . 
+if(1==1) // set22 based on stepsize // if there is less fluctuations direction bound . 
 {
-Short=IIf(skchange60>0,1,0) AND IIf(skchange10>skstepsize/2,1,0) AND IIf(skchange5<0,1,0);
+Buy=IIf(skchange10>0,1,0) AND IIf(skchange5<0,1,0) AND IIf(skchange1>0,1,0);
 //sellsignal=Sell=False OR skpatterncheck_close("CS1","200111") OR Short;
-Buy=IIf(skchange60<0,1,0) AND IIf(skchange10<-skstepsize/2,1,0) AND IIf(skchange5>0,1,0);
+Short=IIf(skchange10<0,1,0) AND IIf(skchange5>0,1,0) AND IIf(skchange1<0,1,0);
 
-sellsignal=Sell=IIf(skchange10<-40,1,0) OR Short;
-coversignal=Cover=IIf(skchange10>40,1,0) OR Buy;
+sellsignal=Sell=IIf(skchange10<-skstepsize,1,0) ;
+coversignal=Cover=IIf(skchange10>skstepsize,1,0) ;
 
 }
 
@@ -411,7 +412,7 @@ return sktimeout;
 // ISA : 90290 70086 
 }
 
-SKTIMEOUT=exit4time(152000) ;
+SKTIMEOUT=exit4time(152500) ;
 
 if(1==1) // set sell and cover dynamically based on LSL and SSL 
 {
@@ -425,7 +426,7 @@ SKSLbuy=IIf(sklong,IIf(BarsSince(Buy)==0 OR (o-BuyPrice)<skstepsize/2 ,-1*skstep
 LSL2=IIf(sklong,IIf(BarsSince(Buy)==0,BuyPrice+SKSLbuy,BuyPrice+HighestSince(Buy,SKSLbuy,1)),null);//  (SKSLbuy,1,1)),null);
 SKLT1=BuyPrice+skstepsizeP;//  (SKSLbuy,1,1)),null);
 Sell_LSL=IIF(LSL2 >O,True,false);
-Sell_LT1=IIf(O>SKLT1 AND O>C AND Ref(O,-1)>Ref(C,-1),True,false);
+Sell_LT1=IIf(O>SKLT1 AND Ref(O,-1)>Ref(C,-1),True,false);
 printf("\nSKLT1:"+SKLT1+"Prof:"+skstepsizeP+"bp:"+BuyPrice+"sellt1:"+Sell_LT1);
 //Sell_time=SKTIMEOUT;
 printaction(Sell,",sell1");
@@ -445,9 +446,10 @@ printaction(Short,",short2");
 skshrt=Flip(Short,Cover) OR Cover;
 //Shortprice=IIf(skshrt,ValueWhen(Short,(O+C+H+L)/4),Null);
 Shortprice=IIf(skshrt,ValueWhen(Short,O),Null);
-SKSLshort=IIf(skshrt,IIf(BarsSince(Short)==0 OR (ShortPrice-o)<skstepsize/2,-1*skstepsize,int((ShortPrice-o)/skstepsize)*skstepsize),Null);
+SKSLshort=IIf(skshrt,IIf(BarsSince(Short)==0 OR (ShortPrice-o)<skstepsize/2,-1*skstepsize,int((ShortPrice-o)/skstepsize)*skstepsize+skstepsize/4),Null);
 SSL2=IIf(skshrt,IIf(BarsSince(Short)==0,ShortPrice-SKSLshort,ShortPrice-HighestSince(Short,SKSLshort,1)),null);
 SKST1=ShortPrice-skstepsizeP;
+SKST1=IIf(SSL2<ShortPrice,SSL2-skstepsizeP,ShortPrice-skstepsizeP);
 Cover_SSL=IIf(skshrt,IIf(o>SSL2,True,false),0);
 Cover_ST1=IIf(C<SKST1 AND O<C AND Ref(O,-1)<Ref(C,-1),True,false);
 printf("\nSKST1:"+SKST1+"SP:"+ShortPrice+"CT1:"+COVER_ST1);
@@ -594,7 +596,7 @@ _SECTION_END();
 
 }
 
-if(1==1) // write buy sell price on chart 
+if(1==0) // write buy sell price on chart 
 {
 dist=BrickSize;
 dist1=1.2*dist;
