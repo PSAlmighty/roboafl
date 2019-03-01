@@ -371,7 +371,7 @@ coversignal=Cover=IIf(skchange10>40,1,0) OR Buy;
 
 }
 
-if(1==0) // set22 based on stepsize // if there is less fluctuations direction bound . 
+if(1==1) // set22 based on stepsize // if there is less fluctuations direction bound . 
 {
 Buy=IIf(skchange10>40,1,0) AND IIf(skchange5<20,1,0) AND IIf(skchange1>0,1,0);
 //sellsignal=Sell=False OR skpatterncheck_close("CS1","200111") OR Short;
@@ -381,18 +381,6 @@ Sell=IIf(skchange10<-skstepsize,1,0) ;
 Cover=IIf(skchange10>skstepsize,1,0) ;
 
 }
-
-
-if(1==1) // set23 based on just last 1 minute as bricksize. 
-{
-Buy= IIf(skchange1>10,1,0);
-Short=IIf(skchange1<-10,1,0);
-
-Sell=IIf(skchange1>20,1,0) ;
-Cover=IIf(skchange1<-20,1,0) ;
-
-}
-
 
 if(1==0) // set 3 // if there is market is fluctuating  
 {
@@ -431,7 +419,6 @@ shortsignal=Short;
 sellsignal=Sell;
 coversignal=Cover;
 
-
 printaction(Buysignal,",buy1");
 Buy=ExRem(Buy,Sell) ;
 sklong=Flip(Buy,Sell) OR Sell;
@@ -450,7 +437,7 @@ printaction(Sell,",sell1");
 printaction(Sell_LSL,",BSL@"+LSL2);
 printaction(Sell_LT1,",BTGT@"+SKLT1);
 
-Sell= Sell_LSL OR Sell_LT1 OR SKTIMEOUT OR short; // Ref(Sell_LSL,-1); 
+Sell=Sell OR Sell_LSL OR Sell_LT1 OR SKTIMEOUT OR short; // Ref(Sell_LSL,-1); 
 //Sell=Sell_LSL OR Sell_LT1; // Ref(Sell_LSL,-1); 
 Sell = ExRem(Sell, Buy);
 SellPrice=ValueWhen(Sell,O);
@@ -475,7 +462,7 @@ printf("\nSKST1:"+SKST1+"SP:"+ShortPrice+"CT1:"+COVER_ST1);
 
 printaction(Cover_SSL,",WSL@"+Ref(SSL2,-1)+":"+HighestSince(Short,SKSLshort,1));
 printaction(Cover_ST1,",WTGT");
-Cover=  Cover_SSL OR Cover_ST1 OR SKTIMEOUT ;// Ref(Cover_SSL,-1);
+Cover= Cover OR Cover_SSL OR Cover_ST1 OR SKTIMEOUT OR Buy AND NOT Short;// Ref(Cover_SSL,-1);
 //Cover= Cover_SSL OR Cover_ST1 ;// Ref(Cover_SSL,-1);
 //printf("\nskcheck1,SSL2:"+SSL2+"LSSL2:"+Ref(SSL2,-1)+"CSSL:"+Cover_SSL+"LCSSL:"+Ref(Cover_SSL,-1)+"Cover:"+Cover);
 Cover=ExRem(Cover,Short);
@@ -486,8 +473,6 @@ skshrt=Flip(Short,Cover) OR Cover  ;
 Buy=Buy AND NOT skshrt AND NOT SKTIMEOUT;
 sklong=Flip(Buy,Sell) OR Sell ; 
 short=short AND NOT sklong AND NOT SKTIMEOUT;
-Sell=Sell AND NOT skshrt;
-Cover= Cover AND NOT sklong;
 //skshrt=Flip(Short,Cover) OR Cover ;
 
 printaction(SKTIMEOUT,",TMOUT");
@@ -631,7 +616,7 @@ _SECTION_END();
 
 }
 
-if(1==1) // write buy sell price on chart 
+if(1==0) // write buy sell price on chart 
 {
 dist=BrickSize;
 dist1=1.2*dist;
