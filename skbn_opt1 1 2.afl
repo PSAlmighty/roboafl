@@ -15,7 +15,7 @@ skts=Interval();
 sktime=TimeNum();
 skdate=DateTime();
 skname=Name(); // get the name 
-printf("\nname:"+skname+"Date"+skdate);
+printf("\nname:"+skname+"\nDate"+Day());
 
 //TimeFrameRestore();
 //TimeFrameSet(1);
@@ -134,7 +134,7 @@ nClose = Ref(nClose, -shift);
 if(1==1) // plot the chart based on bricksize
 {
 Plot(Ref(Close,-1),"\nPClose",IIf(Close>Open,colorGreen,colorRed ),styleNoDraw);
-Plot(Close,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleBar);
+Plot(Close,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleLine);
 Plot(Open,"OPen",colorBlue,styleNoDraw);
 //Plot(nClose,"nClose",colorBlue,styleLine);
 //PlotOHLC(nOpen, nHigh, nLow, nClose, "", colorAqua, styleCandle);
@@ -356,7 +356,13 @@ return skreturn1;
 
 function exitonlastday()
 {
-printf("\nskdate2"+DateTimeToStr(Date()));
+skexpdates="exp2019.2.28.12.24,exp2019.1.31.12.20,exp2019.3.28.12.20,exp2019.4.25.12.20,"+
+"exp2018.12.28.11.24,exp2018.11.29.12.20,exp2018.10.25.12.20,exp2018.9.27.12.20,exp2018.8.30.12.20,exp2018.7.26.12.20,exp2018.6.28.12.20";
+skcrdaymonth="exp"+Year()+"."+Month()+"."+Day()+"."+Hour()+"."+Minute();
+//skreturn=IIf(skcrdaymonth=="exp2019.2.28.13.39",1,0);
+skreturn=IIf(StrFind(skexpdates,skcrdaymonth)>0,1,0);
+printf("\nskexitexp:"+skcrdaymonth+":"+skreturn);
+return skreturn;
 }
 
 if(1==1) // set4 for 5second bars // if there is less fluctuations direction bound . 
@@ -366,7 +372,8 @@ Buy=0;
 Short=IIf(O>400 AND O<800,1,0) AND (onlyifnameis("BANKNIFTY","CE") OR onlyifnameis("BANKNIFTY","PE"));
 
 sellsignal=Sell=0;
-coversignal=Cover=IIf(O<100 OR O>1000,1,0) AND (onlyifnameis("BANKNIFTY","CE") OR onlyifnameis("BANKNIFTY","PE"));
+coversignal=Cover=exitonlastday() OR (IIf(O<100 OR O>1000,1,0) AND (onlyifnameis("BANKNIFTY","CE") OR onlyifnameis("BANKNIFTY","PE")));
+printf("\nC:"+C+"sh:"+Short+"cv:"+Cover);
 Short=ExRem(Short,Cover);
 Cover=ExRem(Cover,Short);
 
@@ -374,6 +381,7 @@ printf("\nC:"+C+"sh:"+Short+"cv:"+Cover);
 
 }
 
+Cover=Cover OR exitonlastday();
 
 function exit4time(timenumber)
 {
@@ -484,7 +492,7 @@ Plot(IIf(skshrt , ShortPrice,Null), "XP", colorRed, styleThick	, Null, Null, 0, 
 }
 
 
-if(1==0) // buy sell arrow draw based on rLow
+if(1==1) // buy sell arrow draw based on rLow
 {
 skrvars_print=",o:"+O+"c:"+C;
 
@@ -545,7 +553,7 @@ _SECTION_END();
 
 }
 
-if(1==0) // write buy sell price on chart 
+if(1==1) // write buy sell price on chart 
 {
 dist=BrickSize;
 dist1=1.2*dist;
