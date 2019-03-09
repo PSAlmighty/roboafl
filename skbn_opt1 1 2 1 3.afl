@@ -14,6 +14,9 @@ BrickSize = Param( "BrickSize ",5, 0, 200,1 );
 skts=Interval();
 sktime=TimeNum();
 skdate=DateTime();
+skday=Day();
+skmonth=Month();
+skyear=Year();
 skactionmsg="\nAction:";
 skname=Name(); // get the name 
 printf("\nname:"+skname+"\nDate"+Day());
@@ -43,7 +46,7 @@ skcrmonth="exp"+skyear+"."+skmonth;
 //skreturn=IIf(skcrdaymonth=="exp2019.2.28.13.39",1,0);
 skreturn=IIf(StrFind(skexpdates,skcrdaymonth)==0,0,1);
 thismonthexpiry=StrMid(skexpdates,StrFind(skexpdates,skcrmonth)-1,18);
-//printf("\nskexitexp:"+thismonthexpiry+"|CRD:"+skcrdaymonth+":"+skreturn+";"+typeof(skreturn));
+printf("\nskexitexp:"+thismonthexpiry+"|CRD:"+skcrdaymonth+":"+skreturn+";"+typeof(skreturn));
 return skreturn;
 }
 
@@ -53,11 +56,11 @@ global skname;
 skfound1=StrFind(skname,name1);
 skfound2=StrFind(skname,name2);
 skreturn1=(skfound1!=0) AND (skfound2!=0);
-printf("\n:"+skname+":"+name1+":"+name2+":"+skreturn1+";"+typeof(skreturn1));
+//printf("\n:"+skname+":"+name1+":"+name2+":"+skreturn1+";"+typeof(skreturn1));
 return skreturn1;
 }
 
-if(1==1) // set old time signals . 
+if(1==0) // set old time signals . 
 {
 if (onlyifnameis("BANKNIFTY","CE") OR onlyifnameis("BANKNIFTY","PE") == True )
 {
@@ -75,30 +78,41 @@ Short[i]=O[i]>400 AND O[i]<800;
 Cover[i]=O[i]<100 OR O[i]>1000;
 //printf("\nskdate:"+skyear[i]+"."+skmonth[i]+"."+skday[i]);
 
-Cover=ExRem(Cover,Short) OR exitonlastday(skday[i],skmonth[i],skyear[i]);
-Short=ExRem(Short,Cover)  ;
-Buy=Sell=0;
+
+Cover[i]=ExRem(Cover,Short) OR exitonlastday(skday[i],skmonth[i],skyear[i]);
+Short[i]=ExRem(Short,Cover) AND NOT Cover ;
+Buy[i]=Sell=0;
 skshort=Flip(Short,Cover);
- printf("\nnmb:"+i+",W:"+Short[i]+",CV:"+Cover[i]+"shrt:"+skshort+"dt:"+skday[i]+"."+skmonth[i]+"."+skyear[i]+","+skhour[i]+"."+skminute[i]);
+ printf("\nnmb:"+i+"O:"+O[i]+",W:"+Short[i]+",CV:"+Cover[i]+"shrt:"+skshort[i]+"dt:"+skday[i]+"."+skmonth[i]+"."+skyear[i]+","+skhour[i]+"."+skminute[i]);
 }
 }
 }
 
+
+
+
 Plot(Close,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleBar);
 if (onlyifnameis("BANKNIFTY","CE") OR onlyifnameis("BANKNIFTY","PE") == True )
 {
+Buy=Sell=0;
 //Short=IIf(O>400 AND O<800,1,0) AND (onlyifnameis("BANKNIFTY","CE") OR onlyifnameis("BANKNIFTY","PE"));
 //coversignal=Cover=(IIf(O<100 OR O>1000,1,0) AND (onlyifnameis("BANKNIFTY","CE") OR onlyifnameis("BANKNIFTY","PE")));
 Short=O>400 AND O<800 ;
 coversignal=Cover=O<100 OR O>1000 ;
 //printf("\nC:"+C+"sh:"+Short+"cv:"+Cover);
 Buy=Sell=0;
-Cover=ExRem(Cover,Short) OR exitonlastday(Day(),Month(),Year());
 Short=ExRem(Short,Cover);
+
+Cover=(ExRem(Cover,Short) OR exitonlastday(Day(),Month(),Year()) ) AND BarsSince(Short)>0;
 
 skshort=Flip(Short,Cover);
 printaction(skshort,"skshort1@"+ValueWhen(Short,O)+"@"+ValueWhen(Short,Day()));
 printf("\nC:"+C+"sh:"+Short+"cv:"+Cover);
+}
+else
+{
+printf("\n not banknifty options "+skname);
+Buy=Sell=Cover=Short=0;
 }
 
 
@@ -218,6 +232,9 @@ skrvars_print=".";
  if( Sell[i] )
    PlotText( "Sell@" + SellPrice[ i ]  ,i, High[ i ]+3.5*dist[i], colorGreen);
 
+
+printaction(Short[i],"\nw@"+ShortPrice[i]+"bar"+i+"on"+skday[i]+"-"+skmonth[i]+"-"+skyear[i]);
+printaction(Cover[i],"C@"+CoverPrice[i]+"bar"+i+"on"+skday[i]+"-"+skmonth[i]+"-"+skyear[i]);
 }
 
 }
