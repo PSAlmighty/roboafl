@@ -598,7 +598,7 @@ PlotShapes( CoverShape, colorBrown, 0, CoverPrice, -1 )	;
 
 }
 
-if(1==1) // buy sell signal sent to amigo 
+if(1==0) // buy sell signal sent to amigo 
 {
 
 // from here the buy and sell signals . 
@@ -621,8 +621,8 @@ _SECTION_BEGIN("AmigoTrends");
 //LT1 = 50;		// Long Target1 External
 // ST1 = 50;
 
-SSL=SSL2;
-LSL=LSL2;
+//SSL=SSL2;
+//LSL=LSL2;
 
 //LT1=C+10;
 //ST1=C+10;
@@ -630,7 +630,7 @@ LSL=LSL2;
 
 //LT1=ST1=LSL=SSL=0
 
- AmigoC1(Open, High, Low, Close, Volume, Buy, Sell, Short, Cover);
+ //AmigoC1(Open, High, Low, Close, Volume, Buy, Sell, Short, Cover);
 _SECTION_END();
 
 }
