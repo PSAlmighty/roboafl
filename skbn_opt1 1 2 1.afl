@@ -176,7 +176,7 @@ _SECTION_BEGIN("AmigoTrends");
 
 //LT1=ST1=LSL=SSL=0
 
- AmigoC1(Open, High, Low, Close, Volume, Buy, Sell, Short, Cover);
+// AmigoC1(Open, High, Low, Close, Volume, Buy, Sell, Short, Cover);
 _SECTION_END();
 
 }
