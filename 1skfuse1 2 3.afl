@@ -77,24 +77,21 @@ Cover[2]=Sell[2]=1;
 
 if(1==1) // do the buy sell works 
 {
-Buy=Sell=Cover=Short=0;
+Cover=Short=0;
 
-
-Buy=IIf(skchange10>50,1,0)  ; 
-
+Buy=IIf(skchange1>10,1,0); 
+Sell=(IIf(skchange10<-100,1,0) OR IIf(skchange10>100,1,0));
 //sell=(BarsSince(Sell)==0 OR BarsSince(Buy)<BarsSince(Sell)) AND  (IIf(skchange10<-20,1,0) OR IIf(skchange30>100,1,0) ) ;
-Sell=(IIf(skchange10<-50,1,0) OR IIf(skchange10>50,1,0));
 //Buy=ExRem(Buy,sell);
 printaction(1,"bb"+BarsSince(Buy)+"bs:"+BarsSince(Sell));
 Buy=BarsSince(Buy)==0 OR ( Buy AND BarsSince(Sell)>0 AND BarsSince(Buy)>BarsSince(Sell));
+
 Sell=ExRem(Sell,Buy);
 Buy=ExRem(Buy,Sell);
 
 printaction(1,"bb"+BarsSince(Buy)+"bs:"+BarsSince(Sell));
 printaction(Buy,"bought");
 printaction(Sell,"sold");
-
-
 }
 
 
