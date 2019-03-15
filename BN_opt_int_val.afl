@@ -91,8 +91,7 @@ intCE=IIf(bnp<strval,C,C-(bnp-strval));
 intval=IIf(opttype=="CE",intCE,intPE);
 extval=C-intval;
 printaction(1,",intval:"+intval);
-Plot(intval,"intval",colorAqua, styleDashed|styleOwnScale);
-Plot(extval,"extval",colorBlue, styleDashed|styleOwnScale);
+
 //Plot(C,"skcl",colorBlue, styleLine|styleOwnScale);
 
 
@@ -122,7 +121,7 @@ for(i=0; i < BarCount ; i++)
 //Short[i]=skday[i]==12 AND skmonth[i]==3 AND skyear[i]==2019 AND skhour[i]==9 AND skminute[i]==30 ; 
 daysdiff[i]=DateTimeDiff(LastValue(DateNum()),dd[i]);
 //printf("daysdiff="+daysdiff);
-Short[i]=intval[i]>500  AND daysdiff[i]<60 AND ( skhour[i]>10 OR skhour[i]<15) AND extval[i]<intval[i]; ;
+Short[i]=intval[i]>200  AND daysdiff[i]<90 AND ( skhour[i]>1 OR skhour[i]<15) AND extval[i]<intval[i]; ;
 skexpdates="exp2019.2.28,exp2019.1.31,exp2019.3.28,exp2019.4.25,"+
 "exp2018.12.28,exp2018.11.29,exp2018.10.25,exp2018.9.27,exp2018.8.30,exp2018.7.26,exp2018.6.28";
 Coverexpd1[i]=skday[i]==31 AND skmonth[i]==1 AND skyear[i]==2019 AND skhour[i]==12 AND skminute[i]==30 ;
@@ -130,7 +129,7 @@ Coverexpd2[i]=skday[i]==28 AND skmonth[i]==2 AND skyear[i]==2019 AND skhour[i]==
 Coverexpd3[i]=skday[i]==28 AND skmonth[i]==3 AND skyear[i]==2019 AND skhour[i]==12 AND skminute[i]==30 ;
 Coverexpd4[i]=skday[i]==25 AND skmonth[i]==4 AND skyear[i]==2019 AND skhour[i]==12 AND skminute[i]==30 ;
 Cover[i]=Coverexpd1[i] OR Coverexpd2[i] OR Coverexpd3[i] OR Coverexpd4[i] OR intval[i]<50  OR extval[i]>intval[i];
-Cover[i]=Cover[i] AND daysdiff[i]<60 AND ( skhour[i]>10 OR skhour[i]<15);
+Cover[i]=Cover[i] AND daysdiff[i]<60 AND ( skhour[i]>1 OR skhour[i]<15);
 Buy[i]=Sell=0;
 Short=ExRem(Short,Cover) AND ( skhour[i]>10 OR skhour[i]<15) ;
 skshort=Flip(Short,Cover);
@@ -143,16 +142,18 @@ Cover=ExRem(Cover,Short) AND ( skhour[i]>10 OR skhour[i]<15);
 }
 }
 
-Plot(Close,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleBar|styleOwnScale);
-Plot(BNP,"BNP",styleBar|styleLeftAxisScale);
+Plot(Close,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleBar);
+Plot(BNP,"BNP",colorYellow ,styleBar|styleLeftAxisScale);
+Plot(intval,"intval",colorAqua, styleDashed);
+Plot(extval,"extval",colorBlue, styleDashed);
 //AddColumn(daysdiff,"daysdiff");
-AddColumn(BNP,"BNP");
-AddColumn(intval,"intval");
-//Plot(daysdiff,"days",styleNoDraw);
+//AddColumn(BNP,"BNP");
+//AddColumn(intval,"intval");
+Plot(daysdiff,"days",colorAqua,styleNoDraw);
 
 
 
-if(1==0) // do the works 
+if(1==0) // do the works not working for now .
 {
 if (onlyifnameis("BANKNIFTY","CE") OR onlyifnameis("BANKNIFTY","PE") == True )
 {
@@ -229,7 +230,7 @@ printaction(1,"noactionyet:"+noactionyet);
 
 
 
-if(1==0) // draw the area of the profit or loss as bars 
+if(1==1) // draw the area of the profit or loss as bars 
 {
 skprofit=IIf(Sell,O-BuyPrice,IIf(Cover,O-CoverPrice,Null));
 skprofitcolor=IIf(skprofit>=0,IIf(Sell,colorGreen,colorBlue),IIf(Sell,colorRed,colorBrown));
@@ -249,7 +250,7 @@ printf("\nProfit="+skprofit);
 */
 }
 
-if(1==0) // buy sell arrow draw based on rLow
+if(1==1) // buy sell arrow draw based on rLow
 {
 skrvars_print=",o:"+O+"c:"+C;
 
@@ -273,7 +274,7 @@ PlotShapes( CoverShape, colorBrown, 0, CoverPrice, -1 )	;
 
 }
 
-if(1==0) // buy sell signal sent to amigo 
+if(1==1) // buy sell signal sent to amigo 
 {
 
 // from here the buy and sell signals . 
@@ -299,7 +300,7 @@ _SECTION_END();
 
 }
 
-if(1==0) // write buy sell price on chart 
+if(1==1) // write buy sell price on chart 
 {
 dist=BrickSize;
 dist1=1.2*dist;
@@ -326,6 +327,8 @@ skrvars_print=".";
 
 printaction(Short[i],"\nw@"+ShortPrice[i]+"bar"+i+"on"+skday[i]+"-"+skmonth[i]+"-"+skyear[i]);
 printaction(Cover[i],"\nC@"+CoverPrice[i]+"bar"+i+"on"+skday[i]+"-"+skmonth[i]+"-"+skyear[i]);
+printaction(skprofit[i]!=0,"\nProfit@"+skprofit[i]+"bar"+i+"on"+skday[i]+"-"+skmonth[i]+"-"+skyear[i]);
+
 }
 
 }
