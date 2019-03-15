@@ -122,7 +122,7 @@ for(i=0; i < BarCount ; i++)
 //Short[i]=skday[i]==12 AND skmonth[i]==3 AND skyear[i]==2019 AND skhour[i]==9 AND skminute[i]==30 ; 
 daysdiff[i]=DateTimeDiff(LastValue(DateNum()),dd[i]);
 //printf("daysdiff="+daysdiff);
-Short[i]=intval[i]>200  AND daysdiff[i]<90 ;
+Short[i]=intval[i]>200  AND daysdiff[i]<150 AND ( skhour[i]>10 OR skhour[i]<15) AND extval[i]<intval[i]; ;
 skexpdates="exp2019.2.28,exp2019.1.31,exp2019.3.28,exp2019.4.25,"+
 "exp2018.12.28,exp2018.11.29,exp2018.10.25,exp2018.9.27,exp2018.8.30,exp2018.7.26,exp2018.6.28";
 Coverexpd1[i]=skday[i]==31 AND skmonth[i]==1 AND skyear[i]==2019 AND skhour[i]==12 AND skminute[i]==30 ;
@@ -130,12 +130,12 @@ Coverexpd2[i]=skday[i]==28 AND skmonth[i]==2 AND skyear[i]==2019 AND skhour[i]==
 Coverexpd3[i]=skday[i]==28 AND skmonth[i]==3 AND skyear[i]==2019 AND skhour[i]==12 AND skminute[i]==30 ;
 Coverexpd4[i]=skday[i]==25 AND skmonth[i]==4 AND skyear[i]==2019 AND skhour[i]==12 AND skminute[i]==30 ;
 Cover[i]=Coverexpd1[i] OR Coverexpd2[i] OR Coverexpd3[i] OR Coverexpd4[i] OR intval[i]<50  OR extval[i]>intval[i];
-Cover[i]=Cover[i] AND daysdiff[i]<90 ;
+Cover[i]=Cover[i] AND daysdiff[i]<150 AND ( skhour[i]>10 OR skhour[i]<15);
 Buy[i]=Sell=0;
-Short=ExRem(Short,Cover) ;
+Short=ExRem(Short,Cover) AND ( skhour[i]>10 OR skhour[i]<15) ;
 skshort=Flip(Short,Cover);
 ShortPrice=ValueWhen(Short,C);
-Cover=ExRem(Cover,Short) ;
+Cover=ExRem(Cover,Short) AND ( skhour[i]>10 OR skhour[i]<15);
 
 
 //printf("\nnmb:"+i+"O:"+O[i]+",W:"+Short[i]+",CV:"+Cover[i]+"shrt:"+skshort[i]+"dt:"+skday[i]+"."+skmonth[i]+"."+skyear[i]+","+skhour[i]+"."+skminute[i]);
@@ -159,8 +159,18 @@ if (onlyifnameis("BANKNIFTY","CE") OR onlyifnameis("BANKNIFTY","PE") == True )
 Buy=Sell=0;
 //Short=IIf(O>400 AND O<800,1,0) AND (onlyifnameis("BANKNIFTY","CE") OR onlyifnameis("BANKNIFTY","PE"));
 //coversignal=Cover=(IIf(O<100 OR O>1000,1,0) AND (onlyifnameis("BANKNIFTY","CE") OR onlyifnameis("BANKNIFTY","PE")));
-Short=O>400 AND O<800 ;
-coversignal=Cover=O<100 OR O>1000 ;
+
+
+Short=intval>200  AND ( skhour>16 OR skhour<15) ;
+
+Coverexpd1=skday==31 AND skmonth==1 AND skyear==2019 AND skhour==12 AND skminute==30 ;
+Coverexpd2=skday==28 AND skmonth[i]==2 AND skyear[i]==2019 AND skhour[i]==12 AND skminute[i]==30 ;
+Coverexpd3=skday==28 AND skmonth[i]==3 AND skyear[i]==2019 AND skhour[i]==12 AND skminute[i]==30 ;
+Coverexpd4=skday==25 AND skmonth[i]==4 AND skyear[i]==2019 AND skhour[i]==12 AND skminute[i]==30 ;
+Cover=Coverexpd1 OR Coverexpd2[i] OR Coverexpd3[i] OR Coverexpd4[i] OR intval[i]<50  OR extval[i]>intval[i];
+Cover=Cover AND ( skhour[i]>10 OR skhour[i]<15);
+
+//coversignal=Cover=O<100 OR O>1000 ;
 //printf("\nC:"+C+"sh:"+Short+"cv:"+Cover);
 Buy=Sell=0;
 Short=ExRem(Short,Cover);
