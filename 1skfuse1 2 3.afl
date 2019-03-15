@@ -1,5 +1,6 @@
 if(1==1)  // define the parameters and display titles 
 {
+
 _SECTION_BEGIN("Formula 1");
 _N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{VALUES}}"));
 
@@ -17,15 +18,20 @@ skdate=DateTime();
 skday=Day();
 skmonth=Month();
 skyear=Year();
+skhour=Hour();
+skminute=Minute();
 skactionmsg="\nAction:";
 skname=Name(); // get the name 
 printf("\nname:"+skname+"\nDate"+Day());
+GfxTextOut( sktitle +"|"+ Date()+"|"+skday, x+700, y+5 );
 //Buy=Sell=Short=Cover=0;
+
+dd = DateNum();
+tt = TimeNum();
 
 //TimeFrameRestore();
 //TimeFrameSet(1);
 }
-
 
 function printaction(skval,skmsg)
 {
@@ -34,85 +40,75 @@ if(StrToNum(NumToStr(skval))==1)
 skactionmsg+=skmsg;
 }
 
-function exitonlastday(skday,skmonth,skyear)
+function changeinmins(skminutes) // tells the diffirence since last candles 
 {
-//skexpdates="exp2019.2.28.12.24,exp2019.1.31,exp2019.3.28.12.20,exp2019.4.25.12.20,"+
-//"exp2018.12.28.11.24,exp2018.11.29.12.20,exp2018.10.25.12.20,exp2018.9.27.12.20,exp2018.8.30.12.20,exp2018.7.26.12.20,exp2018.6.28.12.20";
-skexpdates="exp2019.2.28,exp2019.1.31,exp2019.3.28,exp2019.4.25,"+
-"exp2018.12.28,exp2018.11.29,exp2018.10.25,exp2018.9.27,exp2018.8.30,exp2018.7.26,exp2018.6.28";
-skcrdaymonth="exp"+skyear+"."+skmonth+"."+skday;
-skcrmonth="exp"+skyear+"."+skmonth;
-//skreturn=IIf(skcrdaymonth=="exp2019.2.28.13.39",1,0);
-skreturn=IIf(StrFind(skexpdates,skcrdaymonth)==0,0,1);
-thismonthexpiry=StrMid(skexpdates,StrFind(skexpdates,skcrmonth)-1,18);
-printf("\nskexitexp:"+thismonthexpiry+"|CRD:"+skcrdaymonth+":"+skreturn+";"+typeof(skreturn));
-return skreturn;
+global tt;
+//skchange=Ref(C,-1)-Ref(C,-1*(skminutes+1)); 	// last 1 close - last close 
+//skchange=int(C-Ref(C,-1*skminutes));	// 
+//skchange=int(O-Ref(O,-1*skminutes));
+skchange=int(O-Ref(c,-1*skminutes*60/skts));	// open - last close 
+sktimeatchange=Ref(tt,-1*skminutes*60/skts);
+//skchange=int(Ref(O,-1)-Ref(O,-1*(skminutes+1)));
+printf("\nchangein:"+skminutes+":"+O+"-"+Ref(c,-1*skminutes*60/skts)+"="+skchange+"at:"+sktime+"-"+sktimeatchange);
+return skchange;
 }
 
-function onlyifnameis(name1,name2)
+if(1==1) // get the last change last bars 
 {
-global skname;
-skfound1=StrFind(skname,name1);
-skfound2=StrFind(skname,name2);
-skreturn1=(skfound1!=0) AND (skfound2!=0);
-//printf("\n:"+skname+":"+name1+":"+name2+":"+skreturn1+";"+typeof(skreturn1));
-return skreturn1;
+//printf("\ninterval:"+skts);
+skchange120=int(changeinmins(120));
+skchange60=int(changeinmins(60));
+skchange30=int(changeinmins(30));
+skchange20=int(changeinmins(20));
+skchange10=int(changeinmins(10));
+skchange5=int(changeinmins(5));
+skchange1=int(changeinmins(1));
+skchange1diff=sqrt(skchange1*skchange1);
+last5barmaxdiff=Max(skchange1,Max(Ref(skchange1,-1),Max(Ref(skchange1,-2),Max(Ref(skchange1,-3),Max(Ref(skchange1,-4),Ref(skchange1,-5))))));
+last10bardiffavg=MA(skchange1diff,10);
+printf("\nlast5max:"+last5barmaxdiff+",in10avg:"+last10bardiffavg);
 }
 
-if(1==0) // set old time signals . 
+if(1==0) // set starting 4 bars 
 {
-if (onlyifnameis("BANKNIFTY","CE") OR onlyifnameis("BANKNIFTY","PE") == True )
-{
-i=0;k=0;
-skday=Day();
-skmonth=Month();
-skyear=Year();
-skhour=Hour();
-skminute=Minute();
-
-for(i=1; i < BarCount ; i++)
-{
-
-Short[i]=O[i]>400 AND O[i]<800;
-Cover[i]=O[i]<100 OR O[i]>1000;
-//printf("\nskdate:"+skyear[i]+"."+skmonth[i]+"."+skday[i]);
-
-
-Cover[i]=ExRem(Cover,Short) OR exitonlastday(skday[i],skmonth[i],skyear[i]);
-Short[i]=ExRem(Short,Cover) AND NOT Cover ;
-Buy[i]=Sell=0;
-skshort=Flip(Short,Cover);
- printf("\nnmb:"+i+"O:"+O[i]+",W:"+Short[i]+",CV:"+Cover[i]+"shrt:"+skshort[i]+"dt:"+skday[i]+"."+skmonth[i]+"."+skyear[i]+","+skhour[i]+"."+skminute[i]);
-}
-}
+Buy[1]=Short[1]=1;
+Cover[2]=Sell[2]=1;
 }
 
-Plot(Close,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleCandle);
-if (onlyifnameis("BANKNIFTY","CE") OR onlyifnameis("BANKNIFTY","PE") == True )
+if(1==1) // do the buy sell works 
 {
-Buy=Sell=0;
-//Short=IIf(O>400 AND O<800,1,0) AND (onlyifnameis("BANKNIFTY","CE") OR onlyifnameis("BANKNIFTY","PE"));
-//coversignal=Cover=(IIf(O<100 OR O>1000,1,0) AND (onlyifnameis("BANKNIFTY","CE") OR onlyifnameis("BANKNIFTY","PE")));
-Short=O>400 AND O<800 ;
-coversignal=Cover=O<100 OR O>1000 ;
-//printf("\nC:"+C+"sh:"+Short+"cv:"+Cover);
-Buy=Sell=0;
-Short=ExRem(Short,Cover);
-
-Cover=(ExRem(Cover,Short) OR exitonlastday(Day(),Month(),Year()) ) AND BarsSince(Short)>0;
-
-skshort=Flip(Short,Cover);
-printaction(skshort,"skshort1@"+ValueWhen(Short,O)+"@"+ValueWhen(Short,Day()));
-printf("\nC:"+C+"sh:"+Short+"cv:"+Cover);
-}
-else
-{
-printf("\n not banknifty options "+skname);
 Buy=Sell=Cover=Short=0;
+
+
+Buy=IIf(skchange10>50,1,0)  ; 
+
+//sell=(BarsSince(Sell)==0 OR BarsSince(Buy)<BarsSince(Sell)) AND  (IIf(skchange10<-20,1,0) OR IIf(skchange30>100,1,0) ) ;
+Sell=(IIf(skchange10<-50,1,0) OR IIf(skchange10>50,1,0));
+//Buy=ExRem(Buy,sell);
+printaction(1,"bb"+BarsSince(Buy)+"bs:"+BarsSince(Sell));
+Buy=BarsSince(Buy)==0 OR ( Buy AND BarsSince(Sell)>0 AND BarsSince(Buy)>BarsSince(Sell));
+Sell=ExRem(Sell,Buy);
+Buy=ExRem(Buy,Sell);
+
+printaction(1,"bb"+BarsSince(Buy)+"bs:"+BarsSince(Sell));
+printaction(Buy,"bought");
+printaction(Sell,"sold");
+
+
 }
 
 
-function anylastaction()
+if(1==1) // plot the chart needed 
+{
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot(Open,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleline);
+_SECTION_END();
+
+}
+
+if(1==0) // print if any last action was done 
 {
 skbb=BarsSince(Buy);
 sksb=BarsSince(Sell);
@@ -144,15 +140,30 @@ printaction(1,"writeon:"+writeon);
 printaction(1,"writeoff:"+writeoff);
 printaction(1,"noactionnow:"+noactionnow);
 printaction(1,"noactionyet:"+noactionyet);
-
-
-
 }
 
-//anylastaction();
+if(1==1) // draw the area of the profit or loss as bars 
+{
+BuyPrice=valuewhen(Buy,O);
+sklong=Flip(Buy,Sell);
+skshort=Flip(Short,Cover);
+skprofit=IIf(Sell,O-BuyPrice,IIf(Cover,O-CoverPrice,Null));
+skprofitcolor=IIf(skprofit>=0,IIf(Sell,colorGreen,colorBlue),IIf(Sell,colorRed,colorBrown));
+Plot(skprofit, "Profit", skprofitcolor, styleArea|styleOwnScale, -50, 50, 0, 1,1);
+Plot(IIf(sklong , BuyPrice,Null), "XP", colorGreen, styleThick, Null, Null, 0, 1, 1);
+Plot(IIf(skshort , ShortPrice,Null), "XP", colorRed, styleThick	, Null, Null, 0, 1, 1);
+/*
+SLtriggershape=(Cover_SSL OR Sell_LSL ) * shapeHollowCircle * ( Sell OR Cover ) ;
+TGtriggershape=(Cover_ST1 OR Sell_LT1 ) * shapeStar * ( Sell OR Cover );
+sellcovertriggershape=(coversignal OR sellsignal ) * shapeHollowSquare * ( Sell OR Cover ) ;
 
-
-anylastaction();
+PlotShapes( SLtriggershape, IIf(skprofit>0,colorGreen,colorRed), 0, skexprice, -1,0);
+PlotShapes( TGtriggershape, IIf(skprofit>0,colorGreen,colorRed), 0, skexprice, -1,1);
+PlotShapes( sellcovertriggershape, IIf(skprofit>0,colorGreen,colorRed), 0, skexprice, -1,2);
+printf("\nProfit="+skprofit);
+//plottext("P="+skprofit,0,LastValue(skexprice),colorGreen);
+*/
+}
 
 if(1==1) // buy sell arrow draw based on rLow
 {
@@ -226,7 +237,7 @@ skrvars_print=".";
   PlotText( "Cover@" + CoverPrice[ i ] , i, Low[ i ]-3.5*dist[i], colorRed );
  
  if( Sell[i] )
-   PlotText( "Sell@" + SellPrice[ i ]  ,i, High[ i ]+3.5*dist[i], colorGreen);
+   PlotText( "Sell@" + SellPrice[ i ]  ,i, High[ i ]+3.5*dist[i], colorBlue);
 
 
 printaction(Short[i],"\nw@"+ShortPrice[i]+"bar"+i+"on"+skday[i]+"-"+skmonth[i]+"-"+skyear[i]);
@@ -234,7 +245,6 @@ printaction(Cover[i],"C@"+CoverPrice[i]+"bar"+i+"on"+skday[i]+"-"+skmonth[i]+"-"
 }
 
 }
-
 
 if(1==1) // final printing of msg if needed 
 {
