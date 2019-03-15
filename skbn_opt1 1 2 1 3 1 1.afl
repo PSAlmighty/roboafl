@@ -3,7 +3,7 @@ if(1==1)  // define the parameters and display titles
 _SECTION_BEGIN("Formula 1");
 SetChartOptions(0,chartShowArrows|chartShowDates);
 _N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{VALUES}}"));
-global intval,extval;
+global intval,extval,daysdiff;
 x=Param("xposn",1,0,1000,1);
 y=Param("yposn",1,0,1000,1);
 //sktitle = ParamStr("Title","skself1");
@@ -111,28 +111,32 @@ skyear=Year();
 skhour=Hour();
 skminute=Minute();
 dd=Datenum();
+Short[0]=Cover[0]=0;
+NBW=BarsSince(Short);
+NBC=BarsSince(Cover);
 
 
 for(i=0; i < BarCount ; i++)
 {
 //Short[i]==trueiftimeis(6,3,2019,9,30);
 //Short[i]=skday[i]==12 AND skmonth[i]==3 AND skyear[i]==2019 AND skhour[i]==9 AND skminute[i]==30 ; 
-daysdiff=DateTimeDiff(LastValue(DateNum()),dd[i]);
+daysdiff[i]=DateTimeDiff(LastValue(DateNum()),dd[i]);
 //printf("daysdiff="+daysdiff);
-Short[i]=intval[i]>400 AND intval[i]<800 AND daysdiff<90 ;
+Short[i]=intval[i]>200  AND daysdiff[i]<90 ;
 skexpdates="exp2019.2.28,exp2019.1.31,exp2019.3.28,exp2019.4.25,"+
 "exp2018.12.28,exp2018.11.29,exp2018.10.25,exp2018.9.27,exp2018.8.30,exp2018.7.26,exp2018.6.28";
 Coverexpd1[i]=skday[i]==31 AND skmonth[i]==1 AND skyear[i]==2019 AND skhour[i]==12 AND skminute[i]==30 ;
 Coverexpd2[i]=skday[i]==28 AND skmonth[i]==2 AND skyear[i]==2019 AND skhour[i]==12 AND skminute[i]==30 ;
 Coverexpd3[i]=skday[i]==28 AND skmonth[i]==3 AND skyear[i]==2019 AND skhour[i]==12 AND skminute[i]==30 ;
 Coverexpd4[i]=skday[i]==25 AND skmonth[i]==4 AND skyear[i]==2019 AND skhour[i]==12 AND skminute[i]==30 ;
-Cover[i]=Coverexpd1[i] OR Coverexpd2[i] OR Coverexpd3[i] OR Coverexpd4[i] OR intval[i]<100  OR extval[i]>intval[i];
-Cover[i]=Cover[i] AND daysdiff<90 AND BarsSince(Short)>BarsSince(Cover);
+Cover[i]=Coverexpd1[i] OR Coverexpd2[i] OR Coverexpd3[i] OR Coverexpd4[i] OR intval[i]<50  OR extval[i]>intval[i];
+Cover[i]=Cover[i] AND daysdiff[i]<90 ;
 Buy[i]=Sell=0;
 Short=ExRem(Short,Cover) ;
 skshort=Flip(Short,Cover);
 ShortPrice=ValueWhen(Short,C);
 Cover=ExRem(Cover,Short) ;
+
 
 //printf("\nnmb:"+i+"O:"+O[i]+",W:"+Short[i]+",CV:"+Cover[i]+"shrt:"+skshort[i]+"dt:"+skday[i]+"."+skmonth[i]+"."+skyear[i]+","+skhour[i]+"."+skminute[i]);
 }
@@ -141,6 +145,10 @@ Cover=ExRem(Cover,Short) ;
 
 Plot(Close,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleBar|styleOwnScale);
 Plot(BNP,"BNP",styleBar|styleLeftAxisScale);
+//AddColumn(daysdiff,"daysdiff");
+AddColumn(BNP,"BNP");
+AddColumn(intval,"intval");
+//Plot(daysdiff,"days",styleNoDraw);
 
 
 
@@ -211,7 +219,7 @@ printaction(1,"noactionyet:"+noactionyet);
 
 
 
-if(1==1) // draw the area of the profit or loss as bars 
+if(1==0) // draw the area of the profit or loss as bars 
 {
 skprofit=IIf(Sell,O-BuyPrice,IIf(Cover,O-CoverPrice,Null));
 skprofitcolor=IIf(skprofit>=0,IIf(Sell,colorGreen,colorBlue),IIf(Sell,colorRed,colorBrown));
@@ -231,7 +239,7 @@ printf("\nProfit="+skprofit);
 */
 }
 
-if(1==1) // buy sell arrow draw based on rLow
+if(1==0) // buy sell arrow draw based on rLow
 {
 skrvars_print=",o:"+O+"c:"+C;
 
@@ -281,7 +289,7 @@ _SECTION_END();
 
 }
 
-if(1==1) // write buy sell price on chart 
+if(1==0) // write buy sell price on chart 
 {
 dist=BrickSize;
 dist1=1.2*dist;
