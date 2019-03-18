@@ -64,6 +64,7 @@ skchange10=int(changeinmins(10));
 skchange5=int(changeinmins(5));
 skchange2=int(changeinmins(2));
 skchange1=int(changeinmins(1));
+Fskchange10=-1*int(changeinmins(-10));
 skchange1diff=sqrt(skchange1*skchange1);
 last5barmaxdiff=Max(skchange1,Max(Ref(skchange1,-1),Max(Ref(skchange1,-2),Max(Ref(skchange1,-3),Max(Ref(skchange1,-4),Ref(skchange1,-5))))));
 last5barmindiff=Min(skchange1,Min(Ref(skchange1,-1),Min(Ref(skchange1,-2),Min(Ref(skchange1,-3),Min(Ref(skchange1,-4),Min(skchange1,-5))))));
@@ -79,15 +80,15 @@ Cover[2]=Sell[2]=1;
 
 if(1==1) // do the buy sell works 
 {
-Short=Cover=0;
-Buy=IIf(skchange2>0,1,1) AND  IIf(skchange1<-1,1,0); 
-Sell= IIf(skchange2<-11,1,0);
-ExRem(Buy,Sell);
+Sell=Short=Cover=0;
+Buy=IIf(Fskchange10>100,1,0) ; 
+//Sell=IIf(skchange2>11,1,0) OR  IIf(skchange1<-10,1,0);
+//Buy=ExRem(Buy,Sell);
+//Sell=ExRem(Sell,Buy);
 //Short=IIf(skchange5<-10,1,0) AND IIf(skchange10<-20,1,0) AND IIf(skchange30<-30,1,0) AND IIf(skchange1>10,1,1);
 printaction(1,"bb"+BarsSince(Buy)+"bs:"+BarsSince(short));
 printaction(Buy,"bought");
-printaction(Sell,"sold");
-
+printaction(short,"sold");
 }
 
 if(1==1) // plot the chart needed 
@@ -240,7 +241,7 @@ printaction(Cover[i],"C@"+CoverPrice[i]+"bar"+i+"on"+skday[i]+"-"+skmonth[i]+"-"
 
 }
 
-if(1==0) // final printing of msg if needed 
+if(1==1) // final printing of msg if needed 
 {
 printf(skactionmsg);
 }
