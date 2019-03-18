@@ -1,359 +1,191 @@
-GraphXSpace=1;
-k = (GetPerformanceCounter()/10)%3000; 
-p= 1;
-Om=DEMA(Avg,p);
-hm=DEMA(Avg,p);
-lm=DEMA(Avg,p);
-Cm=DEMA(Avg,p);
-HACLOSE=(Om+Hm+Lm+Cm)/4;
-HaOpen = AMA( Ref( HaClose, -1), 1);
-HaHigh = Max( Hm, Max( HaClose, HaOpen ) );
-HaLow = Min( Lm, Min( HaClose, HaOpen ) );
-Hacol = IIf(HaClose>HaOpen, colorDarkGreen, colorDarkRed);
-SetBarFillColor(Hacol);
-PlotOHLC( HaHigh, HaHigh, HaLow, HaLow, " " + Name(), IIf(HaClose>HaOpen, colorBrightGreen, colorCustom12), styleCandle); //colorBlue, styleCandle );
-
-
-p= 5;
-Om=DEMA(Avg,p);
-hm=DEMA(Avg,p);
-lm=DEMA(Avg,p);
-Cm=DEMA(Avg,p);
-HACLOSE=C=(Om+Hm+Lm+Cm)/4;
-HaOpen =O= AMA( Ref( HaClose, -1), 1);
-HaHigh =H= Max( Hm, Max( HaClose, HaOpen ) );
-HaLow = L=Min( Lm, Min( HaClose, HaOpen ) );
-Hacol = IIf(HaClose>HaOpen, colorDarkGreen, colorDarkRed);
-//SetBarFillColor(Hacol);
-//PlotOHLC( HaHigh, HaHigh, HaLow, HaLow, " " + Name(), IIf(HaClose>HaOpen, colorBrightGreen, colorCustom12), styleCandle); //colorBlue, styleCandle );
+_SECTION_BEGIN("BACK COLR");
+SetChartBkGradientFill( ParamColor("BgTop", colorDarkGreen),
+ParamColor("BgBottom", colorBlack),ParamColor("titleblock",colorDarkGreen));
 
 
 
 
+_SECTION_BEGIN("Flower");
+Show_color = ParamToggle("Display CandleColor", "No|Yes", 1);
+r1 = Param( "ColorFast avg", 5, 2, 200, 1 );
+r2 = Param( "ColorSlow avg", 10, 2, 200, 1 );
+r3 = Param( "ColorSignal avg", 5, 2, 200, 1 );
 
+Prd1=Param("ATR Period",4,1,20,1);
+Prd2=Param("Look Back",7,1,20,1);
+green = HHV(LLV(L,Prd1)+ATR(Prd1),Prd2);
+red = LLV(HHV(H,Prd1)-ATR(Prd1),Prd2);
+flowerClose = EMA((Open+High+Low+Close)/4,3) ;
+flowerOpen = EMA((Ref(Open,-1) + Ref(flowerClose,-1))/2,3);
+Temp = Max(High, flowerOpen);
+flowerHigh = EMA(Max(Temp, flowerClose),3);
+Temp = Min(Low,flowerOpen);
+flowerLow = EMA(Min(Temp, flowerClose),3);
 
+m1=MACD(r1,r2);
+s1=Signal(r1,r2,r3);
+mycolor=IIf(m1<0 AND m1>s1, colorBrightGreen,IIf(m1>0 AND
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-_SECTION_BEGIN("DLL test");
-
-SetPositionSize(1, spsShares);
-	SetBarsRequired(sbrAll, sbrAll);
-
-DT = DateTime();
-DN = DateNum();
-TN = TimeNum();
-
-t1 =100000;
-t2 =230000;
-
-function Asign(x)
+m1>s1,colorBrightGreen,IIf(m1>0 AND m1<s1,colorRed,colorRed)));
+if(Show_color)
 {
-	y = Null;
-	for(i = 0; i < BarCount; i++)
-	{
-		y[i] = x;
-	}
-	return y;
+ColorHighliter = myColor;
+SetBarFillColor( ColorHighliter );
 }
-
-grid_day = IIf(Day()!=Ref(Day(),-1),1,0);
-Plot(grid_day,"",colorGreen,styleHistogram|styleDashed|styleNoLabel|styleOwnScale);
-
-
-SLPT =35;
-
-livesignal=2;// Optimize("Plugin",2,1,200,1);
-sqofftime =233000;// ParamTime("SquareOff Time", "11:59:00 PM", 0);
-
-REBYIN = Asign(False);
-RESHIN = Asign(False);
-REPLIM = 0;
-
-DCLNTCH1();
+barColor=IIf(C>Green ,colorBrightGreen,IIf(C < RED,colorRed,colorRed));
+PlotOHLC( IIf(floweropen<flowerClose, floweropen,flowerClose),flowerHigh,flowerLow,IIf(flowerOpen<flowerClose, flowerClose,flowerOpen), "Close", barColor, styleNoTitle | styleCandle);
 
 
-
-
-
-
-Buy=Ref(Buy,-1);
-Short=Ref(Short,-1);
-Cover=Ref(Cover,-1);
-Sell=Ref(Sell,-1);
-
-
-
-/*
-	Buy = ExRem(Buy, Sell);
-	Sell = ExRem(Sell, Buy);
-	
-	Short = ExRem(Short, Cover);
-	Cover = ExRem(Cover, Short);
-*/
-BuyPrice=ValueWhen(Buy,O);
-CoverPrice=ValueWhen(Cover,O);
-ShortPrice=ValueWhen(Short,O);
-SellPrice=ValueWhen(Sell,O);
-
-LongTrue = Flip(Buy, Sell) || Sell;
-	ShortTrue = Flip(Short, Cover) || Cover;
-	
-
-	
-	Plot(IIf(LongTrue , BuyPrice, Null), "BuyPrice", colorGreen, styleDots|styleStaircase, Null, Null, 0, 1, 1);
-
-	
-	Plot(IIf(ShortTrue, ShortPrice, Null), "ShortPrice", colorOrange, styleDots|styleStaircase, Null, Null, 0, 1, 1);
-
-
-
-
-//Plot(BuyPrice, "BuyPrice", colorGreen, styleDots|styleStaircase);
-//Plot(ShortPrice, "ShortPrice", colorOrange, styleDots|styleStaircase);
-
-Candlecol=IIf(BarsSince(Buy)<BarsSince(Short) AND BarsSince(Buy)!=0,colorBlue,
-		  IIf(BarsSince(Buy)>BarsSince(Short) AND BarsSince(Short)!=0,4,1));
-cc1=IIf(Buy,colorBlue,IIf(Short,colorRed,Candlecol));
-SetBarFillColor(Cc1);
-
-//Plot( C, "Price", colorDefault, styleCandle );
-
-Buyshape = Buy * shapeUpArrow;
-SellShape = Sell * shapeStar;
-PlotShapes( Buyshape, colorBrightGreen, 0, Low );
-PlotShapes( SellShape, colorRed, 0, High );
-
-Shortshape = Short * shapeDownArrow;
-CoverShape = Cover * shapeStar;
-PlotShapes( Shortshape, colorOrange, 0, High, -30);
-PlotShapes( CoverShape, colorTurquoise, 0, Low, -30 );
-/*
-Plot(BRK1, "BRK1", colorBrightGreen, styleDashed);
-Plot(BRK2, "BRK2", colorRed, styleDashed);
-Plot(BRK3, "BRK3", colorOrange, styleDashed);
-Plot(BRK4, "BRK4", colorTurquoise, styleDashed);
-
-*/
+//flowerlow=L;
+//flowerhigh=H;
+//Plot(C,"",colorRed,styleCandle);
 _SECTION_END();
+ //Magfied Market Price
+FS=Param("Font Size",30,11,100,1);
+GfxSelectFont("Times New Roman", FS, 700, True ); 
+GfxSetBkMode( colorWhite );  
+GfxSetTextColor( ParamColor("Color",colorGold) ); 
+Hor=Param("Horizontal Position",1084,1,1200,1);
+Ver=Param("Vertical Position",53,1,830,1); 
+GfxTextOut(""+C, Hor , Ver );
+YC=TimeFrameGetPrice("C",inDaily,-1);
+DD=Prec(C-YC,2);
+xx=Prec((DD/YC)*100,2);
+GfxSelectFont("Times New Roman", 11, 700, True ); 
+GfxSetBkMode( colorBlack );  
+GfxSetTextColor(ParamColor("Color",colorYellow) ); 
+GfxTextOut(""+DD+"  ("+xx+"%)", Hor , Ver+45 );
+
+_SECTION_BEGIN("Breakout Setting");
+no=Param( "Swing", 8, 1, 55 );
+//tsl_col=ParamColor( "Color", colorLightGrey );
+
+res=HHV(H,no);
+sup=LLV(L,no);
+avd=IIf(C>Ref(res,-1),1,IIf(C<Ref(sup,-1),-1,0));
+avn=ValueWhen(avd!=0,avd,1);
+tsl=IIf(avn==1,sup,res);
+Buy=Cover=Ref(Cross(H,tsl),-1) ;
+Sell=Short=Ref(Cross(tsl,L),-1) ;
+
+//Plot(tsl, _DEFAULT_NAME(), tsl_col, styleStaircase);
+Buyperiods=Ref(Param("Breakout periods best is usually 18",5,1,100,1,1),-1);
+Sellperiods=Ref(Param("Exit Breakout",5,1,100,1,1),-1);
 
 
-dist = 2.5*ATR(10);
-dist1 = 2.5*ATR(10);
+
+PlotShapes(IIf(Buy, shapeSquare,shapeNone) ,colorBlue,0, flowerLow, Offset=-10) ; 
+PlotShapes(IIf(Buy, shapeUpArrow,shapeNone) ,colorLime,0, flowerLow, Offset=-10) ;
+PlotShapes(IIf(Sell, shapeSquare,shapeNone),colorRed,0, flowerHigh, Offset=-1) ;
+PlotShapes(IIf(Sell, shapeDownArrow,shapeNone),colorLime,0, flowerHigh, Offset=-1) ;
+dist = 1*ATR(10);
+dist1 = 1*ATR(10);
+GfxSelectFont( "Tahoma", 13, 100 );
+GfxSetBkMode( 1 );
+
 for( i = 0; i < BarCount; i++ ) 
 { 
- if( Buy[i] ) 
+if( Buy[i] ) 
  {
-  PlotText( " BUY @" + BuyPrice[ i ] , i, L[ i ]-dist[i], colorWhite, colorBlack );
+  PlotText( "Buy =" + L[ i ] + "\nTGT= " + (L[i]*1.0045) + "\nSL= " + (L[i]*0.9970), i, flowerLow[ i ]-dist[i], colorBrightGreen, colorBlack );
  }
- if( Short[i] )
+ if( Sell[i] )
  {
-  PlotText( "Sell @" + O[ i ] ,i, H[ i ]+dist1[i], colorWhite, colorBlack );
- 
+  PlotText( "Sell =" + H[ i ] + "\nT= " + (H[i]*0.995) + "\nSL= " + (H[i]*1.0025), i, flowerHigh[ i ]+dist1[i], colorOrange, colorBlack ); 
  }
 }
-	
 
 
+color = IIf((BarsSince(Sell))>(BarsSince(Buy)), colorBrightGreen,colorRed); 
+//Plot(C,"",color,64); 
+_SECTION_BEGIN("sys");
+
+x=Param("xposn",315,0,1000,1);
+y=Param("yposn",421,0,1000,1);
+
+
+GfxSetTextColor(colorOrange);
+GfxTextOut( ( " "),60,y+40);
+GfxSetTextColor(colorWhite);
+GfxTextOut( ( ""),10,y+60);
+GfxSetTextColor(colorGreen);
+GfxTextOut( ( ""),30,y+80);
+_SECTION_BEGIN("Background text");
+C11=ParamColor("up panel",colorBlack );
+C12=ParamColor("dn panel",colorBlack );
+C13=Param("fonts",20,10,30,1 );
+C14=Param("left-right",2.1,1.0,5.0,0.1 );
+C15=Param("up-down",8,1,30,1 );
+Miny = Status("axisminy");
+Maxy = Status("axismaxy");
+lvb = Status("lastvisiblebar");
+fvb = Status("firstvisiblebar");
+pxwidth = Status("pxwidth");
+pxheight = Status("pxheight");
+GfxSetBkMode( 0 ); 
+GfxSelectFont("Tahoma", 12, 500, False, False, 0);
+GfxSetTextColor(colorCustom12); 
+GfxSetTextAlign( 6 );
+GfxSelectFont("Tahoma", 15, 600, False, False, 0);
+GfxSetTextColor(colorWhite); 
+GfxSetTextAlign( 6 );
+GfxSelectFont("Tahoma", 12, 400, False, False, 0);
+GfxSetTextColor(colorBrightGreen);
+GfxSelectFont("Tahoma", 12, 400, False, False, 0);
+GfxSetTextColor(colorRed);
+pricechange=(C-Ref(C,-1))*100/Ref(C,-1);
+changeponit=C-Ref(C,-1);
+Vlp=Param("Volume lookback period",15,10,300,10);
+Vrg=MA(V,Vlp);
+St = StDev(Vrg,Vlp); 
+Vp3 = Vrg + 3*st; 
+Vp2 = Vrg + 2*st;;
+Vp1 = Vrg + 1*st;;
+Vn1 = Vrg -1*st; 
+Vn2 = Vrg -2*st; 
 
 x=Param("xposn",1,0,1000,1);
 y=Param("yposn",1,0,1000,1);
 
-NDays=10;//Param("Number of Days",10,1,100,1); 
-DayC=TimeFrameGetPrice("C",inDaily,-1);
-NDaysDHLAvg=0;
-for(i=1;i<=NDays;i++)
-{
-	DayH=TimeFrameGetPrice("H",inDaily,-i);
-	DayL=TimeFrameGetPrice("L",inDaily,-i);
-	NDaysDHLAvg=NDaysDHLAvg+(DayH-DayL);
-}
-NDaysDHLAvg=NDaysDHLAvg/NDays;
-
-ADM= NDaysDHLAvg; 
-BuyTarget1= (0.25*ADM)+BuyPrice;
-BuyTarget2= (0.45*ADM)+BuyPrice;
-BuyTarget3= (0.70*ADM)+BuyPrice;
-BuyStopLoss= BuyPrice-(0.25*ADM);
-SellTarget1= SellPrice-(0.25*ADM);
-SellTarget2= SellPrice-(0.45*ADM);
-SellTarget3= SellPrice-(0.70*ADM);
-SellStopLoss= SellPrice+(0.25*ADM);
-
-//----------------------------------------------------------------Signals and Targets----------------------------
-Long=Flip(Buy,Sell); 
-Shrt=Flip(Sell,Buy);
-//BUY
-GfxSelectFont( "Arial Black", 10, 300, False );
-GfxSetTextAlign( 0 );
-GfxSetTextColor( colorGreen );
-GfxTextOut( WriteIf (Long AND NOT Buy, " BUY @ "+WriteVal(BuyPrice,1.2)+"  ",""), x+1, y+125);
-
-//BUY STOPLOSS
-GfxSelectFont( "Arial Black", 10, 300, False );
-GfxSetTextAlign( 0 );
-GfxSetTextColor( colorOrange );
-GfxTextOut( WriteIf (Long AND NOT Buy, " Stop Loss "+WriteVal(BuyStopLoss,1.2)+"  ",""), x+1, y+145);
-
-//BUY TARGET 1
-GfxSelectFont( "Arial Black", 10, 300, False );
-GfxSetTextAlign( 0 );
-GfxSetTextColor( colorGrey40 );
-GfxTextOut( WriteIf (Long AND NOT Buy, " Target 1: "+WriteVal(BuyTarget1,1.2)+"  ",""), x+1, y+165);
-
-//BUY TARGET 2
-GfxSelectFont( "Arial Black", 10, 300, False );
-GfxSetTextAlign( 0 );
-GfxSetTextColor( colorGrey40 );
-GfxTextOut( WriteIf (Long AND NOT Buy, " Target 2: "+WriteVal(BuyTarget2,1.2)+"  ",""), x+1, y+185);
-
-//BUY TARGET 3
-GfxSelectFont( "Arial Black", 10, 300, False );
-GfxSetTextAlign( 0 );
-GfxSetTextColor( colorGrey40 );
-GfxTextOut( WriteIf (Long AND NOT Buy, " Target 3: "+WriteVal(BuyTarget3,1.2)+"  ",""), x+1, y+205);
-
-
-
-
-
-
-//SELL
-GfxSelectFont( "Arial Black", 10, 300, False );
-GfxSetTextAlign( 0 );
-GfxSetTextColor( colorRed );
-GfxTextOut( WriteIf (Shrt AND NOT Sell, " SELL @ "+WriteVal(ShortPrice,1.2)+"  ",""), x+1, y+125);
-
-//SELL STOPLOSS
-GfxSelectFont( "Arial Black", 10, 300, False );
-GfxSetTextAlign( 0 );
-GfxSetTextColor( colorOrange );
-GfxTextOut( WriteIf (Shrt AND NOT Sell, " StopLoss "+WriteVal(SellStopLoss,1.2)+"  ",""), x+1, y+145);
-
-//SELL TARGET 1
-GfxSelectFont( "Arial Black", 10, 300, False );
-GfxSetTextAlign( 0 );
-GfxSetTextColor( colorGrey40 );
-GfxTextOut( WriteIf (Shrt AND NOT Sell, " Target 1: "+WriteVal(SellTarget1,1.2)+"  ",""), x+1, y+165);
-
-//SELL TARGET 2
-GfxSelectFont( "Arial Black", 10, 300, False );
-GfxSetTextAlign( 0 );
-GfxSetTextColor( colorGrey40 );
-GfxTextOut( WriteIf (Shrt AND NOT Sell, " Target 2: "+WriteVal(SellTarget2,1.2)+"  ",""), x+1, y+185);
-
-//SELL TARGET 3
-GfxSelectFont( "Arial Black", 10, 300, False );
-GfxSetTextAlign( 0 );
-GfxSetTextColor( colorGrey40 );
-GfxTextOut( WriteIf (Shrt AND NOT Sell, " Target 3: "+WriteVal(SellTarget3,1.2)+"  ",""), x+1, y+205);
-
-//----------------------------------------------------------------Achieved Targets and Stl----------------------------
-
-GfxSelectFont( "Arial", 10, 300, False );
-GfxSetTextAlign( 0 );
-GfxSetTextColor( colorGreen );
-GfxTextOut( WriteIf (Long AND NOT Buy AND BuyTarget1<C AND NOT Sell AND NOT Shrt, "TGT1 Hit ("+(WriteVal(BuyTarget1-BuyPrice,1.2))+")  ",""), x+170, y+165);
-
-GfxSelectFont( "Arial", 10, 300, False );
-GfxSetTextAlign( 0 );
-GfxSetTextColor( colorGreen );
-GfxTextOut( WriteIf (Long AND NOT Buy AND BuyTarget2<C AND NOT Sell AND NOT Shrt, "TGT2 Hit ("+(WriteVal(BuyTarget2-BuyPrice,1.2))+")  ",""), x+170, y+185);
-
-GfxSelectFont( "Arial", 10, 300, False );
-GfxSetTextAlign( 0 );
-GfxSetTextColor( colorGreen );
-GfxTextOut( WriteIf (Long AND NOT Buy AND BuyTarget3<C AND NOT Sell AND NOT Shrt, "TGT3 Hit ("+(WriteVal(BuyTarget3-BuyPrice,1.2))+")  ",""), x+170, y+205);
-
-GfxSelectFont( "Arial", 10, 300, False );
-GfxSetTextAlign( 0 );
-GfxSetTextColor( colorGreen );
-GfxTextOut( WriteIf (Shrt AND NOT Sell AND SellTarget1>C AND NOT Buy AND NOT Long, "TGT1 Hit ("+(WriteVal(SellPrice-SellTarget1,1.2))+")  ",""), x+170, y+165);
-
-GfxSelectFont( "Arial", 10, 300, False );
-GfxSetTextAlign( 0 );
-GfxSetTextColor( colorGreen );
-GfxTextOut( WriteIf (Shrt AND NOT Sell AND SellTarget2>C AND NOT Buy AND NOT Long, "TGT2 Hit ("+(WriteVal(SellPrice-SellTarget2,1.2))+")  ",""), x+170, y+185);
-
-GfxSelectFont( "Arial", 10, 300, False );
-GfxSetTextAlign( 0 );
-GfxSetTextColor( colorGreen );
-GfxTextOut( WriteIf (Shrt AND NOT Sell AND SellTarget3>C AND NOT Buy AND NOT Long, "TGT3 Hit ("+(WriteVal(SellPrice-SellTarget3,1.2))+")  ",""), x+170, y+205);
-
-GfxSelectFont( "Arial", 10, 100, False );
-GfxSetTextAlign( 0 );
-GfxSetTextColor( colorRed );
-GfxTextOut( WriteIf (Long AND NOT Buy AND BuyStopLoss>C AND NOT Sell AND NOT Shrt, "SL Hit - Exit("+(WriteVal(BuyStopLoss-BuyPrice,1.2))+")  ",""), x+170, y+145);
-
-GfxSelectFont( "Arial", 10, 300, False );
-GfxSetTextAlign( 0 );
-GfxSetTextColor( colorRed );
-GfxTextOut( WriteIf (Shrt AND NOT Sell AND SellStopLoss<C AND NOT Buy AND NOT Long, "SL Hit - Exit("+WriteVal(SellPrice-SellStopLoss,1.2)+")  ",""), x+170, y+145);
-
-
-GfxGradientRect( 1, 1, 1400, 40, colorBlack, colorBlack);
+GfxGradientRect( 1, 1, 1400, 40, colorDarkGreen, colorBlack);
 GfxSetBkMode(0);
-GfxSelectFont( "a", 18, 800, False );
+GfxSelectFont( "Georgia", 18, 800, False );
 GfxSetTextColor( colorGold );
-GfxTextOut( " Pattern Scalper- Using Neural Network. ", x+300, y+10 );
+GfxTextOut( "RoboTrader.co.in", x+600, y+10 );
 GfxSelectFont( "Tahoma", 16, 800, False );
 GfxSetTextColor( colorGold );
-//GfxTextOut( Name(), x+120, y+10 );
+GfxTextOut( Name(), x+120, y+10 );
 GfxSelectFont( "Century Gothic", 15, 100, False );
 GfxSetTextColor( colorGold );
-GfxTextOut( Date(), x+1000, y+10 );
+//GfxTextOut( Date(), x+1000, y+10 );
 GfxSelectFont( "Comic Sans MS", 15, 500, False );
 GfxSetTextColor( colorGold );
-//GfxTextOut( Interval(2), x+275, y+10 );
+GfxTextOut( Interval(2), x+300, y+10 );
 //------------------------------------------------------------ H, L, O, C----------------------
+GfxGradientRect( 1, 40, 1400, 55, colorDarkGreen, colorBlack );
+GfxSetBkMode(0);
+GfxSelectFont( "arial", 10, 700, False );
+GfxSetTextColor( colorGold );
+GfxTextOut( "High:"+WriteVal(H,1.2), x+60, y+40 );
+GfxSelectFont( "Areal", 10, 700, False );
+GfxSetTextColor( colorGold );
+GfxTextOut( "Low:"+WriteVal(L,1.2), x+160, y+40 );
+GfxSelectFont( "Areal", 10, 700, False );
+GfxSetTextColor( colorGold );
+GfxTextOut( "Open:"+WriteVal(O,1.2), x+260, y+40 );
+GfxSelectFont( "Areal", 10, 700, False );
+GfxSetTextColor( colorGold );
+GfxTextOut( "Close:"+WriteVal(C,1.2), x+360, y+40 );
 
-//PI = 3.1415926; 
+GfxSelectFont( "COMIC SANS MS", 12, 100, False );
+GfxSetTextColor( colorGold );
+GfxTextOut( "", x+1000, y+35 );
+GfxSelectFont( "ALGERIAN", 15, 100 );
+GfxTextOut( (""), 135, y +75);
+T = Ref(C,-1);
 
+GraphXSpace = 30;
 
-
-
-GfxSelectFont( "Arial Black", 10, 300, False );
-GfxSetTextAlign( 0 );
-GfxSetTextColor( colorGreen );
-GfxSetBkMode(1); 
-GfxSetTextColor(colorBrown); 
-GfxTextOut("Note: This System is using neural networks, to Identify News Breakouts, Technical Breakouts, Range patterns & Flags.  In this chart , we are using Renko Candle's to avoid market Noises, Renko candle prices are slightly different between the regular candle's Price. No Need to Consider the regular candles Prices.", 1500-k, 40 ); 
-
-
-
-RequestTimedRefresh(1);
-
-_SECTION_BEGIN("AmigoTrends");
 // If user want to use external targets/stop loss from afl, please unhide the below code and
 // asign corresponding array values to it.
 
@@ -370,4 +202,3 @@ _SECTION_BEGIN("AmigoTrends");
 // SSL = Null;		// Short Stoploss External
 
 AmigoC1(Open, High, Low, Close, Volume, Buy, Sell, Short, Cover);
-_SECTION_END();
