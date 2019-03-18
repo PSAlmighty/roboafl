@@ -80,7 +80,7 @@ Cover[2]=Sell[2]=1;
 if(1==1) // do the buy sell works 
 {
 Short=Cover=sell=0;
-Buy=IIf(skchange10<-10,1,0) AND  IIf(skchange5>5,1,0); 
+Buy=IIf(skchange2<0,1,0) AND  IIf(skchange1>1,1,0); 
 //Short=IIf(skchange5<-10,1,0) AND IIf(skchange10<-20,1,0) AND IIf(skchange30<-30,1,0) AND IIf(skchange1>10,1,1);
 printaction(1,"bb"+BarsSince(Buy)+"bs:"+BarsSince(short));
 printaction(Buy,"bought");
