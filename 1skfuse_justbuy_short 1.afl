@@ -62,9 +62,11 @@ skchange30=int(changeinmins(30));
 skchange20=int(changeinmins(20));
 skchange10=int(changeinmins(10));
 skchange5=int(changeinmins(5));
+skchange2=int(changeinmins(2));
 skchange1=int(changeinmins(1));
 skchange1diff=sqrt(skchange1*skchange1);
 last5barmaxdiff=Max(skchange1,Max(Ref(skchange1,-1),Max(Ref(skchange1,-2),Max(Ref(skchange1,-3),Max(Ref(skchange1,-4),Ref(skchange1,-5))))));
+last5barmindiff=Min(skchange1,Min(Ref(skchange1,-1),Min(Ref(skchange1,-2),Min(Ref(skchange1,-3),Min(Ref(skchange1,-4),Min(skchange1,-5))))));
 last10bardiffavg=MA(skchange1diff,10);
 printf("\nlast5max:"+last5barmaxdiff+",in10avg:"+last10bardiffavg);
 }
@@ -93,7 +95,11 @@ _N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Cl
 Plot(Open,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleLine|styleOwnScale);
 
 Plot(last5barmaxdiff,"last5barmaxdiff",colorAqua,styleDashed);
+Plot(last5barmindiff,"last5barmindiff",colorRed,styleDashed);
 Plot(last10bardiffavg,"last10bardiffavg",colorBlue,styleDashed);
+Plot(ATR(16),"atr",colorYellow,styleDots);
+
+
 _SECTION_END();
 
 }
