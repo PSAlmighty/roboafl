@@ -1,3 +1,7 @@
+_SECTION_BEGIN("BACK COLR");
+SetChartBkGradientFill( ParamColor("BgTop", colorDarkGreen),
+ParamColor("BgBottom", colorBlack),ParamColor("titleblock",colorDarkGreen));
+
 if(1==1)  // define the parameters and display titles 
 {
 
@@ -62,187 +66,213 @@ skchange30=int(changeinmins(30));
 skchange20=int(changeinmins(20));
 skchange10=int(changeinmins(10));
 skchange5=int(changeinmins(5));
-skchange2=int(changeinmins(2));
 skchange1=int(changeinmins(1));
 skchange1diff=sqrt(skchange1*skchange1);
 last5barmaxdiff=Max(skchange1,Max(Ref(skchange1,-1),Max(Ref(skchange1,-2),Max(Ref(skchange1,-3),Max(Ref(skchange1,-4),Ref(skchange1,-5))))));
-last5barmindiff=Min(skchange1,Min(Ref(skchange1,-1),Min(Ref(skchange1,-2),Min(Ref(skchange1,-3),Min(Ref(skchange1,-4),Min(skchange1,-5))))));
 last10bardiffavg=MA(skchange1diff,10);
 printf("\nlast5max:"+last5barmaxdiff+",in10avg:"+last10bardiffavg);
 }
 
-if(1==0) // set starting 4 bars 
+_SECTION_BEGIN("Flower");
+Show_color = ParamToggle("Display CandleColor", "No|Yes", 1);
+r1 = Param( "ColorFast avg", 5, 2, 200, 1 );
+r2 = Param( "ColorSlow avg", 10, 2, 200, 1 );
+r3 = Param( "ColorSignal avg", 5, 2, 200, 1 );
+
+Prd1=Param("ATR Period",4,1,20,1);
+Prd2=Param("Look Back",7,1,20,1);
+green = HHV(LLV(L,Prd1)+ATR(Prd1),Prd2);
+red = LLV(HHV(H,Prd1)-ATR(Prd1),Prd2);
+flowerClose = EMA((Open+High+Low+Close)/4,3) ;
+flowerOpen = EMA((Ref(Open,-1) + Ref(flowerClose,-1))/2,3);
+Temp = Max(High, flowerOpen);
+flowerHigh = EMA(Max(Temp, flowerClose),3);
+Temp = Min(Low,flowerOpen);
+flowerLow = EMA(Min(Temp, flowerClose),3);
+
+m1=MACD(r1,r2);
+s1=Signal(r1,r2,r3);
+mycolor=IIf(m1<0 AND m1>s1, colorBrightGreen,IIf(m1>0 AND
+
+m1>s1,colorBrightGreen,IIf(m1>0 AND m1<s1,colorRed,colorRed)));
+if(Show_color)
 {
-Buy[1]=Short[1]=1;
-Cover[2]=Sell[2]=1;
+ColorHighliter = myColor;
+SetBarFillColor( ColorHighliter );
 }
-
-if(1==1) // do the buy sell works 
-{
-Cover=sell=0;
-Buy=IIf(skchange5>10,1,0) AND IIf(skchange10>20,1,0) AND IIf(skchange30>30,1,0) AND IIf(skchange1<-10,1,0); 
-Short=IIf(skchange5<-10,1,0) AND IIf(skchange10<-20,1,0) AND IIf(skchange30<-30,1,0) AND IIf(skchange1>10,1,0);
-printaction(1,"bb"+BarsSince(Buy)+"bs:"+BarsSince(short));
-printaction(Buy,"bought");
-printaction(short,"sold");
-}
-
-if(1==1) // plot the chart needed 
-{
-_SECTION_BEGIN("Price");
-SetChartOptions(0,chartShowArrows|chartShowDates);
-_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
-Plot(Open,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleLine|styleOwnScale);
-
-Plot(last5barmaxdiff,"last5barmaxdiff",colorAqua,styleDashed);
-Plot(last5barmindiff,"last5barmindiff",colorRed,styleDashed);
-Plot(last10bardiffavg,"last10bardiffavg",colorBlue,styleDashed);
-Plot(ATR(16),"atr",colorYellow,styleDots);
+barColor=IIf(C>Green ,colorBrightGreen,IIf(C < RED,colorRed,colorRed));
+PlotOHLC( IIf(floweropen<flowerClose, floweropen,flowerClose),flowerHigh,flowerLow,IIf(flowerOpen<flowerClose, flowerClose,flowerOpen), "Close", barColor, styleNoTitle | styleCandle);
 
 
+//flowerlow=L;
+//flowerhigh=H;
+//Plot(C,"",colorRed,styleCandle);
 _SECTION_END();
+ //Magfied Market Price
+FS=Param("Font Size",30,11,100,1);
+GfxSelectFont("Times New Roman", FS, 700, True ); 
+GfxSetBkMode( colorWhite );  
+GfxSetTextColor( ParamColor("Color",colorGold) ); 
+Hor=Param("Horizontal Position",1084,1,1200,1);
+Ver=Param("Vertical Position",53,1,830,1); 
+GfxTextOut(""+C, Hor , Ver );
+YC=TimeFrameGetPrice("C",inDaily,-1);
+DD=Prec(C-YC,2);
+xx=Prec((DD/YC)*100,2);
+GfxSelectFont("Times New Roman", 11, 700, True ); 
+GfxSetBkMode( colorBlack );  
+GfxSetTextColor(ParamColor("Color",colorYellow) ); 
+GfxTextOut(""+DD+"  ("+xx+"%)", Hor , Ver+45 );
 
-}
+_SECTION_BEGIN("Breakout Setting");
+no=Param( "Swing", 8, 1, 55 );
+//tsl_col=ParamColor( "Color", colorLightGrey );
 
-if(1==0) // print if any last action was done 
-{
-skbb=BarsSince(Buy);
-sksb=BarsSince(Sell);
-skwb=BarsSince(Short);
-skcb=BarsSince(cover);
+res=HHV(H,no);
+sup=LLV(L,no);
+avd=IIf(C>Ref(res,-1),1,IIf(C<Ref(sup,-1),-1,0));
+avn=ValueWhen(avd!=0,avd,1);
+tsl=IIf(avn==1,sup,res);
 
-printaction(1,"\nskbb:"+skbb);
-printaction(1,"sksb:"+sksb);
-printaction(1,"skcb:"+skcb);
-printaction(1,"skwb:"+skwb);
-nobuyyet=skbb==0;
-nowriteyet=skwb==0;
+Short=Cover=Sell=0;
 
-noactionyet=(nowriteyet AND nobuyyet) ;
+//Buy=Cover=Ref(Cross(H,tsl),-1) ;
+//Sell=Short=Ref(Cross(tsl,L),-1) ;
 
-buyon=(skbb>sksb OR skbb=0 OR skbb>skcb OR skbb>skwb);
-buyoff=skbb<sksb AND skbb<skwb AND skbb < skcb AND skbb>0 ;
-
-
-writeon=skwb!=0 AND (skwb<skcb OR skcb==0) AND (skwb<skbb OR skbb==0) AND (skwb<sksb OR sksb==0) ;
-writeoff=skwb==0 OR (skbb>0 AND skwb>skbb OR skcb>0 AND skwb>skcb OR sksb>0 AND skwb>sksb);
-
- 
-noactionnow=writeoff AND buyoff ; 
-
-printaction(1,"\nbuyon:"+buyon);
-printaction(1,"buyoff:"+buyoff);
-printaction(1,"writeon:"+writeon);
-printaction(1,"writeoff:"+writeoff);
-printaction(1,"noactionnow:"+noactionnow);
-printaction(1,"noactionyet:"+noactionyet);
-}
-
-if(1==0) // draw the area of the profit or loss as bars 
-{
-BuyPrice=valuewhen(Buy,O);
-sklong=Flip(Buy,Sell);
-skshort=Flip(Short,Cover);
-skprofit=IIf(Sell,O-BuyPrice,IIf(Cover,O-CoverPrice,Null));
-skprofitcolor=IIf(skprofit>=0,IIf(Sell,colorGreen,colorBlue),IIf(Sell,colorRed,colorBrown));
-Plot(skprofit, "Profit", skprofitcolor, styleArea|styleOwnScale, -50, 50, 0, 1,1);
-Plot(IIf(sklong , BuyPrice,Null), "XP", colorGreen, styleThick, Null, Null, 0, 1, 1);
-Plot(IIf(skshort , ShortPrice,Null), "XP", colorRed, styleThick	, Null, Null, 0, 1, 1);
-/*
-SLtriggershape=(Cover_SSL OR Sell_LSL ) * shapeHollowCircle * ( Sell OR Cover ) ;
-TGtriggershape=(Cover_ST1 OR Sell_LT1 ) * shapeStar * ( Sell OR Cover );
-sellcovertriggershape=(coversignal OR sellsignal ) * shapeHollowSquare * ( Sell OR Cover ) ;
-
-PlotShapes( SLtriggershape, IIf(skprofit>0,colorGreen,colorRed), 0, skexprice, -1,0);
-PlotShapes( TGtriggershape, IIf(skprofit>0,colorGreen,colorRed), 0, skexprice, -1,1);
-PlotShapes( sellcovertriggershape, IIf(skprofit>0,colorGreen,colorRed), 0, skexprice, -1,2);
-printf("\nProfit="+skprofit);
-//plottext("P="+skprofit,0,LastValue(skexprice),colorGreen);
-*/
-}
-
-if(1==1) // buy sell arrow draw based
-{
-skrvars_print=",o:"+O+"c:"+C;
-
-//LongTrue = Flip(Buy, Sell) || Sell;
-//ShortTrue = Flip(Short, Cover) || Cover;
-
-Buyshape = Buy * shapeSmallUpTriangle;
-SellShape = Sell * shapeStar;
-PlotShapes( Buyshape, colorGreen, 1, BuyPrice, -1 );
-//PlotShapes( Buyshape, colorYellow, 0, rLow+10, -10 );
-//PlotText( "BUY@" + BuyPrice[0] + skrvars_print , 0, LastValue(rLow), colorGreen);
-PlotShapes( SellShape, colorBlue, 0, SellPrice, -1 );
-
-Shortshape = Short * shapeSmallDownTriangle;
-CoverShape = Cover * shapeStar;
-PlotShapes( Shortshape, colorRed, 0, ShortPrice, -1);
-//PlotShapes( Shortshape, coloryellow, 0, rHigh-10, -30);
-//PlotText( "Short@" + ShortPrice[0] + skrvars_print , 0, LastValue(rHigh), colorRed);
-PlotShapes( CoverShape, colorBrown, 0, CoverPrice, -1 )	;
+Buy=IIf(skchange1>10,1,0);
 
 
-}
+//Plot(tsl, _DEFAULT_NAME(), tsl_col, styleStaircase);
+Buyperiods=Ref(Param("Breakout periods best is usually 18",5,1,100,1,1),-1);
+Sellperiods=Ref(Param("Exit Breakout",5,1,100,1,1),-1);
 
-if(1==1) // buy sell signal sent to amigo 
-{
 
-// from here the buy and sell signals . 
-_SECTION_BEGIN("AmigoTrends");
-// If user want to use external targets/stop loss from afl, please unhide the below code and
-// asign corresponding array values to it.
 
- //LT1 = sars;		// Long Target1 External
-// ST1 = Null;		// Short Target1 External
-// LT2 = Null;		// Long Target2 External
-// ST2 = Null;		// Short Targe2 External
-// LT3 = Null;		// Long Target3 External
-// ST3 = Null;		// Short Target3 External
-// LSL = Null;		// Long Stoploss External
-// SSL = Null;		// Short Stoploss External
-//LT1 = 50;		// Long Target1 External
-// ST1 = 50;
-
-//LT1=ST1=LSL=SSL=0
-
-// AmigoC1(Open, High, Low, Close, Volume, Buy, Sell, Short, Cover);
-_SECTION_END();
-
-}
-
-if(1==0) // write buy sell price on chart 
-{
-dist=BrickSize;
-dist1=1.2*dist;
-dist2=0.6*dist;
+PlotShapes(IIf(Buy, shapeSquare,shapeNone) ,colorBlue,0, flowerLow, Offset=-10) ; 
+PlotShapes(IIf(Buy, shapeUpArrow,shapeNone) ,colorLime,0, flowerLow, Offset=-10) ;
+PlotShapes(IIf(Sell, shapeSquare,shapeNone),colorRed,0, flowerHigh, Offset=-1) ;
+PlotShapes(IIf(Sell, shapeDownArrow,shapeNone),colorLime,0, flowerHigh, Offset=-1) ;
+dist = 1*ATR(10);
+dist1 = 1*ATR(10);
+GfxSelectFont( "Tahoma", 13, 100 );
+GfxSetBkMode( 1 );
 
 for( i = 0; i < BarCount; i++ ) 
 { 
-//exit4time(152000);
-//skrvars_print="-O:"+rOpen[i-1]+"C:"+rClose[i-1];  // for using the last candle for buy sell signals 
-skrvars_print="-O:"+Open[i]+"C:"+Close[i];  // for using the current signal for buy sell signals 
-skrvars_print=".";
- if( Buy[i]) 
-  PlotText( "BUY@" + BuyPrice[ i ] + skrvars_print , i, Low[ i ]-5*dist[i], colorGreen);
-  
- if( Short[i] )
-   PlotText( "Short@" + ShortPrice[ i ] + skrvars_print , i, High[ i ]+5*dist[i], colorRed);
- 
- if( Cover[i] ) 
-  PlotText( "Cover@" + CoverPrice[ i ] , i, Low[ i ]-3.5*dist[i], colorRed );
- 
+if( Buy[i] ) 
+ {
+  PlotText( "Buy =" + L[ i ] + "\nTGT= " + (L[i]*1.0045) + "\nSL= " + (L[i]*0.9970), i, flowerLow[ i ]-dist[i], colorBrightGreen, colorBlack );
+ }
  if( Sell[i] )
-   PlotText( "Sell@" + SellPrice[ i ]  ,i, High[ i ]+3.5*dist[i], colorBlue);
-
-
-printaction(Short[i],"\nw@"+ShortPrice[i]+"bar"+i+"on"+skday[i]+"-"+skmonth[i]+"-"+skyear[i]);
-printaction(Cover[i],"C@"+CoverPrice[i]+"bar"+i+"on"+skday[i]+"-"+skmonth[i]+"-"+skyear[i]);
+ {
+  PlotText( "Sell =" + H[ i ] + "\nT= " + (H[i]*0.995) + "\nSL= " + (H[i]*1.0025), i, flowerHigh[ i ]+dist1[i], colorOrange, colorBlack ); 
+ }
 }
 
-}
 
-if(1==0) // final printing of msg if needed 
-{
-printf(skactionmsg);
-}
+color = IIf((BarsSince(Sell))>(BarsSince(Buy)), colorBrightGreen,colorRed); 
+//Plot(C,"",color,64); 
+_SECTION_BEGIN("sys");
+
+x=Param("xposn",315,0,1000,1);
+y=Param("yposn",421,0,1000,1);
+
+
+GfxSetTextColor(colorOrange);
+GfxTextOut( ( " "),60,y+40);
+GfxSetTextColor(colorWhite);
+GfxTextOut( ( ""),10,y+60);
+GfxSetTextColor(colorGreen);
+GfxTextOut( ( ""),30,y+80);
+_SECTION_BEGIN("Background text");
+C11=ParamColor("up panel",colorBlack );
+C12=ParamColor("dn panel",colorBlack );
+C13=Param("fonts",20,10,30,1 );
+C14=Param("left-right",2.1,1.0,5.0,0.1 );
+C15=Param("up-down",8,1,30,1 );
+Miny = Status("axisminy");
+Maxy = Status("axismaxy");
+lvb = Status("lastvisiblebar");
+fvb = Status("firstvisiblebar");
+pxwidth = Status("pxwidth");
+pxheight = Status("pxheight");
+GfxSetBkMode( 0 ); 
+GfxSelectFont("Tahoma", 12, 500, False, False, 0);
+GfxSetTextColor(colorCustom12); 
+GfxSetTextAlign( 6 );
+GfxSelectFont("Tahoma", 15, 600, False, False, 0);
+GfxSetTextColor(colorWhite); 
+GfxSetTextAlign( 6 );
+GfxSelectFont("Tahoma", 12, 400, False, False, 0);
+GfxSetTextColor(colorBrightGreen);
+GfxSelectFont("Tahoma", 12, 400, False, False, 0);
+GfxSetTextColor(colorRed);
+pricechange=(C-Ref(C,-1))*100/Ref(C,-1);
+changeponit=C-Ref(C,-1);
+Vlp=Param("Volume lookback period",15,10,300,10);
+Vrg=MA(V,Vlp);
+St = StDev(Vrg,Vlp); 
+Vp3 = Vrg + 3*st; 
+Vp2 = Vrg + 2*st;;
+Vp1 = Vrg + 1*st;;
+Vn1 = Vrg -1*st; 
+Vn2 = Vrg -2*st; 
+
+x=Param("xposn",1,0,1000,1);
+y=Param("yposn",1,0,1000,1);
+
+GfxGradientRect( 1, 1, 1400, 40, colorDarkGreen, colorBlack);
+GfxSetBkMode(0);
+GfxSelectFont( "Georgia", 18, 800, False );
+GfxSetTextColor( colorGold );
+GfxTextOut( "RoboTrader.co.in", x+600, y+10 );
+GfxSelectFont( "Tahoma", 16, 800, False );
+GfxSetTextColor( colorGold );
+GfxTextOut( Name(), x+120, y+10 );
+GfxSelectFont( "Century Gothic", 15, 100, False );
+GfxSetTextColor( colorGold );
+//GfxTextOut( Date(), x+1000, y+10 );
+GfxSelectFont( "Comic Sans MS", 15, 500, False );
+GfxSetTextColor( colorGold );
+GfxTextOut( Interval(2), x+300, y+10 );
+//------------------------------------------------------------ H, L, O, C----------------------
+GfxGradientRect( 1, 40, 1400, 55, colorDarkGreen, colorBlack );
+GfxSetBkMode(0);
+GfxSelectFont( "arial", 10, 700, False );
+GfxSetTextColor( colorGold );
+GfxTextOut( "High:"+WriteVal(H,1.2), x+60, y+40 );
+GfxSelectFont( "Areal", 10, 700, False );
+GfxSetTextColor( colorGold );
+GfxTextOut( "Low:"+WriteVal(L,1.2), x+160, y+40 );
+GfxSelectFont( "Areal", 10, 700, False );
+GfxSetTextColor( colorGold );
+GfxTextOut( "Open:"+WriteVal(O,1.2), x+260, y+40 );
+GfxSelectFont( "Areal", 10, 700, False );
+GfxSetTextColor( colorGold );
+GfxTextOut( "Close:"+WriteVal(C,1.2), x+360, y+40 );
+
+GfxSelectFont( "COMIC SANS MS", 12, 100, False );
+GfxSetTextColor( colorGold );
+GfxTextOut( "", x+1000, y+35 );
+GfxSelectFont( "ALGERIAN", 15, 100 );
+GfxTextOut( (""), 135, y +75);
+T = Ref(C,-1);
+
+GraphXSpace = 30;
+
+// If user want to use external targets/stop loss from afl, please unhide the below code and
+// asign corresponding array values to it.
+
+// LT1 = Null;		// Long Target1 External
+// ST1 = Null;		// Short Target1 External
+
+// LT2 = Null;		// Long Target2 External
+// ST2 = Null;		// Short Targe2 External
+
+// LT3 = Null;		// Long Target3 External
+// ST3 = Null;		// Short Target3 External
+
+// LSL = Null;		// Long Stoploss External
+// SSL = Null;		// Short Stoploss External
+
+AmigoC1(Open, High, Low, Close, Volume, Buy, Sell, Short, Cover);
