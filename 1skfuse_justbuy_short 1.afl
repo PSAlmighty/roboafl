@@ -92,7 +92,7 @@ if(1==1) // plot the chart needed
 _SECTION_BEGIN("Price");
 SetChartOptions(0,chartShowArrows|chartShowDates);
 _N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
-Plot(Open,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleLine);
+Plot(Open,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleBar);
 last5trend=last5barmaxdiff-last5barmindiff*-1;
 
 //Plot(last5barmaxdiff,"last5barmaxdiff",colorGreen,styleArea);
