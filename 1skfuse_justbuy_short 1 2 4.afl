@@ -114,6 +114,7 @@ Plot(Open,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleBar);
 //Plot(last5trend,"last5trend",IIf(last5trend>0,colorGreen,colorRed ),styleDashed);
 //Plot(last10bardiffavg,"last10bardiffavg",colorBlue,styleDashed);
 Plot(skatr,"atr",colorYellow,styleline|styleOwnScale);
+PlotForeign("BANKNIFTY","BANKNIFTY",colorAqua,styleLine|styleOwnScale);
 
 
 _SECTION_END();
