@@ -194,7 +194,7 @@ PlotShapes( CoverShape, colorBrown, 0, CoverPrice, -1 )	;
 
 }
 
-if(1==0) // buy sell signal sent to amigo 
+if(1==1) // buy sell signal sent to amigo 
 {
 
 // from here the buy and sell signals . 
