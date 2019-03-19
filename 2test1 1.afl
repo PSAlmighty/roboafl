@@ -85,6 +85,8 @@ if(1==1) // do the buy sell works
 Buy=IIf(Fskchange10>100,1,0) ; 
 Sell=IIf(skchange5<-20,1,0) ;
 
+//Plot(skchange5<-20,"skchange5",styleDashed,styleOwnScale);
+
 Short=IIf(Fskchange10<-100,1,0) ;
 Cover=IIf(skchange5>20,1,0) ;
 
@@ -117,7 +119,7 @@ Plot(Open,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleBar);
 _SECTION_END();
 
 }
-
+	
 if(1==0) // print if any last action was done 
 {
 skbb=BarsSince(Buy);
@@ -255,6 +257,15 @@ printaction(Short[i],"\nW@"+ShortPrice[i]+"bar"+i+"on"+skday[i]+"-"+skmonth[i]+"
 printaction(Cover[i],"|,C@"+CoverPrice[i]+"bar"+i+"on"+skday[i]+"-"+skmonth[i]+"-"+skyear[i]+",atr,"+skatr[i]);
 printaction(Buy[i],"\nB@"+BuyPrice[i]+"bar"+i+"on"+skday[i]+"-"+skmonth[i]+"-"+skyear[i]+",atr,"+skatr[i]);
 printaction(Sell[i],"|,S@"+SellPrice[i]+"bar"+i+"on"+skday[i]+"-"+skmonth[i]+"-"+skyear[i]+",atr,"+skatr[i]);
+//if(skchange5[i]<-20)
+//PlotText( "-20@" + skchange5[ i ]  ,i, High[ i ]+3.5*dist[i], colorBlue);
+
+if(Fskchange10[i]>200 AND skhour[i]<15)
+PlotText( "100+@" + Fskchange10[ i ]  ,i, High[ i ]+3.5*dist[i], colorBlue);
+
+
+
+
 //AddColumn(skatr[i],"SKATR");
 
 }
