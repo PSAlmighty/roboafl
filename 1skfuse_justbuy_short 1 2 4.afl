@@ -73,13 +73,14 @@ last10bardiffavg=MA(skchange1diff,10);
 printf("\nlast5max:"+last5barmaxdiff+",in10avg:"+last10bardiffavg);
 
 CR1=int(C-O);
-last1=int(Ref(C,-1)-Ref(O,-1));
-last2=int(Ref(C,-2)-Ref(O,-2));
-last3=int(Ref(C,-3)-Ref(O,-3));
+last1=(Ref(C,-1)-Ref(O,-1));
+last2=(Ref(C,-2)-Ref(O,-2));
+last3=(Ref(C,-3)-Ref(O,-3));
 
 //Plot(skchange1,"\nskchange1",colorAqua,styleNoDraw);
 GfxTextOut( "chg1="+skchange1+",chg2="+skchange2+",chg5="+skchange5+",chg10="+skchange10+",chg20="+skchange20+",chg30="+skchange30+",chg60="+skchange60, x+720, y+20 );
 GfxTextOut( "CR="+CR1+",last1="+last1+",last2="+last2+",last3="+last3, x+720, y+35 );
+
 
 }
 
