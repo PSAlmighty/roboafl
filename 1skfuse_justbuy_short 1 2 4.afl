@@ -71,6 +71,10 @@ last5barmaxdiff=Max(skchange1,Max(Ref(skchange1,-1),Max(Ref(skchange1,-2),Max(Re
 last5barmindiff=Min(skchange1,Min(Ref(skchange1,-1),Min(Ref(skchange1,-2),Min(Ref(skchange1,-3),Min(Ref(skchange1,-4),Min(skchange1,-5))))));
 last10bardiffavg=MA(skchange1diff,10);
 printf("\nlast5max:"+last5barmaxdiff+",in10avg:"+last10bardiffavg);
+
+Plot(skchange1,"\nskchange1",colorAqua,styleNoDraw);
+GfxTextOut( "chg1="+skchange1+",chg2="+skchange2+",chg5="+skchange5+",chg10="+skchange10+",chg20="+skchange20+",chg30="+skchange30+",chg60="+skchange60, x+700, y+20 );
+
 }
 
 if(1==0) // set starting 4 bars 
