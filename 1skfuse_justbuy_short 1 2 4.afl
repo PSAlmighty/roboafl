@@ -72,7 +72,7 @@ last5barmindiff=Min(skchange1,Min(Ref(skchange1,-1),Min(Ref(skchange1,-2),Min(Re
 last10bardiffavg=MA(skchange1diff,10);
 printf("\nlast5max:"+last5barmaxdiff+",in10avg:"+last10bardiffavg);
 
-Plot(skchange1,"\nskchange1",colorAqua,styleNoDraw);
+//Plot(skchange1,"\nskchange1",colorAqua,styleNoDraw);
 GfxTextOut( "chg1="+skchange1+",chg2="+skchange2+",chg5="+skchange5+",chg10="+skchange10+",chg20="+skchange20+",chg30="+skchange30+",chg60="+skchange60, x+700, y+20 );
 
 }
@@ -111,13 +111,13 @@ if(1==1) // plot the chart needed
 _SECTION_BEGIN("Price");
 SetChartOptions(0,chartShowArrows|chartShowDates);
 _N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
-Plot(Open,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleBar);
+Plot(Open,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleBar|styleOwnScale);
 //last5trend=last5barmaxdiff-last5barmindiff*-1;
 
 //Plot(last5barmaxdiff,"last5barmaxdiff",colorGreen,styleArea);
 //Plot(last5trend,"last5trend",IIf(last5trend>0,colorGreen,colorRed ),styleDashed);
 //Plot(last10bardiffavg,"last10bardiffavg",colorBlue,styleDashed);
-Plot(skatr,"atr",colorYellow,styleline|styleOwnScale);
+Plot(skatr,"atr",colorYellow,styleline|styleNoDraw);
 PlotForeign("BANKNIFTY","BANKNIFTY",colorAqua,styleLine|styleOwnScale);
 
 
