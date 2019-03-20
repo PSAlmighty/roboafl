@@ -83,7 +83,7 @@ if(1==1) // do the buy sell works
 {
 
 Buy=IIf(skchange1<-5,1,0) AND C>0 AND Ref(C,-1)>Ref(O,-1) AND skhour<15 AND skatr>Ref(skatr,-1) AND Ref(skatr,-1)>Ref(skatr,-2); 
-Sell=skchange2<-20 ;
+//Sell=skchange2<-20 ;
 
 //Short=IIf(Fskchange10<-100,1,0) ;
 //Cover=IIf(skchange5>20,1,0) ;
@@ -94,7 +94,7 @@ Sell=skchange2<-20 ;
 //Cover=ExRem(Cover,Short);
 
 Short=Cover=0;
-//Sell=0;
+Sell=0;
 
 //Short=IIf(skchange5<-10,1,0) AND IIf(skchange10<-20,1,0) AND IIf(skchange30<-30,1,0) AND IIf(skchange1>10,1,1);
 //printaction(1,"bb"+BarsSince(Buy)+"bs:"+BarsSince(short));
