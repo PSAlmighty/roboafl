@@ -103,7 +103,7 @@ Short=IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  A
 
 if(LastValue(lastsignal)==0)
 {
-lastsignal=Ref(lastsignal,-1);
+lastsignal=0;
 
 if(LastValue(Buy)==1)
 lastsignal=1;
