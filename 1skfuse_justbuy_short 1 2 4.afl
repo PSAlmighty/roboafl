@@ -24,7 +24,7 @@ skminute=Minute();
 skactionmsg="\nAction:";
 skname=Name(); // get the name 
 printf("\nname:"+skname+"\nDate"+Day());
-GfxTextOut( sktitle +"|"+ Date()+"|"+skday, x+700, y+5 );
+GfxTextOut( sktitle +"|"+ Date()+"|"+skday, x+720, y+5 );
 //Buy=Sell=Short=Cover=0;
 
 dd = DateNum();
@@ -72,8 +72,14 @@ last5barmindiff=Min(skchange1,Min(Ref(skchange1,-1),Min(Ref(skchange1,-2),Min(Re
 last10bardiffavg=MA(skchange1diff,10);
 printf("\nlast5max:"+last5barmaxdiff+",in10avg:"+last10bardiffavg);
 
+CR1=int(C-O);
+last1=int(Ref(C,-1)-Ref(O,-1));
+last2=int(Ref(C,-2)-Ref(O,-2));
+last3=int(Ref(C,-3)-Ref(O,-3));
+
 //Plot(skchange1,"\nskchange1",colorAqua,styleNoDraw);
-GfxTextOut( "chg1="+skchange1+",chg2="+skchange2+",chg5="+skchange5+",chg10="+skchange10+",chg20="+skchange20+",chg30="+skchange30+",chg60="+skchange60, x+700, y+20 );
+GfxTextOut( "chg1="+skchange1+",chg2="+skchange2+",chg5="+skchange5+",chg10="+skchange10+",chg20="+skchange20+",chg30="+skchange30+",chg60="+skchange60, x+720, y+20 );
+GfxTextOut( "CR="+CR1+",last1="+last1+",last2="+last2+",last3="+last3, x+720, y+35 );
 
 }
 
@@ -111,13 +117,13 @@ if(1==1) // plot the chart needed
 _SECTION_BEGIN("Price");
 SetChartOptions(0,chartShowArrows|chartShowDates);
 _N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
-Plot(Open,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleBar|styleOwnScale);
+Plot(Open,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleBar);
 //last5trend=last5barmaxdiff-last5barmindiff*-1;
 
 //Plot(last5barmaxdiff,"last5barmaxdiff",colorGreen,styleArea);
 //Plot(last5trend,"last5trend",IIf(last5trend>0,colorGreen,colorRed ),styleDashed);
 //Plot(last10bardiffavg,"last10bardiffavg",colorBlue,styleDashed);
-Plot(skatr,"atr",colorYellow,styleline|styleNoDraw);
+Plot(skatr,"atr",colorYellow,styleline|styleOwnScale);
 PlotForeign("BANKNIFTY","BANKNIFTY",colorAqua,styleLine|styleOwnScale);
 
 
