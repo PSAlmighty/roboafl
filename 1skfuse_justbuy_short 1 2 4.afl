@@ -94,9 +94,11 @@ Cover[2]=Sell[2]=1;
 if(1==1) // do the buy sell works 
 {
 
-Buy=IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0) AND C>=0 AND Ref(C,-1)>=Ref(O,-1) AND skhour<15 AND skatr>Ref(skatr,-1) AND Ref(skatr,-1)>Ref(skatr,-2); 
+atrhigh=skatr>Ref(skatr,-1) AND Ref(skatr,-1)>Ref(skatr,-2);
+
+Buy=IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0) AND C>=O AND Ref(C,-1)>Ref(O,-1) AND skhour<15 ; 
 Sell=skchange2<-20 ;
-Short=NOT Buy;
+Short=IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0) AND C<=O AND Ref(C,-1)<Ref(O,-1) AND skhour<15 ;
 
 //Short=IIf(Fskchange10<-100,1,0) ;
 //Cover=IIf(skchange5>20,1,0) ;
