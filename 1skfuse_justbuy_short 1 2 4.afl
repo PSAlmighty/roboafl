@@ -96,9 +96,9 @@ if(1==1) // do the buy sell works
 
 atrhigh=skatr>Ref(skatr,-1) AND Ref(skatr,-1)>Ref(skatr,-2);
 
-Buy=IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0) AND  Ref(C,-1)>Ref(O,-1) AND skhour<15 ; 
+Buy=IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) AND skhour<15 ; 
 Sell=skchange2<-20 ;
-Short=IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0) AND Ref(C,-1)<Ref(O,-1) AND skhour<15 ;
+Short=IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND Ref(C,-1)<Ref(O,-1) AND skhour<15 ;
 
 //Short=IIf(Fskchange10<-100,1,0) ;
 //Cover=IIf(skchange5>20,1,0) ;
@@ -124,13 +124,17 @@ _SECTION_BEGIN("Price");
 SetChartOptions(0,chartShowArrows|chartShowDates);
 _N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
 Plot(Open,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleBar);
+Plot(Open+10,"sk1",IIf(Close>Open,colorGreen,colorRed ),styleDashed);
+Plot(Open-10,"\nsk1",IIf(Close>Open,colorGreen,colorRed ),styleDashed);
+
+
 last5trend=last5barmaxdiff-last5barmindiff*-1;
 
 Plot(last5barmaxdiff,"last5barmaxdiff",colorGreen,styleNoDraw|styleOwnScale);
 Plot(last5trend,"last5trend",IIf(last5trend>0,colorGreen,colorRed ),styleNoDraw|styleOwnScale);
 Plot(last10bardiffavg,"last10bardiffavg",colorBlue,styleNoDraw|styleOwnScale);
-Plot(skatr,"atr",colorYellow,styleline|styleOwnScale);
-PlotForeign("BANKNIFTY","BANKNIFTY",colorAqua,styleLine|styleOwnScale);
+Plot(skatr,"atr",colorYellow,styleDots|styleOwnScale);
+PlotForeign("BANKNIFTY","BANKNIFTY",colorAqua,styleDots|styleOwnScale);
 
 
 _SECTION_END();
