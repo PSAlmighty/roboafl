@@ -102,7 +102,17 @@ Buy=IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  A
 Short=IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND Ref(C,-1)<Ref(O,-1) AND skhour<15 ;
 
 if(LastValue(lastsignal)==0)
-lastsignal=IIf(Buy,1,IIf(Short,-1,0));
+{
+lastsignal=Ref(lastsignal,-1);
+
+if(LastValue(Buy)==1)
+lastsignal=1;
+if(LastValue(Short)==1)
+lastsignal=-1;
+
+// lastsignal=IIf(Buy,1,IIf(Short,-1,0));
+
+}
 //lastsignal=IIf(Short,-1,0);
 
 //lastsignal=IIf(sell,3,Null);
