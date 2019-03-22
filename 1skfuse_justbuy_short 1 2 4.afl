@@ -33,6 +33,8 @@ GfxTextOut( sktitle +"|"+mkttype+"|"+ Date()+"|"+skday, x+720, y+5 );
 dd = DateNum();
 tt = TimeNum();
 
+mkttype=StrToNum(NumToStr(IIf(skatr>5,0,1)));
+
 //TimeFrameRestore();
 //TimeFrameSet(1);
 }
