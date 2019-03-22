@@ -95,8 +95,8 @@ GfxTextOut( "CR="+CR1+",last1="+last1+",last2="+last2+",last3="+last3, x+720, y+
 if(mkttype==0) // do the buy sell works // for the one sided market . 
 {
 atrhigh=skatr>Ref(skatr,-1) AND Ref(skatr,-1)>Ref(skatr,-2);
-//Buy=IIf(skchange10>1,1,0) AND IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) AND skhour<15 ; 
-Buy=0;
+Buy=IIf(skchange10>1,1,0) AND IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) AND skhour<15 ; 
+//Buy=0;
 //Sell=skchange2<-20 ;
 Short=IIf(skchange10<-1,1,0) AND IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND Ref(C,-1)<Ref(O,-1) AND skhour<15 ;
 
@@ -126,8 +126,8 @@ if(mkttype==1) // do the buy sell works / for the market when it is zigzag .
 //GfxTextOut( sktitle +"|"+ Date()+"|"+skday, x+720, y+5 );
 atrhigh=skatr>Ref(skatr,-1) AND Ref(skatr,-1)>Ref(skatr,-2);
 
-//Buy=IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) AND skhour<15 ; 
-Buy=0;
+Buy=IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) AND skhour<15 ; 
+//Buy=0;
 //Sell=skchange2<-20 ;
 Short=IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND Ref(C,-1)<Ref(O,-1) AND skhour<15 ;
 
