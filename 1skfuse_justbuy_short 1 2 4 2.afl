@@ -42,7 +42,7 @@ Temp = Max(High, flowerOpen);
 flowerHigh = EMA(Max(Temp, flowerClose),3);
 Temp = Min(Low,flowerOpen);
 flowerLow = EMA(Min(Temp, flowerClose),3);
-
+skmacd=MACD(12,26);
 
 //TimeFrameRestore();
 //TimeFrameSet(1);
@@ -192,7 +192,9 @@ Plot(last5barmaxdiff,"last5barmaxdiff",colorGreen,styleNoDraw|styleOwnScale);
 Plot(last5trend,"last5trend",IIf(last5trend>0,colorGreen,colorRed ),styleNoDraw|styleOwnScale);
 Plot(last10bardiffavg,"last10bardiffavg",colorBlue,styleNoDraw|styleOwnScale);
 Plot(skatr,"atr",colorYellow,styleDots|styleOwnScale);
-PlotForeign("BANKNIFTY","BANKNIFTY",colorAqua,styleDots|styleOwnScale);
+SKBN=Foreign("BANKNIFTY","Close");
+//PlotForeign("BANKNIFTY","BANKNIFTY",IIf(Close>Open,colorGreen,colorRed ),styleDots|styleOwnScale);
+Plot(SKBN,"BANKNIFTY",IIf(Ref(SKBN,-1)<SKBN,colorGreen,colorRed ),styleDots|styleOwnScale);
 
 
 
@@ -331,7 +333,12 @@ skrvars_print=".";
 
 if(Fskchange10[i]>20)
 {
-PlotText( "Buy =" + L[ i ] + "\nTGT= " + (L[i]*1.0045) + "\nSL= " + (L[i]*0.9970), i, flowerLow[ i ]-dist[i], colorBrightGreen, colorBlack );
+PlotText( "MOved =" + Fskchange10[i] + "ATR= " + (skatr[i]) + "MACD " + (skmacd[i]), i, flowerLow[ i ]-dist[i], colorBrightGreen, colorBlack );
+}
+
+if(Fskchange10[i]<-40)
+{
+PlotText( "PR =" + Fskchange10[i] + "ATR= " + (skatr[i]) + "MACD " + (skmacd[i]), i, flowerLow[ i ]-dist[i], colorBrightGreen, colorBlack );
 }
 
 /*
