@@ -33,7 +33,7 @@ GfxTextOut( sktitle +"|"+mkttype+"|"+ Date()+"|"+skday, x+720, y+5 );
 dd = DateNum();
 tt = TimeNum();
 
-mkttype=StrToNum(NumToStr(IIf(skatr>5,0,1)));
+mkttype=StrToNum(NumToStr(IIf(skatr>(C*1/100),0,1)));
 
 //TimeFrameRestore();
 //TimeFrameSet(1);
@@ -102,10 +102,15 @@ Buy=IIf(skchange10>1,1,0) AND IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND 
 //Sell=skchange2<-20 ;
 Short=IIf(skchange10<-1,1,0) AND IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND Ref(C,-1)<Ref(O,-1) AND skhour<15 ;
 
-Cover=0;
-Sell=0;
-Cover=Buy;
-Sell=Short;
+shorttargetprice=ShortPrice-20;
+shortslprice=ShortPrice+20;
+buytartgetprice=BuyPrice+20;
+buyslprice=BuyPrice-20;
+
+Cover=Cross(O,shortslprice) OR Cross(shorttargetprice,O);
+Sell=Cross(O,buytartgetprice) OR Cross(buyslprice,O);
+//Cover=Buy;
+//Sell=Short;
 Sell=ExRem(Sell,Buy);
 Cover=ExRem(Cover,Short);
 
