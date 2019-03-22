@@ -95,10 +95,13 @@ GfxTextOut( "CR="+CR1+",last1="+last1+",last2="+last2+",last3="+last3, x+720, y+
 if(mkttype==0) // do the buy sell works // for the one sided market . 
 {
 atrhigh=skatr>Ref(skatr,-1) AND Ref(skatr,-1)>Ref(skatr,-2);
-Buy=IIf(skchange10>1,1,0) AND IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) AND skhour<15 ; 
+//Buy=IIf(skchange10>1,1,0) AND IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) AND skhour<15 ; 
+Buy=0;
 //Sell=skchange2<-20 ;
 Short=IIf(skchange10<-1,1,0) AND IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND Ref(C,-1)<Ref(O,-1) AND skhour<15 ;
 
+if(1==0) // set sl and target
+{
 shorttargetprice=valuewhen(Short,O)-20;
 shortslprice=valuewhen(Short,O)+10;
 buytargetprice=ValueWhen(Buy,O)+20;
@@ -107,8 +110,10 @@ buyslprice=ValueWhen(Buy,O)-10;
 
 Cover=Cross(O,shortslprice) OR Cross(shorttargetprice,O);
 Sell=Cross(O,buytargetprice) OR Cross(buyslprice,O);
-//Cover=Buy;
-//Sell=Short;
+}
+
+Cover=Buy;
+Sell=Short;
 Sell=ExRem(Sell,Buy);
 Cover=ExRem(Cover,Short);
 
@@ -121,7 +126,8 @@ if(mkttype==1) // do the buy sell works / for the market when it is zigzag .
 //GfxTextOut( sktitle +"|"+ Date()+"|"+skday, x+720, y+5 );
 atrhigh=skatr>Ref(skatr,-1) AND Ref(skatr,-1)>Ref(skatr,-2);
 
-Buy=IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) AND skhour<15 ; 
+//Buy=IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) AND skhour<15 ; 
+Buy=0;
 //Sell=skchange2<-20 ;
 Short=IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND Ref(C,-1)<Ref(O,-1) AND skhour<15 ;
 
@@ -156,6 +162,8 @@ Plot(lastsignal,"lastsignal",colorBrown,styleStaircase|styleOwnScale);
 //Short=IIf(Fskchange10<-100,1,0) ;
 //Cover=IIf(skchange5>20,1,0) ;
 
+if(1==0) // set sl and target 
+{
 shorttargetprice=valuewhen(Short,O)-20;
 shortslprice=valuewhen(Short,O)+10;
 buytargetprice=ValueWhen(Buy,O)+20;
@@ -163,6 +171,9 @@ buyslprice=ValueWhen(Buy,O)-10;
 
 Cover=Cross(O,shortslprice) OR Cross(shorttargetprice,O);
 Sell=Cross(O,buytargetprice) OR Cross(buyslprice,O);
+}
+Sell=Short;
+Cover=Buy;
 Sell=ExRem(Sell,Buy);
 Cover=ExRem(Cover,Short);
 
@@ -292,13 +303,14 @@ _SECTION_BEGIN("AmigoTrends");
 // ST1 = 50;
 
 //LT1=ST1=LSL=SSL=0
-
+if(1==0)
+{
 LT1=buytargetprice;
 ST1=shorttargetprice;
 
 SSL=shortslprice;
 LSL=buyslprice;
-
+}
  AmigoC1(Open, High, Low, Close, Volume, Buy, Sell, Short, Cover);
  
 _SECTION_END();
