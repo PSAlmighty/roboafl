@@ -201,8 +201,9 @@ Plot(last5barmaxdiff,"last5barmaxdiff",colorGreen,styleNoDraw|styleOwnScale);
 Plot(last5trend,"last5trend",IIf(last5trend>0,colorGreen,colorRed ),styleNoDraw|styleOwnScale);
 Plot(last10bardiffavg,"last10bardiffavg",colorBlue,styleNoDraw|styleOwnScale);
 Plot(skatr,"atr",colorYellow,styleDots|styleOwnScale);
-PlotForeign("BANKNIFTY","BANKNIFTY",colorAqua,styleDots|styleOwnScale);
-
+SKBN=Foreign("BANKNIFTY","Close");
+//PlotForeign("BANKNIFTY","BANKNIFTY",IIf(Close>Open,colorGreen,colorRed ),styleDots|styleOwnScale);
+Plot(SKBN,"BANKNIFTY",IIf(Ref(SKBN,-1)<SKBN,colorGreen,colorRed ),styleDots|styleOwnScale);
 
 
 _SECTION_END();
