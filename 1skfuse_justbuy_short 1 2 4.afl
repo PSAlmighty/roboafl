@@ -99,10 +99,11 @@ Buy=IIf(skchange10>1,1,0) AND IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND 
 //Sell=skchange2<-20 ;
 Short=IIf(skchange10<-1,1,0) AND IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND Ref(C,-1)<Ref(O,-1) AND skhour<15 ;
 
-shorttargetprice=ShortPrice-20;
-shortslprice=ShortPrice+20;
-buytargetprice=BuyPrice+20;
-buyslprice=BuyPrice-20;
+shorttargetprice=valuewhen(Short,O)-20;
+shortslprice=valuewhen(Short,O)+10;
+buytargetprice=ValueWhen(Buy,O)+20;
+buyslprice=ValueWhen(Buy,O)-10;
+
 
 Cover=Cross(O,shortslprice) OR Cross(shorttargetprice,O);
 Sell=Cross(O,buytargetprice) OR Cross(buyslprice,O);
@@ -156,9 +157,9 @@ Plot(lastsignal,"lastsignal",colorBrown,styleStaircase|styleOwnScale);
 //Cover=IIf(skchange5>20,1,0) ;
 
 shorttargetprice=valuewhen(Short,O)-20;
-shortslprice=valuewhen(Short,O)+20;
+shortslprice=valuewhen(Short,O)+10;
 buytargetprice=ValueWhen(Buy,O)+20;
-buyslprice=ValueWhen(Buy,O)-20;
+buyslprice=ValueWhen(Buy,O)-10;
 
 Cover=Cross(O,shortslprice) OR Cross(shorttargetprice,O);
 Sell=Cross(O,buytargetprice) OR Cross(buyslprice,O);
@@ -180,7 +181,8 @@ Plot(Open,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleBar);
 Plot(Open+10,"sk1",IIf(Close>Open,colorGreen,colorRed ),styleDashed);
 
 Plot(mkttype,"mkt1forzigzag",colorGreen,styleNoDraw|styleOwnScale);
-
+Plot(IIf(Buy,BuyPrice,IIf(Short,ShortPrice,Null)),"exeprice",colorGreen,styleNoDraw|styleOwnScale);
+Plot(mkttype,"mkt1forzigzag",colorGreen,styleNoDraw|styleOwnScale);
 Plot(Open-10,"\nsk1",IIf(Close>Open,colorGreen,colorRed ),styleDashed);
 last5trend=last5barmaxdiff-last5barmindiff*-1;
 
