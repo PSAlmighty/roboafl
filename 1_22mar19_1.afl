@@ -8,9 +8,8 @@ x=Param("xposn",1,0,1000,1);
 y=Param("yposn",1,0,1000,1);
 //sktitle = ParamStr("Title","skself1");
 skatr=ATR(16);
-
+sktitle = ParamStr("Title","sk3");
 skaction="Action";
-mkttype=Param("mkttype",0,0,1,1);
 skstepsize=Param( "StepSL", 50, 0, 200 );
 skstepsizeP=Param( "StepProfit", 30, 0, 200 );
 BrickSize = Param( "BrickSize ",5, 0, 200,1 );
@@ -25,8 +24,7 @@ skminute=Minute();
 skactionmsg="\nAction:";
 skname=Name(); // get the name 
 printf("\nname:"+skname+"\nDate"+Day());
-//sktitle = ParamStr("Title","sk3");
-//GfxTextOut( sktitle +"|"+ Date()+"|"+skday, x+720, y+5 );
+GfxTextOut( sktitle +"|"+ Date()+"|"+skday, x+720, y+5 );
 //Buy=Sell=Short=Cover=0;
 
 dd = DateNum();
@@ -88,26 +86,9 @@ GfxTextOut( "CR="+CR1+",last1="+last1+",last2="+last2+",last3="+last3, x+720, y+
 }
 
 
-if(mkttype==0) // do the buy sell works // for the one sided market . 
+if(1==1) // do the buy sell works 
 {
-sktitle = ParamStr("Title","oneside");
-GfxTextOut( sktitle +"|"+ Date()+"|"+skday, x+720, y+5 );
-atrhigh=skatr>Ref(skatr,-1) AND Ref(skatr,-1)>Ref(skatr,-2);
 
-Buy=IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) AND skhour<15 ; 
-//Sell=skchange2<-20 ;
-Short=IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND Ref(C,-1)<Ref(O,-1) AND skhour<15 ;
-
-Cover=0;
-Sell=0;
-
-}
-
-
-if(mkttype==1) // do the buy sell works / for the market when it is zigzag .  
-{
-sktitle = ParamStr("Title","zigzag");
-GfxTextOut( sktitle +"|"+ Date()+"|"+skday, x+720, y+5 );
 atrhigh=skatr>Ref(skatr,-1) AND Ref(skatr,-1)>Ref(skatr,-2);
 
 Buy=IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) AND skhour<15 ; 
@@ -115,7 +96,7 @@ Buy=IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  A
 Short=IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND Ref(C,-1)<Ref(O,-1) AND skhour<15 ;
 
 
-if(1==0) // work for lastsignal 
+if(1==0) // set starting 4 bars 
 {
 //Buy[1]=Short[1]=1;
 //Cover[2]=Sell[2]=1;
