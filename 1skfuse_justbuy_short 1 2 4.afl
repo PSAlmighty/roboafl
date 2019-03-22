@@ -155,10 +155,10 @@ Plot(lastsignal,"lastsignal",colorBrown,styleStaircase|styleOwnScale);
 //Short=IIf(Fskchange10<-100,1,0) ;
 //Cover=IIf(skchange5>20,1,0) ;
 
-shorttargetprice=ShortPrice-20;
-shortslprice=ShortPrice+20;
-buytargetprice=BuyPrice+20;
-buyslprice=BuyPrice-20;
+shorttargetprice=valuewhen(Short,O)-20;
+shortslprice=valuewhen(Short,O)+20;
+buytargetprice=ValueWhen(Buy,O)+20;
+buyslprice=ValueWhen(Buy,O)-20;
 
 Cover=Cross(O,shortslprice) OR Cross(shorttargetprice,O);
 Sell=Cross(O,buytargetprice) OR Cross(buyslprice,O);
@@ -293,6 +293,7 @@ _SECTION_BEGIN("AmigoTrends");
 
 LT1=buytargetprice;
 ST1=shorttargetprice;
+
 SSL=shortslprice;
 LSL=buyslprice;
 
