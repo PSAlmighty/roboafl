@@ -25,8 +25,9 @@ skminute=Minute();
 skactionmsg="\nAction:";
 skname=Name(); // get the name 
 printf("\nname:"+skname+"\nDate"+Day());
-//sktitle = ParamStr("Title","sk3");
-//GfxTextOut( sktitle +"|"+ Date()+"|"+skday, x+720, y+5 );
+
+sktitle = ParamStr("Title","sk3");
+GfxTextOut( sktitle +"|"+mkttype+"|"+ Date()+"|"+skday, x+720, y+5 );
 //Buy=Sell=Short=Cover=0;
 
 dd = DateNum();
@@ -75,6 +76,7 @@ last5barmindiff=Min(skchange1,Min(Ref(skchange1,-1),Min(Ref(skchange1,-2),Min(Re
 last10bardiffavg=MA(skchange1diff,10);
 printf("\nlast5max:"+last5barmaxdiff+",in10avg:"+last10bardiffavg);
 
+
 CR1=int(C-O);
 last1=(Ref(C,-1)-Ref(O,-1));
 last2=(Ref(C,-2)-Ref(O,-2));
@@ -90,8 +92,8 @@ GfxTextOut( "CR="+CR1+",last1="+last1+",last2="+last2+",last3="+last3, x+720, y+
 
 if(mkttype==0) // do the buy sell works // for the one sided market . 
 {
-sktitle = ParamStr("Title","oneside");
-GfxTextOut( sktitle +"|"+ Date()+"|"+skday, x+720, y+5 );
+//sktitle = ParamStr("Title","oneside");
+//GfxTextOut( sktitle +"|"+ Date()+"|"+skday, x+720, y+5 );
 atrhigh=skatr>Ref(skatr,-1) AND Ref(skatr,-1)>Ref(skatr,-2);
 
 Buy=IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) AND skhour<15 ; 
@@ -106,8 +108,8 @@ Sell=0;
 
 if(mkttype==1) // do the buy sell works / for the market when it is zigzag .  
 {
-sktitle = ParamStr("Title","zigzag");
-GfxTextOut( sktitle +"|"+ Date()+"|"+skday, x+720, y+5 );
+//sktitle = ParamStr("Title","zigzag");
+//GfxTextOut( sktitle +"|"+ Date()+"|"+skday, x+720, y+5 );
 atrhigh=skatr>Ref(skatr,-1) AND Ref(skatr,-1)>Ref(skatr,-2);
 
 Buy=IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) AND skhour<15 ; 
@@ -167,9 +169,10 @@ SetChartOptions(0,chartShowArrows|chartShowDates);
 _N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
 Plot(Open,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleBar);
 Plot(Open+10,"sk1",IIf(Close>Open,colorGreen,colorRed ),styleDashed);
+
+Plot(mkttype,"mkt1forzigzag",colorGreen,styleNoDraw|styleOwnScale);
+
 Plot(Open-10,"\nsk1",IIf(Close>Open,colorGreen,colorRed ),styleDashed);
-
-
 last5trend=last5barmaxdiff-last5barmindiff*-1;
 
 Plot(last5barmaxdiff,"last5barmaxdiff",colorGreen,styleNoDraw|styleOwnScale);
@@ -177,6 +180,7 @@ Plot(last5trend,"last5trend",IIf(last5trend>0,colorGreen,colorRed ),styleNoDraw|
 Plot(last10bardiffavg,"last10bardiffavg",colorBlue,styleNoDraw|styleOwnScale);
 Plot(skatr,"atr",colorYellow,styleDots|styleOwnScale);
 PlotForeign("BANKNIFTY","BANKNIFTY",colorAqua,styleDots|styleOwnScale);
+
 
 
 _SECTION_END();
