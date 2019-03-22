@@ -94,21 +94,18 @@ GfxTextOut( "CR="+CR1+",last1="+last1+",last2="+last2+",last3="+last3, x+720, y+
 
 if(mkttype==0) // do the buy sell works // for the one sided market . 
 {
-//sktitle = ParamStr("Title","oneside");
-//GfxTextOut( sktitle +"|"+ Date()+"|"+skday, x+720, y+5 );
 atrhigh=skatr>Ref(skatr,-1) AND Ref(skatr,-1)>Ref(skatr,-2);
-
 Buy=IIf(skchange10>1,1,0) AND IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) AND skhour<15 ; 
 //Sell=skchange2<-20 ;
 Short=IIf(skchange10<-1,1,0) AND IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND Ref(C,-1)<Ref(O,-1) AND skhour<15 ;
 
 shorttargetprice=ShortPrice-20;
 shortslprice=ShortPrice+20;
-buytartgetprice=BuyPrice+20;
+buytargetprice=BuyPrice+20;
 buyslprice=BuyPrice-20;
 
 Cover=Cross(O,shortslprice) OR Cross(shorttargetprice,O);
-Sell=Cross(O,buytartgetprice) OR Cross(buyslprice,O);
+Sell=Cross(O,buytargetprice) OR Cross(buyslprice,O);
 //Cover=Buy;
 //Sell=Short;
 Sell=ExRem(Sell,Buy);
@@ -157,8 +154,14 @@ Plot(lastsignal,"lastsignal",colorBrown,styleStaircase|styleOwnScale);
 }
 //Short=IIf(Fskchange10<-100,1,0) ;
 //Cover=IIf(skchange5>20,1,0) ;
-Cover=Buy;
-Sell=Short;
+
+shorttargetprice=ShortPrice-20;
+shortslprice=ShortPrice+20;
+buytargetprice=BuyPrice+20;
+buyslprice=BuyPrice-20;
+
+Cover=Cross(O,shortslprice) OR Cross(shorttargetprice,O);
+Sell=Cross(O,buytargetprice) OR Cross(buyslprice,O);
 Sell=ExRem(Sell,Buy);
 Cover=ExRem(Cover,Short);
 
@@ -283,10 +286,15 @@ _SECTION_BEGIN("AmigoTrends");
 // ST3 = Null;		// Short Target3 External
 // LSL = Null;		// Long Stoploss External
 // SSL = Null;		// Short Stoploss External
-//LT1 = 50;		// Long Target1 External
+// LT1 = 50;		// Long Target1 External
 // ST1 = 50;
 
 //LT1=ST1=LSL=SSL=0
+
+LT1=buytargetprice;
+ST1=shorttargetprice;
+SSL=shortslprice;
+LSL=buyslprice;
 
  AmigoC1(Open, High, Low, Close, Volume, Buy, Sell, Short, Cover);
  
