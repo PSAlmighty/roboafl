@@ -11,7 +11,7 @@ skatr=ATR(16);
 
 skaction="Action";
 mkttype=Param("mkttype",0,0,1,1);
-skstepsize=Param( "StepSL", 50, 0, 200 );
+skstepsize=Param( "StepSL", 50, 1, 200 );
 skstepsizeP=Param( "StepProfit", 30, 0, 200 );
 BrickSize = Param( "BrickSize ",5, 0, 200,1 );
 skts=Interval();
@@ -96,12 +96,16 @@ if(mkttype==0) // do the buy sell works // for the one sided market .
 //GfxTextOut( sktitle +"|"+ Date()+"|"+skday, x+720, y+5 );
 atrhigh=skatr>Ref(skatr,-1) AND Ref(skatr,-1)>Ref(skatr,-2);
 
-Buy=IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) AND skhour<15 ; 
+Buy=IIf(skchange10>1,1,0) AND IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) AND skhour<15 ; 
 //Sell=skchange2<-20 ;
-Short=IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND Ref(C,-1)<Ref(O,-1) AND skhour<15 ;
+Short=IIf(skchange10<-1,1,0) AND IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND Ref(C,-1)<Ref(O,-1) AND skhour<15 ;
 
 Cover=0;
 Sell=0;
+Cover=Buy;
+Sell=Short;
+Sell=ExRem(Sell,Buy);
+Cover=ExRem(Cover,Short);
 
 }
 
@@ -146,15 +150,10 @@ Plot(lastsignal,"lastsignal",colorBrown,styleStaircase|styleOwnScale);
 }
 //Short=IIf(Fskchange10<-100,1,0) ;
 //Cover=IIf(skchange5>20,1,0) ;
-
-//Buy=ExRem(Buy,Sell);
-//Sell=ExRem(Sell,Buy);
-//Short=ExRem(Short,Cover);
-//Cover=ExRem(Cover,Short);
-
-//Short=0;
-Cover=0;
-Sell=0;
+Cover=Buy;
+Sell=Short;
+Sell=ExRem(Sell,Buy);
+Cover=ExRem(Cover,Short);
 
 //Short=IIf(skchange5<-10,1,0) AND IIf(skchange10<-20,1,0) AND IIf(skchange30<-30,1,0) AND IIf(skchange1>10,1,1);
 //printaction(1,"bb"+BarsSince(Buy)+"bs:"+BarsSince(short));
@@ -303,16 +302,16 @@ for( i = 0; i < BarCount; i++ )
 skrvars_print="-O:"+Open[i]+"C:"+Close[i];  // for using the current signal for buy sell signals 
 skrvars_print=".";
  if( Buy[i]) 
-  PlotText( "BUY@" + BuyPrice[ i ] + skrvars_print , i, Low[ i ]-5*dist[i], colorGreen);
+  PlotText( "BUY@" + BuyPrice[ i ] + skrvars_print , i, Low[ i ]-dist[i], colorGreen);
   
  if( Short[i] )
-   PlotText( "Short@" + ShortPrice[ i ] + skrvars_print , i, High[ i ]+5*dist[i], colorRed);
+   PlotText( "Short@" + ShortPrice[ i ] + skrvars_print , i, High[ i ]+dist[i], colorRed);
  
  if( Cover[i] ) 
-  PlotText( "Cover@" + CoverPrice[ i ] , i, Low[ i ]-3.5*dist[i], colorRed );
+  PlotText( "Cover@" + CoverPrice[ i ] , i, Low[ i ]-dist[i], colorRed );
  
  if( Sell[i] )
-   PlotText( "Sell@" + SellPrice[ i ]  ,i, High[ i ]+3.5*dist[i], colorBlue);
+   PlotText( "Sell@" + SellPrice[ i ]  ,i, High[ i ]+dist[i], colorBlue);
 
 /*
 printaction(Short[i],"\nw@"+ShortPrice[i]+"bar"+i+"on"+skday[i]+"-"+skmonth[i]+"-"+skyear[i]);
