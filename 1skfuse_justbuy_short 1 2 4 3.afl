@@ -112,8 +112,8 @@ Cover=Cross(O,shortslprice) OR Cross(shorttargetprice,O);
 Sell=Cross(O,buytargetprice) OR Cross(buyslprice,O);
 }
 
-Cover=Buy;
-Sell=Short;
+Cover=skchange2>=10;
+Sell=skchange2<=-10;
 Sell=ExRem(Sell,Buy);
 Cover=ExRem(Cover,Short);
 
@@ -128,7 +128,7 @@ atrhigh=skatr>Ref(skatr,-1) AND Ref(skatr,-1)>Ref(skatr,-2);
 
 Buy=IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) AND skhour<15 ; 
 //Buy=0;
-//Sell=skchange2<-20 ;
+
 Short=IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND Ref(C,-1)<Ref(O,-1) AND skhour<15 ;
 
 
