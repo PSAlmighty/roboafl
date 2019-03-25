@@ -1,0 +1,2232 @@
+//www.aflcode.com
+
+nBars = Param("Number of bars", 12, 5, 40);
+bTrace = Param("Include trace output", 1, 0, 1);
+nNoPivsInSetup = Param("No. Pivs in Setup", 4, 3, 4, 1);
+bShowTCZ = Param("Show TCZ", 1, 0, 1); 
+nMinBarsBtwPivs = Param("Min. number of bars btw. pivots", 1, 1, 10, 1);
+nMinPctBtwPivs = Param("Min. percent diff. btw. pivots", .05, .04, .2, .01);
+bLastBarCanBePiv = Param("Last bar can be a pivot", 1, 0, 1); 
+retrcTolerance = .01;
+tczTolerance = .005;
+nNumBarsToScan = 120;
+
+
+nExploreBarIdx = 0;
+nExploreDate = 0;
+nCurDateNum = 0;
+DN = DateNum();
+DT = DateTime();
+
+
+bTCZLong = False;
+bTCZShort = False;
+nAnchorPivIdx = 0;
+
+ADX8 = ADX(8);
+
+
+
+if(Status("action")==1) {
+    bDraw = True;
+    bUseLastVis = Param("Use last visible bar", 1, 0, 1);
+} else {
+    bDraw = False;
+    bUseLastVis = False;
+    bTrace = False;
+    nExploreDate = Status("rangetodate");
+    for (i=LastValue(BarIndex());i>=0;i--) {
+        nCurDateNum = DN[i];
+        if (nCurDateNum == nExploreDate) {
+            nExploreBarIdx = i;
+        }
+    }
+
+}
+
+GraphXSpace=7;
+
+
+PlotOHLC(Open, High, Low, Close, 
+    "BIdx = " + BarIndex() + 
+    "\n" + "O = " + O + "\n"+"H = "+ H + "\n"+"L  = " + L
+    + "\n"+"C ",
+    colorBlack, styleCandle); 
+
+if (bDraw) {
+    Plot(MA(C, 21), "21 bar MA", colorAqua, 
+        styleLine+styleNoRescale+styleNoLabel);
+    Plot(MA(C, 55), "55 bar MA", colorGreen, 
+        styleLine+styleNoRescale+styleNoLabel);
+    Plot(MA(C, 233), "233 bar MA", colorDarkRed,  styleLine+styleNoRescale+styleNoLabel);
+   
+}
+
+
+aHPivs = H - H;
+aLPivs = L - L;
+aHPivHighs = H - H;
+aLPivLows = L - L;
+aHPivIdxs = H - H;
+aLPivIdxs = L - L;
+aAddedHPivs = H - H;
+aAddedLPivs = L - L;
+aLegVol = H - H;
+aRetrcVol = H - H;
+
+nHPivs = 0;
+nLPivs = 0;
+
+lastHPIdx = 0;
+lastLPIdx = 0;
+lastHPH = 0;
+lastLPL = 0;
+curPivBarIdx = 0;
+
+aHHVBars = HHVBars(H, nBars);
+aLLVBars = LLVBars(L, nBars);
+aHHV = HHV(H, nBars);
+aLLV = LLV(L, nBars);
+
+
+nLastVisBar = LastValue(
+    Highest(IIf(Status("barvisible"), BarIndex(), 0)));
+
+curBar = IIf(nlastVisBar > 0 AND bUseLastVis, nlastVisBar, 
+    IIf(Status("action")==4 AND nExploreBarIdx > 0, nExploreBarIdx,
+    LastValue(BarIndex())));
+
+curTrend = "";
+if (aLLVBars[curBar] < aHHVBars[curBar]) 
+    curTrend = "D";
+else
+    curTrend = "U";
+
+
+
+
+if (curBar >= nNumBarsToScan) {
+    for (i=0; i<nNumBarsToScan; i++) {
+     
+        
+        curBar = IIf(nlastVisBar > 0 AND bUseLastVis, 
+            nlastVisBar-i, 
+            IIf(Status("action")==4 AND nExploreBarIdx > 0, 
+            nExploreBarIdx-i,
+            LastValue(BarIndex())-i));
+
+
+        if (aLLVBars[curBar] < aHHVBars[curBar]) {
+     
+        
+            if (curTrend == "U") {
+                curTrend = "D";
+             
+                curPivBarIdx = curBar - aLLVBars[curBar];
+                aLPivs[curPivBarIdx] = 1;
+                aLPivLows[nLPivs] = L[curPivBarIdx];
+                aLPivIdxs[nLPivs] = curPivBarIdx;
+                nLPivs++;
+            }
+
+        } else {
+            if (curTrend == "D") {
+                curTrend = "U";
+                curPivBarIdx = curBar - aHHVBars[curBar];
+                aHPivs[curPivBarIdx] = 1;
+                aHPivHighs[nHPivs] = H[curPivBarIdx];
+                aHPivIdxs[nHPivs] = curPivBarIdx;
+                nHPivs++;
+            }
+
+        }       
+     
+    } 
+}
+
+
+
+
+curBar = 
+    IIf(nlastVisBar > 0 AND bUseLastVis, 
+    nlastVisBar, 
+    IIf(Status("action")==4 AND nExploreBarIdx > 0, 
+    nExploreBarIdx,
+    LastValue(BarIndex()))
+    );
+
+
+if (nHPivs >= 2 AND nLPivs >= 2) {
+
+    lastLPIdx = aLPivIdxs[0];
+    lastLPL = aLPivLows[0];
+     
+    lastHPIdx = aHPivIdxs[0];
+    lastHPH = aHPivHighs[0];
+     
+    nLastHOrLPivIdx = Max(lastLPIdx, lastHPIdx);
+     
+    nAddPivsRng = curBar - nLastHOrLPivIdx;
+    aLLVAfterLastPiv = LLV(L, nAddPivsRng);  
+    nLLVAfterLastPiv = aLLVAfterLastPiv[curBar];
+    aLLVIdxAfterLastPiv = LLVBars(L, nAddPivsRng);  
+    nLLVIdxAfterLastPiv = curBar - aLLVIdxAfterLastPiv[curBar];
+    aHHVAfterLastPiv = HHV(H, nAddPivsRng); 
+    nHHVAfterLastPiv = aHHVAfterLastPiv[curBar];
+    aHHVIdxAfterLastPiv = HHVBars(H, nAddPivsRng); 
+    nHHVIdxAfterLastPiv = curBar - aHHVIdxAfterLastPiv[curBar];
+     
+
+    if (lastHPIdx > lastLPIdx) {
+     
+
+        if (aHPivHighs[0] < aHPivHighs[1]) {
+     
+            if (nLLVAfterLastPiv < aLPivLows[0] AND
+                (nLLVIdxAfterLastPiv - lastHPIdx - 1) >= nMinBarsBtwPivs
+                AND nLLVIdxAfterLastPiv != curBar   ) {
+     
+
+                aLPivs[nLLVIdxAfterLastPiv] = 1;
+                aAddedLPivs[nLLVIdxAfterLastPiv] = 1;
+         
+            
+                for (j=0; j<nLPivs; j++) {
+                    aLPivLows[nLPivs-j] = aLPivLows[nLPivs-(j+1)];
+                    aLPivIdxs[nLPivs-j] = aLPivIdxs[nLPivs-(j+1)];
+                }
+                aLPivLows[0] = nLLVAfterLastPiv;
+                aLPivIdxs[0] = nLLVIdxAfterLastPiv;
+                nLPivs++;
+     
+          
+            }
+     
+
+        } else {
+     
+            if (nLLVAfterLastPiv > aLPivLows[0] AND
+                (nLLVIdxAfterLastPiv - lastHPIdx - 1) >= nMinBarsBtwPivs
+                AND nLLVIdxAfterLastPiv != curBar   ) {
+     
+         
+                aLPivs[nLLVIdxAfterLastPiv] = 1;
+                aAddedLPivs[nLLVIdxAfterLastPiv] = 1;
+         
+          
+                for (j=0; j<nLPivs; j++) {
+                    aLPivLows[nLPivs-j] = aLPivLows[nLPivs-(j+1)];
+                    aLPivIdxs[nLPivs-j] = aLPivIdxs[nLPivs-(j+1)];
+                }
+                aLPivLows[0] = nLLVAfterLastPiv;
+                aLPivIdxs[0] = nLLVIdxAfterLastPiv;
+                nLPivs++;
+     
+   
+            }   
+
+        }
+     
+    
+    } else {
+     
+    
+        if (aHPivHighs[0] < aHPivHighs[1]) {
+     
+            if (nHHVAfterLastPiv < aHPivHighs[0] AND
+                (nHHVIdxAfterLastPiv - lastLPIdx - 1) >= nMinBarsBtwPivs
+                AND nHHVIdxAfterLastPiv != curBar   ) {
+     
+        
+                aHPivs[nHHVIdxAfterLastPiv] = 1;
+                aAddedHPivs[nHHVIdxAfterLastPiv] = 1;
+     
+           
+                for (j=0; j<nHPivs; j++) {
+                    aHPivHighs[nHPivs-j] = aHPivHighs[nHPivs-(j+1)];
+                    aHPivIdxs[nHPivs-j] = aHPivIdxs[nhPivs-(j+1)];
+                }
+                aHPivHighs[0] = nHHVAfterLastPiv;
+                aHPivIdxs[0] = nHHVIdxAfterLastPiv;
+                nHPivs++;
+     
+     
+            }
+     
+     
+        } else {
+     
+  
+            if (nHHVAfterLastPiv > aHPivHighs[0] AND
+                (nHHVIdxAfterLastPiv - lastLPIdx - 1) >= nMinBarsBtwPivs
+                AND nHHVIdxAfterLastPiv != curBar   ) {
+     
+                // -- OK, we'll add this as a pivot. 
+                //    Mark it for plotting...
+                aHPivs[nHHVIdxAfterLastPiv] = 1;
+                aAddedHPivs[nHHVIdxAfterLastPiv] = 1;
+     
+           
+                for (j=0; j<nHPivs; j++) {
+                    aHPivHighs[nHPivs-j] = aHPivHighs[nHPivs-(j+1)];
+                    aHPivIdxs[nHPivs-j] = aHPivIdxs[nhPivs-(j+1)];
+                }
+                aHPivHighs[0] = nHHVAfterLastPiv;
+                aHPivIdxs[0] = nHHVIdxAfterLastPiv;
+                nHPivs++;
+     
+           
+            }
+     
+        }
+             
+    } 
+
+// -- If there are at least two of each
+}
+
+/* ****************************************
+// -- Done with finding pivots
+***************************************** */
+
+if (bDraw) {
+
+    // -- OK, let's plot the pivots using arrows
+    PlotShapes(
+        IIf(aHPivs==1, shapeDownArrow, shapeNone), 
+            colorRed, 0,    High, Offset=-15);
+    PlotShapes(
+        IIf(aAddedHPivs==1, shapeDownArrow, shapeNone),
+            colorDarkRed, 0, High, Offset=-15);
+    PlotShapes(
+        IIf(aLPivs==1, shapeUpArrow , shapeNone),       
+            colorGreen, 0, Low, Offset=-15);
+    PlotShapes(
+        IIf(aAddedLPivs==1, shapeUpArrow , shapeNone), 
+            colorDarkGreen, 0, Low, Offset=-15);
+}
+
+/* ****************************************
+// -- Done with discovering and plotting pivots 
+***************************************** */
+
+// -- I'm going to want to look for possible retracement
+risk = 0;
+profInc = 0;
+nLeg0Pts = 0;
+nLeg0Bars = 0;
+nLeg0Vol = 0;
+nLeg1Pts = 0;
+nLeg1Bars = 0;
+nLeg1Vol = 0;
+nLegBarsDiff = 0;
+nRtrc0Pts = 0;
+nRtrc0Bars = 0;
+nRtrc0Vol = 0;
+nRtrc1Pts = 0;
+nRtrc1Bars = 0;
+nRtrc1Vol = 0;
+
+minRtrc = 0;
+maxRtrc = 0;
+minLine = 0;
+maxLine = 0;
+triggerLine = 0;
+firstProfitLine = 0;
+triggerInc = 0;
+triggerPrc = 0;
+firstProfitPrc = 0;
+retrcPrc = 0;
+retrcBar = 0;
+retrcBarIdx = 0;
+retrcRng = 0;
+aRetrcPrc = H-H;
+aRetrcPrcBars = H-H;
+aRetrcClose = C;
+retrcClose = 0;
+
+// -- Do TCZ calcs. Arrangement of pivs very specific
+//    for this setup.
+if (nHPivs >= 2 AND
+    nLPivs >=2 AND 
+    aHPivHighs[0] > aHPivHighs[1] AND
+    aLPivLows[0] > aLPivLows[1]) {
+
+    tcz500 = 
+    (aHPivHighs[0] -
+    (.5 * (aHPivHighs[0] - aLPivLows[1])));
+
+    tcz618 = 
+    (aHPivHighs[0] -
+    (.618 * (aHPivHighs[0] - aLPivLows[1])));
+
+    tcz786 = 
+    (aHPivHighs[0] -
+    (.786 * (aHPivHighs[0] - aLPivLows[0])));
+
+    retrcRng = curBar  - aHPivIdxs[0];
+    aRetrcPrc = LLV(L, retrcRng);
+    retrcPrc = aRetrcPrc[curBar];
+    aRetrcPrcBars  = LLVBars(L, retrcRng);
+    retrcBarIdx = curBar - aRetrcPrcBars[curBar];
+    retrcClose = aRetrcClose[retrcBarIdx];
+
+    // -- bTCZLong setup?
+    bTCZLong = (
+
+        // -- Are retracement levels arranged in
+        //    tcz order?
+        tcz500 >= (tcz786 * (1 - tczTolerance))
+        AND
+        // .681 is below .786 for long setups
+        tcz618 <= (tcz786 * (1 + tczTolerance))
+        AND
+
+        // -- Is the low in the tcz range
+        // -- Is the close >= low of tcz range
+        //    and low <= high of tcz range
+        retrcClose >= ((1 - retrcTolerance) *  tcz618)
+        AND
+        retrcPrc <= ((1 + retrcTolerance) *  tcz500)
+        ); 
+         
+        // -- risk would be high of signal bar minus low of zone
+        //risk = 0;
+
+// -- lower highs and lower lows
+} else if (nHPivs >= 2 AND nLPivs >=2 
+    AND aHPivHighs[0] < aHPivHighs[1] 
+    AND aLPivLows[0] < aLPivLows[1]) {
+
+    tcz500 = 
+    (aHPivHighs[1] -
+    (.5 * (aHPivHighs[1] - aLPivLows[0])));
+
+    tcz618 = 
+    (aHPivHighs[0] -
+    (.618 * (aHPivHighs[1] - aLPivLows[0])));
+
+    tcz786 = 
+    (aHPivHighs[0] -
+    (.786 * (aHPivHighs[0] - aLPivLows[0])));
+
+    retrcRng = curBar  - aLPivIdxs[0];
+    aRetrcPrc = HHV(H, retrcRng);
+    retrcPrc = aRetrcPrc[curBar];
+    aRetrcPrcBars  = HHVBars(H, retrcRng);
+    retrcBarIdx = curBar - aRetrcPrcBars[curBar];
+    retrcClose = aRetrcClose[retrcBarIdx];
+
+    bTCZShort = (
+        // -- Are retracement levels arranged in
+        //    tcz order?
+
+        // .500 is below .786 for short setups
+        tcz500 <= (tcz786 * (1 + tczTolerance))
+        AND
+        // .681 is above .786 for short setups
+        tcz618 >= (tcz786 * (1 - tczTolerance)) 
+        AND
+
+        // -- Is the close <= high of tcz range
+        //    and high >= low of tcz range
+        retrcClose <= ((1 + retrcTolerance) *  tcz618)
+        AND
+        retrcPrc >= ((1 - retrcTolerance) *  tcz500)
+        ); 
+         
+        // -- Risk would be top of zone - low of signal bar 
+        //risk = 0;
+}
+
+Filter = (bTCZShort OR bTCZLong);
+AddColumn(C, "Close");
+AddColumn(IIf(bTCZLong, 76, 83), "L/S", formatChar);
+
+
+
+
+nBars = Param("Number of bars", 12, 5, 40);
+bTrace = Param("Include trace output", 1, 0, 1);
+nNoPivsInSetup = Param("No. Pivs in Setup", 4, 3, 4, 1);
+bShowTCZ = Param("Show TCZ", 1, 0, 1); 
+nMinBarsBtwPivs = Param("Min. number of bars btw. pivots", 1, 1, 10, 1);
+nMinPctBtwPivs = Param("Min. percent diff. btw. pivots", .05, .04, .2, .01);
+bLastBarCanBePiv = Param("Last bar can be a pivot", 1, 0, 1); 
+retrcTolerance = .01;
+tczTolerance = .005;
+nNumBarsToScan = 120;
+
+// -- added from exploration version 20040204
+nExploreBarIdx = 0;
+nExploreDate = 0;
+nCurDateNum = 0;
+DN = DateNum();
+DT = DateTime();
+
+// -- key exploration variables
+bTCZLong = False;
+bTCZShort = False;
+nAnchorPivIdx = 0;
+
+ADX8 = ADX(8);
+
+// 1 - INDICATOR, 2 - COMMENTARY, 3 - SCAN, 
+// 4 - EXPLORATION, 5 - BACKTEST / Optimize 
+if(Status("action")==1) {
+    bDraw = True;
+    bUseLastVis = Param("Use last visible bar", 1, 0, 1);
+} else {
+    bDraw = False;
+    bUseLastVis = False;
+    bTrace = False;
+    nExploreDate = Status("rangetodate");
+    for (i=LastValue(BarIndex());i>=0;i--) {
+        nCurDateNum = DN[i];
+        if (nCurDateNum == nExploreDate) {
+            nExploreBarIdx = i;
+        }
+    }
+// -- if(Status("action")==1...
+}
+
+GraphXSpace=7;
+
+// -- basic candle chart
+// -- if this appears inside if block, strange
+//    drawing results!
+PlotOHLC(Open, High, Low, Close, 
+    "BIdx = " + BarIndex() + 
+    "\n" + "O = " + O + "\n"+"H = "+ H + "\n"+"L  = " + L
+    + "\n"+"C ",
+    colorBlack, styleCandle); 
+
+if (bDraw) {
+    Plot(MA(C, 21), "21 bar MA", colorAqua, 
+        styleLine+styleNoRescale+styleNoLabel);
+    Plot(MA(C, 55), "55 bar MA", colorGreen, 
+        styleLine+styleNoRescale+styleNoLabel);
+    //Plot(MA(C, 233), "233 bar MA", colorDarkRed, 
+    //  styleLine+styleNoRescale+styleNoLabel);
+}
+
+// -- Create 0-initialized arrays the size of barcount
+aHPivs = H - H;
+aLPivs = L - L;
+aHPivHighs = H - H;
+aLPivLows = L - L;
+aHPivIdxs = H - H;
+aLPivIdxs = L - L;
+aAddedHPivs = H - H;
+aAddedLPivs = L - L;
+aLegVol = H - H;
+aRetrcVol = H - H;
+
+nHPivs = 0;
+nLPivs = 0;
+
+lastHPIdx = 0;
+lastLPIdx = 0;
+lastHPH = 0;
+lastLPL = 0;
+curPivBarIdx = 0;
+
+// -- looking back from the current bar, how many bars 
+//    back were the hhv and llv values of the previous 
+//    n bars, etc.?
+aHHVBars = HHVBars(H, nBars);
+aLLVBars = LLVBars(L, nBars);
+aHHV = HHV(H, nBars);
+aLLV = LLV(L, nBars);
+
+// -- Initialize value of curTrend
+nLastVisBar = LastValue(
+    Highest(IIf(Status("barvisible"), BarIndex(), 0)));
+
+curBar = IIf(nlastVisBar > 0 AND bUseLastVis, nlastVisBar, 
+    IIf(Status("action")==4 AND nExploreBarIdx > 0, nExploreBarIdx,
+    LastValue(BarIndex())));
+
+curTrend = "";
+if (aLLVBars[curBar] < aHHVBars[curBar]) 
+    curTrend = "D";
+else
+    curTrend = "U";
+
+// -- Loop through bars. Search for 
+//    entirely array-based approach
+//    in future version
+/* *******************
+    Find main pivots
+******************* */
+
+// -- Make sure there are enough bars!
+if (curBar >= nNumBarsToScan) {
+    for (i=0; i<nNumBarsToScan; i++) {
+     
+        // -- value of curBar dependent on two parameters
+        curBar = IIf(nlastVisBar > 0 AND bUseLastVis, 
+            nlastVisBar-i, 
+            IIf(Status("action")==4 AND nExploreBarIdx > 0, 
+            nExploreBarIdx-i,
+            LastValue(BarIndex())-i));
+
+        // -- Have we identified a pivot? If trend is down...
+        if (aLLVBars[curBar] < aHHVBars[curBar]) {
+     
+            // ... and had been up, this is a trend change
+            if (curTrend == "U") {
+                curTrend = "D";
+                // -- Capture pivot information
+                curPivBarIdx = curBar - aLLVBars[curBar];
+                aLPivs[curPivBarIdx] = 1;
+                aLPivLows[nLPivs] = L[curPivBarIdx];
+                aLPivIdxs[nLPivs] = curPivBarIdx;
+                nLPivs++;
+            }
+        // -- or current trend is up
+        } else {
+            if (curTrend == "D") {
+                curTrend = "U";
+                curPivBarIdx = curBar - aHHVBars[curBar];
+                aHPivs[curPivBarIdx] = 1;
+                aHPivHighs[nHPivs] = H[curPivBarIdx];
+                aHPivIdxs[nHPivs] = curPivBarIdx;
+                nHPivs++;
+            }
+        // --   If curTrend is up...else...
+        }       
+     
+    // -- loop through bars
+    } 
+}
+/* *******************
+    Found main pivots
+******************* */
+
+/* *************************
+    Finding missed pivot(s)
+************************* */
+
+// -- Start at last bar. Reestablish curBar
+curBar = 
+    IIf(nlastVisBar > 0 AND bUseLastVis, 
+    nlastVisBar, 
+    IIf(Status("action")==4 AND nExploreBarIdx > 0, 
+    nExploreBarIdx,
+    LastValue(BarIndex()))
+    );
+
+// -- Make sure I found at least two of each above.
+if (nHPivs >= 2 AND nLPivs >= 2) {
+
+    lastLPIdx = aLPivIdxs[0];
+    lastLPL = aLPivLows[0];
+     
+    lastHPIdx = aHPivIdxs[0];
+    lastHPH = aHPivHighs[0];
+     
+    nLastHOrLPivIdx = Max(lastLPIdx, lastHPIdx);
+     
+    nAddPivsRng = curBar - nLastHOrLPivIdx;
+    aLLVAfterLastPiv = LLV(L, nAddPivsRng);  
+    nLLVAfterLastPiv = aLLVAfterLastPiv[curBar];
+    aLLVIdxAfterLastPiv = LLVBars(L, nAddPivsRng);  
+    nLLVIdxAfterLastPiv = curBar - aLLVIdxAfterLastPiv[curBar];
+    aHHVAfterLastPiv = HHV(H, nAddPivsRng); 
+    nHHVAfterLastPiv = aHHVAfterLastPiv[curBar];
+    aHHVIdxAfterLastPiv = HHVBars(H, nAddPivsRng); 
+    nHHVIdxAfterLastPiv = curBar - aHHVIdxAfterLastPiv[curBar];
+     
+    // -- Later want to add last high pivot only if
+    //    not in buy mode from last and still in trade
+
+    /*
+        Note - I'm only interested in adding pivots if I'm in 
+        a higher-highs or lower-lows scenario
+    */
+
+     
+    // -- OK, let's start where the last high pivot occurs after the
+    //    last Low pivot
+    if (lastHPIdx > lastLPIdx) {
+     
+        /*  There are at least two possibilities here. One is that
+            the previous high was higher, indicating that this is a 
+            possible short retracement or one in the making.
+            The other is that the previous high was lower, indicating 
+            that this is a possible long retracement in the working. 
+            However, both depend on opposing pivots. E.g., if I find 
+            higher highs, what if I have lower lows?  
+         
+            If the highs are descending, then I can consider:
+                - a lower low, and leave it at that
+                - a higher high and higher low
+                - a lower low and another lower high
+        */
+        if (aHPivHighs[0] < aHPivHighs[1]) {
+     
+            if (nLLVAfterLastPiv < aLPivLows[0] AND
+                (nLLVIdxAfterLastPiv - lastHPIdx - 1) >= nMinBarsBtwPivs
+                AND nLLVIdxAfterLastPiv != curBar   ) {
+     
+                // -- OK, we'll add this as a pivot. 
+                //    Mark it for plotting...
+                aLPivs[nLLVIdxAfterLastPiv] = 1;
+                aAddedLPivs[nLLVIdxAfterLastPiv] = 1;
+         
+                //    ...and then rearrange elements in the 
+                //    pivot information arrays
+                for (j=0; j<nLPivs; j++) {
+                    aLPivLows[nLPivs-j] = aLPivLows[nLPivs-(j+1)];
+                    aLPivIdxs[nLPivs-j] = aLPivIdxs[nLPivs-(j+1)];
+                }
+                aLPivLows[0] = nLLVAfterLastPiv;
+                aLPivIdxs[0] = nLLVIdxAfterLastPiv;
+                nLPivs++;
+     
+            // -- Test whether to add piv given last piv is high 
+            //    AND we have lower highs   
+            }
+     
+        // -- Here, the last piv is a high piv, and we have 
+        //    higher-highs. The most likely addition is a 
+        //    Low piv that is a retracement.
+        } else {
+     
+            if (nLLVAfterLastPiv > aLPivLows[0] AND
+                (nLLVIdxAfterLastPiv - lastHPIdx - 1) >= nMinBarsBtwPivs
+                AND nLLVIdxAfterLastPiv != curBar   ) {
+     
+                // -- OK, we'll add this as a pivot. 
+                //    Mark it for plotting...
+                aLPivs[nLLVIdxAfterLastPiv] = 1;
+                aAddedLPivs[nLLVIdxAfterLastPiv] = 1;
+         
+                //    ...and then rearrange elements in the 
+                //    pivot information arrays
+                for (j=0; j<nLPivs; j++) {
+                    aLPivLows[nLPivs-j] = aLPivLows[nLPivs-(j+1)];
+                    aLPivIdxs[nLPivs-j] = aLPivIdxs[nLPivs-(j+1)];
+                }
+                aLPivLows[0] = nLLVAfterLastPiv;
+                aLPivIdxs[0] = nLLVIdxAfterLastPiv;
+                nLPivs++;
+     
+            // -- Test whether to add piv given last piv is high 
+            //    AND we have lower highs   
+            }   
+        // -- The last piv is a high and we have higher highs 
+        //    OR lower highs
+        }
+     
+    /* ****************************************************************
+        Still finding missed pivot(s). Here, the last piv is a low piv.
+    **************************************************************** */
+    } else {
+     
+        // -- First case, lower highs
+        if (aHPivHighs[0] < aHPivHighs[1]) {
+     
+            if (nHHVAfterLastPiv < aHPivHighs[0] AND
+                (nHHVIdxAfterLastPiv - lastLPIdx - 1) >= nMinBarsBtwPivs
+                AND nHHVIdxAfterLastPiv != curBar   ) {
+     
+                // -- OK, we'll add this as a pivot. 
+                //    Mark that for plotting
+                aHPivs[nHHVIdxAfterLastPiv] = 1;
+                aAddedHPivs[nHHVIdxAfterLastPiv] = 1;
+     
+                //    ...and then rearrange elements in the 
+                //    pivot information arrays
+                for (j=0; j<nHPivs; j++) {
+                    aHPivHighs[nHPivs-j] = aHPivHighs[nHPivs-(j+1)];
+                    aHPivIdxs[nHPivs-j] = aHPivIdxs[nhPivs-(j+1)];
+                }
+                aHPivHighs[0] = nHHVAfterLastPiv;
+                aHPivIdxs[0] = nHHVIdxAfterLastPiv;
+                nHPivs++;
+     
+            // -- Test whether to add piv given last piv is high 
+            //    AND we have lower highs   
+            }
+     
+        // -- Second case when last piv is a low piv, higher highs 
+        //    Most likely addition is high piv that is a retracement.
+        //    Considering adding a high piv as long as it is higher
+        } else {
+     
+            // -- Where I have higher highs,
+            if (nHHVAfterLastPiv > aHPivHighs[0] AND
+                (nHHVIdxAfterLastPiv - lastLPIdx - 1) >= nMinBarsBtwPivs
+                AND nHHVIdxAfterLastPiv != curBar   ) {
+     
+                // -- OK, we'll add this as a pivot. 
+                //    Mark it for plotting...
+                aHPivs[nHHVIdxAfterLastPiv] = 1;
+                aAddedHPivs[nHHVIdxAfterLastPiv] = 1;
+     
+                //    ...and then rearrange elements in the 
+                //    pivot information arrays
+                for (j=0; j<nHPivs; j++) {
+                    aHPivHighs[nHPivs-j] = aHPivHighs[nHPivs-(j+1)];
+                    aHPivIdxs[nHPivs-j] = aHPivIdxs[nhPivs-(j+1)];
+                }
+                aHPivHighs[0] = nHHVAfterLastPiv;
+                aHPivIdxs[0] = nHHVIdxAfterLastPiv;
+                nHPivs++;
+     
+            // -- Test whether to add piv given last piv is high 
+            //    AND we have lower highs   
+            }
+     
+        }
+             
+    } 
+
+// -- If there are at least two of each
+}
+
+/* ****************************************
+// -- Done with finding pivots
+***************************************** */
+
+if (bDraw) {
+
+    // -- OK, let's plot the pivots using arrows
+    PlotShapes(
+        IIf(aHPivs==1, shapeDownArrow, shapeNone), 
+            colorRed, 0,    High, Offset=-15);
+    PlotShapes(
+        IIf(aAddedHPivs==1, shapeDownArrow, shapeNone),
+            colorDarkRed, 0, High, Offset=-15);
+    PlotShapes(
+        IIf(aLPivs==1, shapeUpArrow , shapeNone),       
+            colorGreen, 0, Low, Offset=-15);
+    PlotShapes(
+        IIf(aAddedLPivs==1, shapeUpArrow , shapeNone), 
+            colorDarkGreen, 0, Low, Offset=-15);
+}
+
+/* ****************************************
+// -- Done with discovering and plotting pivots 
+***************************************** */
+
+// -- I'm going to want to look for possible retracement
+risk = 0;
+profInc = 0;
+nLeg0Pts = 0;
+nLeg0Bars = 0;
+nLeg0Vol = 0;
+nLeg1Pts = 0;
+nLeg1Bars = 0;
+nLeg1Vol = 0;
+nLegBarsDiff = 0;
+nRtrc0Pts = 0;
+nRtrc0Bars = 0;
+nRtrc0Vol = 0;
+nRtrc1Pts = 0;
+nRtrc1Bars = 0;
+nRtrc1Vol = 0;
+
+minRtrc = 0;
+maxRtrc = 0;
+minLine = 0;
+maxLine = 0;
+triggerLine = 0;
+firstProfitLine = 0;
+triggerInc = 0;
+triggerPrc = 0;
+firstProfitPrc = 0;
+retrcPrc = 0;
+retrcBar = 0;
+retrcBarIdx = 0;
+retrcRng = 0;
+aRetrcPrc = H-H;
+aRetrcPrcBars = H-H;
+aRetrcClose = C;
+retrcClose = 0;
+
+// -- Do TCZ calcs. Arrangement of pivs very specific
+//    for this setup.
+if (nHPivs >= 2 AND
+    nLPivs >=2 AND 
+    aHPivHighs[0] > aHPivHighs[1] AND
+    aLPivLows[0] > aLPivLows[1]) {
+
+    tcz500 = 
+    (aHPivHighs[0] -
+    (.5 * (aHPivHighs[0] - aLPivLows[1])));
+
+    tcz618 = 
+    (aHPivHighs[0] -
+    (.618 * (aHPivHighs[0] - aLPivLows[1])));
+
+    tcz786 = 
+    (aHPivHighs[0] -
+    (.786 * (aHPivHighs[0] - aLPivLows[0])));
+
+    retrcRng = curBar  - aHPivIdxs[0];
+    aRetrcPrc = LLV(L, retrcRng);
+    aRetrcPrcBars  = LLVBars(L, retrcRng);
+     
+    retrcPrc = aRetrcPrc[curBar];
+    retrcBarIdx = curBar - aRetrcPrcBars[curBar];
+    retrcClose = aRetrcClose[retrcBarIdx];
+
+    // -- bTCZLong setup?
+    bTCZLong = (
+
+        // -- Are retracement levels arranged in
+        //    tcz order?
+
+        // .500 is above .786 for long setups
+        tcz500 >= (tcz786 * (1 - tczTolerance))
+        AND
+        // .681 is below .786 for long setups
+        tcz618 <= (tcz786 * (1 + tczTolerance))
+        AND
+
+        // -- Is the low in the tcz range
+        // -- Is the close >= low of tcz range
+        //    and low <= high of tcz range
+        retrcClose >= ((1 - retrcTolerance) *  tcz618)
+        AND
+        retrcPrc <= ((1 + retrcTolerance) *  tcz500)
+        ); 
+         
+        // -- risk would be high of signal bar minus low of zone
+        //risk = 0;
+
+// -- lower highs and lower lows
+} else if (nHPivs >= 2 AND nLPivs >=2 
+    AND aHPivHighs[0] < aHPivHighs[1] 
+    AND aLPivLows[0] < aLPivLows[1]) {
+
+    tcz500 = 
+    (aHPivHighs[1] -
+    (.5 * (aHPivHighs[1] - aLPivLows[0])));
+
+    tcz618 = 
+    (aHPivHighs[0] -
+    (.618 * (aHPivHighs[1] - aLPivLows[0])));
+
+    tcz786 = 
+    (aHPivHighs[0] -
+    (.786 * (aHPivHighs[0] - aLPivLows[0])));
+
+    retrcRng = curBar  - aLPivIdxs[0];
+    aRetrcPrc = HHV(H, retrcRng);
+    retrcPrc = aRetrcPrc[curBar];
+    aRetrcPrcBars  = HHVBars(H, retrcRng);
+    retrcBarIdx = curBar - aRetrcPrcBars[curBar];
+    retrcClose = aRetrcClose[retrcBarIdx];
+
+    bTCZShort = (
+        // -- Are retracement levels arranged in
+        //    tcz order?
+
+        // .500 is below .786 for short setups
+        tcz500 <= (tcz786 * (1 + tczTolerance))
+        AND
+        // .681 is above .786 for short setups
+        tcz618 >= (tcz786 * (1 - tczTolerance)) 
+        AND
+
+        // -- Is the close <= high of tcz range
+        //    and high >= low of tcz range
+        retrcClose <= ((1 + retrcTolerance) *  tcz618)
+        AND
+        retrcPrc >= ((1 - retrcTolerance) *  tcz500)
+        ); 
+         
+        // -- Risk would be top of zone - low of signal bar 
+        //risk = 0;
+}
+
+// -- Show zone if present
+if (bTCZShort OR bTCZLong) { 
+
+    // -- Be prepared to see symmetry
+    if (bTCZShort) {
+        if (aLPivIdxs[0] > aHPivIdxs[0]) {   
+            // -- Valuable, useful symmetry information 
+            nRtrc0Pts = aHPivHighs[0] - aLPivLows[1];
+            nRtrc0Bars = aHPivIdxs[0] - aLPivIdxs[1] + 1;
+            nRtrc1Pts = retrcPrc - aLPivLows[0];
+            nRtrc1Bars = retrcBarIdx - aLPivIdxs[0] + 1;
+        } else {
+            nRtrc0Pts = aHPivHighs[1] - aLPivLows[1];
+            nRtrc0Bars = aHPivIdxs[1] - aLPivIdxs[1] + 1;
+            nRtrc1Pts = aHPivHighs[0] - aLPivLows[0];
+            nRtrc1Bars = aHPivIdxs[0] - aLPivIdxs[0] + 1;
+        }
+    } else { // bLongSetup
+        if (aLPivIdxs[0] > aHPivIdxs[0]) {   
+            nRtrc0Pts = aHPivHighs[0] - aLPivLows[1];
+            nRtrc0Bars = aHPivIdxs[0] - aLPivIdxs[1] + 1;
+            nRtrc1Pts = retrcPrc - aLPivLows[0];
+            nRtrc1Bars = retrcBarIdx - aLPivIdxs[0] + 1;
+        } else {
+            nRtrc0Pts = aHPivHighs[1] - aLPivLows[0];
+            nRtrc0Bars = aLPivIdxs[0] - aHPivIdxs[1] + 1;
+            nRtrc1Pts = aHPivHighs[0] - aLPivLows[0];
+            nRtrc1Bars = aLPivIdxs[0] - aHPivIdxs[0] + 1;
+        }
+    }
+
+    if (bShowTCZ) {
+        Plot(
+            LineArray(  IIf(bTCZLong, aHPivIdxs[0], aLPivIdxs[0]),
+            tcz500, curBar, tcz500 , 0), 
+            "tcz500", colorPaleBlue, styleLine);
+        Plot(
+            LineArray(  IIf(bTCZLong, aHPivIdxs[0], aLPivIdxs[0]),
+            tcz618, curBar, tcz618, 0), 
+            "tcz618", colorPaleBlue, styleLine);
+        Plot(
+            LineArray(  IIf(bTCZLong, aHPivIdxs[0], aLPivIdxs[0]),
+            tcz786, curBar, tcz786, 0), 
+            "tcz786", colorTurquoise, styleLine);
+    }
+
+// -- if (bShowTCZ)
+}
+
+if (bDraw) {
+    Title = Name() + " (" + StrLeft(FullName(), 10) + 
+    ")  ATR: " + NumToStr(ATR(1), 4.2) + " ( " + 
+    NumToStr((C - Ref(C, -1)), 4.2) + " / " +
+    NumToStr((((C - Ref(C, -1)) / Ref(C, -1)) * 100), 2.1) +    "% )  " +
+    WriteVal( SelectedValue( DateTime() ), formatDateTime) +
+    " \nO: " + Open +   
+    ",  \nH: " + High + 
+    ",  \nL: " + Low + 
+    ", \nC: " + Close +     ",  \n" +
+//  "Risk: " + WriteVal(risk, 2.1) + "%  \n" +
+    "Rtrc 0/1 Pts: " + WriteVal(nRtrc0Pts, 2.1) + "/" + 
+    WriteVal(nRtrc1Pts, 2.1) + "  \n" +
+    "Rtrc 0/1 Bars: " + WriteVal(nRtrc0Bars, 2.0) + "/" +
+    WriteVal(nRtrc1Bars, 2.0);
+}
+
+// **************************
+// END INDICATOR CODE
+// **************************
+
+_SECTION_BEGIN("SAR");
+acc = Param("Acceleration", 0.02, 0, 1, 0.001 );
+accm = Param("Max. acceleration", 0.2, 0, 1, 0.001 );
+Plot( SAR( acc, accm ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style", styleDots | styleNoLine, maskDefault | styleDots | styleNoLine ) );
+
+if( Status("action") == actionCommentary )
+{
+printf("The Parabolic SAR provides excellent exit points. You should Close long positions when the price falls below the SAR AND Close Short positions when the price rises above the SAR.");
+}
+_SECTION_END();
+
+_SECTION_BEGIN("Gartley");
+
+GBmin = Param("Swing B Min.",0.55,0.3,1,0.01);
+GBmax = Param("Swing B Max.",0.72,0.4,1,0.01);
+GCmin = Param("Swing C Min.",0.38,0.3,1.27,0.01);
+GCmax = Param("Swing C Max.",1.0,0.4,1.27,0.01);
+GDmin = Param("Swing D Min.(XA)",0.55,0.3,1,0.01);
+GDmax = Param("Swing D Max.(XA)",1.0,0.4,1.0,0.01);
+
+_SECTION_END();
+
+_SECTION_BEGIN("Bat");
+
+BatBmin = Param("Swing B Min.",0.38,0.3,1,0.01);
+BatBmax = Param("Swing B Max.",0.55,0.4,1,0.01);
+BatCmin = Param("Swing C Min.",0.38,0.3,1.62,0.01);
+BatCmax = Param("Swing C Max.",1.27,0.4,1.62,0.01);
+BatDmin = Param("Swing D Min.(XA)",0.5,0.3,1,0.01);
+BatDmax = Param("Swing D Max.(XA)",1.0,0.4,1.0,0.01);
+
+_SECTION_END();
+
+_SECTION_BEGIN("Butterfly");
+
+BtBmin = Param("Swing B Min.",0.55,0.3,1,0.01);
+BtBmax = Param("Swing B Max.",0.9,0.4,1,0.01);
+BtCmin = Param("Swing C Min.",0.38,0.3,1.62,0.01);
+BtCmax = Param("Swing C Max.",1.27,0.4,1.62,0.01);
+BtDmin = Param("Swing D Min.(XA)",1,1,1.8,0.01);
+BtDmax = Param("Swing D Max.(XA)",1.8,1,1.8,0.01);                        // Max XA of Butterfly = (1.0 - 1.618)
+
+_SECTION_END();
+
+_SECTION_BEGIN("Crab");
+
+CBmin = Param("Swing B Min.",0.38,0.3,1,0.01);
+CBmax = Param("Swing B Max.",0.65,0.4,1,0.01);
+CCmin = Param("Swing C Min.",0.38,0.3,1.62,0.01);
+CCmax = Param("Swing C Max.",1.270,0.4,1.62,0.01);
+CDmin = Param("Swing D Min.(XA)",1.25,1,1.8,0.01);
+CDmax = Param("Swing D Max.(XA)",1.8,1,2,0.01);
+
+_SECTION_END();
+
+_SECTION_BEGIN("AB=CD");
+
+abcd_Cmin = Param("Swing C Min.",0.3,        0.3    ,    1,        0.01);
+abcd_Cmax = Param("Swing C Max.",0.8,        0.8    ,    1,        0.01);
+abcd_Dmin = Param("Swing D Min.",1.2,        1,        2.7,    0.01);
+abcd_Dmax = Param("Swing D Max.",3.7,        1,        4,        0.01);
+
+_SECTION_END();
+
+_SECTION_BEGIN("Patterns");
+    
+//strength = Param("Strength",5,2,15,1);                                    // Best use: 3, 4, 5
+strength = Param("BARS of each LINE",5,2,15,1);                            // So luong bar cho moi duong XA, AB, BC, 
+bu = ParamToggle("Bullish Pattern","Off|On",1);                            // So bar/lines se quyet dinh. mo^ hinh` duoc ve the' nao`
+be = ParamToggle("Bearish Pattern","Off|On",1);
+
+bi = Cum(1)-1;
+
+function GetTop(bars)                                                         // Lay' gia' tri cao nhat' = di?nh
+    {
+        Top = H == HHV(H,2*bars) AND Ref(HHV(H,bars),bars) < H;
+        Top = Top AND LastValue(bi)-ValueWhen(Top,bi) > bars;
+        return Top;
+    }
+
+function GetValley(bars)                                                    // La'y gia tri thap' nhat' = day'
+    {
+        Valley = L == LLV(L,2*bars) AND Ref(LLV(L,bars),bars) > L;
+        Valley = Valley AND LastValue(bi)-ValueWhen(Valley,bi) > bars;
+        return Valley;
+    }
+
+
+// Build fractals array
+
+P1 = GetTop(strength);                                        // so' bar cho 1 duong` XA, AB, BC, CD
+V1 = GetValley(Strength);
+
+P1 = IIf(P1,IIf(ValueWhen(P1,bi,2) < ValueWhen(V1,bi),P1,IIf(ValueWhen(P1,H,2) > H,False,P1)),P1);
+P1 = IIf(P1 AND ValueWhen(P1,bi,0) > bi,IIf(ValueWhen(P1,bi,0) < ValueWhen(V1,bi,0),IIf(ValueWhen(P1,H,0) >= H,False,P1),P1),P1);
+V1 = IIf(V1,IIf(ValueWhen(V1,bi,2) < ValueWhen(P1,bi),V1,IIf(ValueWhen(V1,L,2)<L,False,V1)),V1);
+V1 = IIf(V1 AND ValueWhen(V1,bi,0) > bi ,IIf(ValueWhen(V1,bi,0) < ValueWhen(P1,bi,0),IIf(ValueWhen(V1,L,0) <= L, False,V1),V1),V1); 
+
+
+P1H1 = ValueWhen(P1,H);
+P1Bar1 = ValueWhen(P1,bi);
+P1H2 = ValueWhen(P1,H,2);
+P1Bar2 = ValueWhen(P1,bi,2);
+V1L1 = ValueWhen(V1,L);
+V1Bar1 = ValueWhen(V1,bi);
+V1L2 = ValueWhen(V1,L,2);
+V1Bar2 = ValueWhen(V1,bi,2);
+
+
+//============================================
+//                BULLISH PATTERNS
+//============================================
+/*
+    Mo hinh Bullish:
+    A    =    P1H2
+    B    =    V1L1
+    C    =    P1H1
+    X    =    V1L2
+
+*/
+
+PTvalid = (P1Bar1 > V1Bar1 AND V1Bar1 > P1Bar2 AND P1bar2 > V1Bar2) AND P1; // Peaks and troughs are in order
+
+myAX            =    P1H2-V1L2;
+myAB            =    P1H2-V1L1;
+myBC            =    P1H1-V1L1;
+
+myAB_AX        =    myAB/ myAX;
+myBC_AB        =    myBC/ myAB;    
+
+BullGartley4         = PTvalid     AND     (    myAB_AX > GBmin    )         AND (    myAB_AX < GBmax    )
+                                AND      (    myBC_AB > GCMin     )         AND (    myBC_AB < GCMax    ); 
+
+BullBat4             = PTvalid     AND     (    myAB_AX > BatBmin )         AND (    myAB_AX < BatBmax    )
+                                AND     (    myBC_AB > BatCMin )         AND (    myBC_AB < BatCMax    ); 
+
+BullButterfly4     = PTvalid     AND     (    myAB_AX > BtBmin )         AND (    myAB_AX < BtBMax    )
+                                AND      (    myBC_AB > BtCmin )         AND (    myBC_AB < BtCmin     );
+
+BullCrab4             = PTvalid     AND     (    myAB_AX > CBmin )              AND (    myAB_AX < CBmax     )
+                                AND      (    myBC_AB > CCmin )         AND (    myBC_AB < CCmax    );
+
+BullABCD4            = PTvalid AND     (    myBC_AB > abcd_Cmin)     AND (    myBC_AB < abcd_Cmax    );
+
+strPattern = "";
+
+//==================================================
+//                 BULLISH ABCD
+//     Bullish pattern found. D retracement level is not evaluated
+//==================================================
+    dHigh        =        HighestSince(BullABCD4,H);                // Tinh' gia' tri min, max cua duong Ad. Duong Ad la duong con cua AD
+    dLow         =         LowestSince(BullABCD4,L);
+    
+    myC            =        ValueWhen(BullABCD4,P1H1);
+    myB            =        ValueWhen(BullABCD4,V1L1);
+    myA            =        ValueWhen(BullABCD4,P1H2);
+    myX            =        ValueWhen(BullABCD4,V1L2);
+    myCB        =        myC - myB;
+
+    my_d_min    =        myCB    *    abcd_DMin ;                    // Tinh' gia' tri cua duong Ad con. Khi gia' giam? tu` tre^n xuong' thi` max -> min
+    my_d_max    =        myCB    *    abcd_DMax ;
+    my_Cd_min    =        myC - my_d_min;                       // Khoang dich chuyen cua duong Ad con.
+    my_Cd_max    =        myC - my_d_max;
+
+BullABCD         =         IIf(        ( dLow  <    my_Cd_min    )    AND        ( dLow    > my_Cd_max )    
+                                AND    ( dHigh    <=    myC        )    AND        ( dLow    ==    L), 
+                                True, False
+                            );
+
+BullABCD        =        BullABCD    AND (dLow        <    myB);
+
+
+//==================================================
+//                 BULLISH GARTLEY
+//==================================================
+    dHigh        =        HighestSince(BullGartley4,H);                // Tinh' gia' tri min, max cua duong Ad. Duong Ad la duong con cua AD
+    dLow         =         LowestSince(BullGartley4,L);
+
+    myC            =        ValueWhen(BullGartley4,P1H1);
+    myB            =        ValueWhen(BullGartley4,V1L1);
+    myA            =        ValueWhen(BullGartley4,P1H2);
+    myX            =        ValueWhen(BullGartley4,V1L2);
+    myAX        =        myA - myX;
+
+    my_d_min    =        myAX    *    GDmin;                            // Tinh' gia' tri cua duong Ad con. Khi gia' giam? tu` tre^n xuong' thi` max -> min
+    my_d_max    =        myAX    *    GDMax;
+    my_Ad_min    =        myA - my_d_min;                            // Khoang dich chuyen cua duong Ad con.
+    my_Ad_max    =        myA - my_d_max;
+
+BullGartley     =         IIf(        ( dLow  <    my_Ad_min    )    AND        ( dLow    > my_Ad_max )    
+                                AND    ( dHigh    <=    myC        )    AND        ( dLow    ==    L), 
+                                True, False
+                            );
+BullGartley     =        BullGartley     AND (dLow        <    myB);                        // diem D thap' hon B
+strPattern     =        WriteIf(BullGartley,"BULLISH GARTLEY",strPattern);
+
+
+
+//==================================================
+//                 BULLISH BAT
+//==================================================
+    dHigh        =        HighestSince(BullBat4,H);                // Tinh' gia' tri min, max cua duong Ad. Duong Ad la duong con cua AD
+    dLow         =         LowestSince(BullBat4,L);    
+
+    myC            =        ValueWhen(BullBat4,P1H1);
+    myB            =        ValueWhen(BullBat4,V1L1);
+    myA            =        ValueWhen(BullBat4,P1H2);
+    myX            =        ValueWhen(BullBat4,V1L2);
+    myAX        =        myA - myX;
+
+    my_d_min    =        myAX    *    BatDmin;                        // Tinh' gia' tri cua duong Ad con. Khi gia' giam? tu` tre^n xuong' thi` max -> min
+    my_d_max    =        myAX    *    BatDmax ;
+    my_Ad_min    =        myA - my_d_min;                            // Khoang dich chuyen cua duong Ad con.
+    my_Ad_max    =        myA - my_d_max;
+
+BullBat         =         IIf(        ( dLow  <    my_Ad_min    )    AND        ( dLow    > my_Ad_max )    
+                                AND    ( dHigh    <=    myC        )    AND        ( dLow    ==    L), 
+                                True, False
+                            );
+BullBat         =        BullBat     AND (dLow        <    myB);            // diem d thap hon diem B
+strPattern     =        WriteIf(BullBat,"BULLISH BAT",strPattern);
+
+
+//==================================================
+//                 BULLISH CRAB - CUA
+//==================================================
+    dHigh        =        HighestSince(BullCrab4,H);                // Tinh' gia' tri min, max cua duong Ad. Duong Ad la duong con cua AD
+    dLow         =         LowestSince(BullCrab4,L);
+
+    myC            =        ValueWhen(BullCrab4,P1H1);
+    myB            =        ValueWhen(BullCrab4,V1L1);
+    myA            =        ValueWhen(BullCrab4,P1H2);
+    myX            =        ValueWhen(BullCrab4,V1L2);
+    myAX        =        myA - myX;
+
+    my_d_min    =        myAX    *    CDmin ;                    // Tinh' gia' tri cua duong Ad con. Khi gia' giam? tu` tre^n xuong' thi` max -> min
+    my_d_max    =        myAX    *    CDmax ;
+    my_Ad_min    =        myA - my_d_min;                        // Khoang dich chuyen cua duong Ad con.
+    my_Ad_max    =        myA - my_d_max;
+
+BullCrab         =         IIf(        ( dLow  <    my_Ad_min    )    AND        ( dLow    > my_Ad_max )    
+                                AND    ( dHigh    <=    myC        )    AND        ( dLow    ==    L), 
+                                True, False
+                            );
+BullCrab         =        BullCrab     AND (dLow        <    myX);                    // diem D thap' hon X
+strPattern     =        WriteIf(BullCrab ,"BULLISH CRAB",strPattern);
+
+
+//==================================================
+//                 BULLISH  BUTTTERFLY
+//==================================================
+    dHigh        =        HighestSince(BullButterfly4,H);                // Tinh' gia' tri min, max cua duong Ad. Duong Ad la duong con cua AD
+    dLow         =         LowestSince(BullButterfly4,L);
+
+    myC            =        ValueWhen(BullButterfly4,P1H1);
+    myB            =        ValueWhen(BullButterfly4,V1L1);
+    myA            =        ValueWhen(BullButterfly4,P1H2);
+    myX            =        ValueWhen(BullButterfly4,V1L2);
+    myAX        =        myA - myX;
+
+    my_d_min    =        myAX    *    BtDmin ;                                // Tinh' gia' tri cua duong Ad con. Khi gia' giam? tu` tre^n xuong' thi` max -> min
+    my_d_max    =        myAX    *    BtDmax ;
+    my_Ad_min    =        myA - my_d_min;                                    // Khoang dich chuyen cua duong Ad con.
+    my_Ad_max    =        myA - my_d_max;
+
+BullButterfly     =         IIf(        ( dLow  <    my_Ad_min    )    AND        ( dLow    > my_Ad_max )    
+                                    AND    ( dHigh    <=    myC        )    AND        ( dLow    ==    L), 
+                                True, False
+                                );
+BullButterfly     =        BullButterfly     AND (dLow        <    myX);                    // diem D thap' hon X
+strPattern         =        WriteIf(BullButterfly ,"BULLISH BUTTERFLY",strPattern);
+
+
+
+//==========================================================
+//   VE DUONG CHO MO HINH BULLISH ABCB 
+//==========================================================
+BullHar4     =  BullABCD4;
+BullHar     =  BullABCD;
+
+Point4 = IIf(BullHar,ValueWhen(BullHar4,bi),Null);
+BullHar = IIf(BullHar, IIf(Point4 == ValueWhen(BullHar,point4,0) AND ValueWhen(BullHar,bi,0) > bi ,False,BullHar),BullHar);
+
+A = ValueWhen(BullHar4,P1H2);
+Abar = ValueWhen(BullHar4,P1bar2);
+B = ValueWhen(BullHar4,V1L1);
+Bbar = ValueWhen(BullHar4,V1bar1);
+C1 = ValueWhen(BullHar4,P1H1);
+C1bar = ValueWhen(BullHar4,P1bar1);
+D = ValueWhen(BullHar,L);
+Dbar = ValueWhen(BullHar,bi);
+
+BCdAB = (C1-B)/(A-B);
+BCdCD = (C1-D)/(C1-B);
+
+PlotPattern = Dbar > C1bar;
+
+if(LastValue(PlotPattern) AND bu)
+{
+        ColorX = colorGreen;
+    // Ve cac duong AB, BC, CD
+        Plot(LineArray(LastValue(Abar),LastValue(A),LastValue(Bbar),LastValue(B)),"",ColorX ,styleThick);
+        Plot(LineArray(LastValue(Bbar),LastValue(B),LastValue(C1bar),LastValue(C1)),"",ColorX ,styleThick);
+        Plot(LineArray(LastValue(C1bar),LastValue(C1),LastValue(Dbar),LastValue(D)),"",ColorX ,styleThick);
+        Plot(LineArray(LastValue(Abar),LastValue(A),LastValue(C1bar),LastValue(C1)),"",ColorX ,styleDashed);
+        Plot(LineArray(LastValue(Bbar),LastValue(B),LastValue(Dbar),LastValue(D)),"",ColorX ,styleDashed);
+
+    // Ve cac gia tri Fibo
+        PlotText(NumToStr(LastValue(BCdAB),1.2),(LastValue(C1bar)+LastValue(Abar))/2,(LastValue(C1)+LastValue(A))/2,ColorX );
+        PlotText(NumToStr(LastValue(BCdCD),1.2),(LastValue(Bbar)+LastValue(Dbar))/2,(LastValue(B)+LastValue(D))/2,ColorX );
+
+    //---------- Viet cac diem X, A, B, C, D: by binhnd---------------------
+        xlech        =    0;
+        ylech         =     2;
+        PlotText("A",LastValue(Abar)    +     xlech,    LastValue(A)    +    ylech,    ColorX );
+        PlotText("B",LastValue(Bbar)    +     xlech,    LastValue(B)    -    ylech,    ColorX );
+        PlotText("C",LastValue(C1bar)    +     xlech,    LastValue(C1)    +    ylech,    ColorX );
+        PlotText("D",LastValue(Dbar)    +     xlech,    LastValue(D)    -    ylech,    ColorX );
+
+    //--------- Viet thuyet minh mo hinh: by binhnd--------------
+        if (strPattern!="")  
+        {
+            myStr            =    "Pattern: BULLISH AB=CD";
+            toadoX            =    LastValue(Abar);
+            toadoY            =    LastValue(D);
+
+            PlotText(myStr,toadoX,toadoY,ColorX );
+        }
+
+}            //    end of Ve duong` bullish abcd
+
+
+
+//==========================================================
+//   VE DUONG CHO MO HINH BULLISH BAT, GARTLEY, BUTTERFLY, CRAB
+//==========================================================
+
+
+BullHar4 = BullGartley4 OR BullButterfly4 OR BullBat4 OR BullCrab4 ;
+BullHar = BullGartley OR BullButterfly OR BullBat OR BullCrab;
+
+Point4 = IIf(BullHar,ValueWhen(BullHar4,bi),Null);
+BullHar = IIf(BullHar, IIf(Point4 == ValueWhen(BullHar,point4,0) AND ValueWhen(BullHar,bi,0) > bi ,False,BullHar),BullHar);
+
+X = ValueWhen(BullHar4,V1L2);
+Xbar = ValueWhen(BullHar4,V1Bar2);
+A = ValueWhen(BullHar4,P1H2);
+Abar = ValueWhen(BullHar4,P1bar2);
+B = ValueWhen(BullHar4,V1L1);
+Bbar = ValueWhen(BullHar4,V1bar1);
+C1 = ValueWhen(BullHar4,P1H1);
+C1bar = ValueWhen(BullHar4,P1bar1);
+D = ValueWhen(BullHar,L);
+Dbar = ValueWhen(BullHar,bi);
+
+ABdXA = (A-B)/(A-X);
+BCdAB = (C1-B)/(A-B);
+ADdXA = (A-D)/(A-X);
+BCdCD = (C1-D)/(C1-B);
+
+PlotPattern = Dbar > C1bar;
+
+if(LastValue(PlotPattern) AND bu)
+{
+            ColorX    = colorBlue;
+        // Ve cac duong XA, AB, BC, CD
+            Plot( LineArray(LastValue(Xbar),LastValue(X),LastValue(Abar),LastValue(A)),"",ColorX,styleThick);
+            Plot(LineArray(LastValue(Abar),LastValue(A),LastValue(Bbar),LastValue(B)),"",ColorX,styleThick);
+            Plot(LineArray(LastValue(Bbar),LastValue(B),LastValue(C1bar),LastValue(C1)),"",ColorX,styleThick);
+            Plot(LineArray(LastValue(C1bar),LastValue(C1),LastValue(Dbar),LastValue(D)),"",ColorX,styleThick);
+            Plot(LineArray(LastValue(Xbar),LastValue(X),LastValue(Bbar),LastValue(B)),"",ColorX,styleDashed);
+            Plot(LineArray(LastValue(Xbar),LastValue(X),LastValue(Abar),LastValue(A)),"",ColorX,styleThick);
+            Plot(LineArray(LastValue(Abar),LastValue(A),LastValue(C1bar),LastValue(C1)),"",ColorX,styleDashed);
+            Plot(LineArray(LastValue(Bbar),LastValue(B),LastValue(Dbar),LastValue(D)),"",ColorX,styleDashed);
+            Plot(LineArray(LastValue(Xbar),LastValue(X),LastValue(Dbar),LastValue(D)),"",ColorX,styleDashed);
+
+        // Ve cac gia tri Fibo
+            PlotText(NumToStr(LastValue(ABdXA),1.2),(LastValue(Bbar)+LastValue(Xbar))/2,(LastValue(B)+LastValue(X))/2,ColorX);
+            PlotText(NumToStr(LastValue(BCdAB),1.2),(LastValue(C1bar)+LastValue(Abar))/2,(LastValue(C1)+LastValue(A))/2,ColorX);
+            PlotText(NumToStr(LastValue(ADdXA),1.2) ,(LastValue(Dbar)+LastValue(Xbar))/2,(LastValue(D)+LastValue(X))/2,ColorX);
+            PlotText(NumToStr(LastValue(BCdCD),1.2),(LastValue(Bbar)+LastValue(Dbar))/2,(LastValue(B)+LastValue(D))/2,ColorX);
+
+        //---------- Viet cac diem X, A, B, C, D: by binhnd---------------------
+            xlech        =    0;
+            ylech         =     2;
+            PlotText("X",LastValue(Xbar)    +     xlech,    LastValue(X)    -    ylech,    ColorX);
+            PlotText("A",LastValue(Abar)    +     xlech,    LastValue(A)    +    ylech,    ColorX);
+            PlotText("B",LastValue(Bbar)    +     xlech,    LastValue(B)    -    ylech,    ColorX);
+            PlotText("C",LastValue(C1bar)    +     xlech,    LastValue(C1)    +    ylech,    ColorX);
+            PlotText("D",LastValue(Dbar)    +     xlech,    LastValue(D)    -    ylech,    ColorX);
+
+        //--------- Viet thuyet minh mo hinh: by binhnd--------------
+            if (strPattern!="")  
+            {
+                strPattern     =     "Pattern: " + strPattern;
+                toadoX            =    (LastValue(Dbar)+LastValue(Xbar))/2;
+                toadoY            =    (LastValue(D)+LastValue(X))/2;
+
+                PlotText(strPattern,toadoX,toadoY-2,ColorX);
+            }
+
+}            // end of Ve duong cho cac mo hinh Crab, Butterfly, Bat
+
+
+//=============================================================
+//                BEARISH PATTERNS
+//=============================================================
+
+PTvalid = (V1Bar1 > P1Bar1 AND P1Bar1 > V1Bar2 AND V1Bar2 > P1Bar2) AND V1;
+
+/*=====================
+        X     =     P1H2                     Trong mo hinh` bear: Die^m X cao hon diem A. MyAX = X-> A
+        A    =    V1L2
+        B    =    P1H1
+        C    =    V1L1
+
+=======================*/
+myAX            =    P1H2-V1L2;                
+myAB            =    P1H1-V1L2;
+myBC            =    P1H1-V1L1;
+
+myAB_AX        =    myAB/ myAX;
+myBC_AB        =    myBC/ myAB;    
+
+BearGartley4         = PTvalid     AND     (    myAB_AX > GBmin    )         AND (    myAB_AX < GBmax    )
+                                AND      (    myBC_AB > GCMin     )         AND (    myBC_AB < GCMax    ); 
+
+BearBat4             = PTvalid     AND     (    myAB_AX > BatBmin )         AND (    myAB_AX < BatBmax    )
+                                AND     (    myBC_AB > BatCMin )         AND (    myBC_AB < BatCMax    ); 
+
+BearButterfly4     = PTvalid     AND     (    myAB_AX > BtBmin )         AND (    myAB_AX < BtBMax    )
+                                AND      (    myBC_AB > BtCmin )         AND (    myBC_AB < BtCmin     );
+
+BearCrab4             = PTvalid     AND     (    myAB_AX > CBmin )              AND (    myAB_AX < CBmax     )
+                                AND      (    myBC_AB > CCmin )         AND (    myBC_AB < CCmax    );
+
+BearABCD4            = PTvalid AND     (    myBC_AB > abcd_Cmin)     AND (    myBC_AB < abcd_Cmax    );
+
+strPattern = "";
+
+
+
+//==========================================================
+//                 BEARISH ABCD
+//     Bearish pattern found. D retracement level is not evaluated
+//==========================================================
+    dHigh        =        HighestSince(BearABCD4,H);                // Tinh' gia' tri min, max cua duong Ad. Duong Ad la duong con cua AD
+    dLow         =         LowestSince(BearABCD4,L);
+    
+    myA            =        ValueWhen(BearABCD4,V1L2);
+    myB            =        ValueWhen(BearABCD4,P1H1);
+    myC            =        ValueWhen(BearABCD4,V1L1);
+    myCB        =        myB - myC;
+
+    my_d_min    =        myCB    *    abcd_DMin ;                    // Tinh' gia' tri cua duong Ad con. Khi gia' giam? tu` tre^n xuong' thi` max -> min
+    my_d_max    =        myCB    *    abcd_DMax ;
+    my_Cd_min    =        myC + my_d_min;                       // Khoang dich chuyen cua duong Ad con.
+    my_Cd_max    =        myC + my_d_max;
+
+BearABCD         =         IIf(        ( dHigh      >    my_Cd_min    )    AND        ( dHigh    < my_Cd_max )    
+                                AND    ( dLow        >=    myC            )    AND        ( dHigh    ==    H), 
+                                True, False
+                            );
+
+BearABCD        =        BearABCD    AND (dHigh        >    myB);
+
+//=============================================================
+//                BEARISH GARTLEY
+//=============================================================
+    dHigh        =        HighestSince(BearGartley4,H);        // Tinh' gia' tri min, max cua duong Ad. Duong Ad la duong con cua AD
+    dLow         =         LowestSince(BearGartley4,L);
+
+    myX            =        ValueWhen(BearGartley4,P1H2);
+    myA            =        ValueWhen(BearGartley4,V1L2);
+    myAX        =        myX - myA;
+
+    myB            =        ValueWhen(BearGartley4,P1H1);
+    myC            =        ValueWhen(BearGartley4,V1L1);
+
+
+    my_d_min    =        myAX    *    GDmin;                        // Tinh' gia' tri cua duong Ad con. Khi gia' giam? tu` tre^n xuong' thi` max -> min
+    my_d_max    =        myAX    *    GDMax;
+    my_Ad_min    =        myA     +     my_d_min;                    // Khoang dich chuyen cua duong Ad con.
+    my_Ad_max    =        myA     +     my_d_max;
+
+BearGartley     =         IIf(        ( dHigh    >    my_Ad_min    )    AND        ( dHigh    < my_Ad_max )    
+                                AND    ( dLow        >=    myC            )    AND        ( dHigh    ==    H), 
+                                True, False
+                            );
+BearGartley     =        BearGartley     AND (dHigh        >    myB);                        // diem D cao hon B
+strPattern     =        WriteIf(BearGartley ,"BEARISH GARTLEY",strPattern);
+
+//=============================================================
+//                BEARISH BAT
+//=============================================================
+    dHigh        =        HighestSince(BearBat4,H);        // Tinh' gia' tri min, max cua duong Ad. Duong Ad la duong con cua AD
+    dLow         =         LowestSince(BearBat4,L);
+
+    myX            =        ValueWhen(BearBat4,P1H2);
+    myA            =        ValueWhen(BearBat4,V1L2);
+    myAX        =        myX - myA;
+
+    myB            =        ValueWhen(BearBat4,P1H1);
+    myC            =        ValueWhen(BearBat4,V1L1);
+
+
+    my_d_min    =        myAX    *    BatDmin ;                        // Tinh' gia' tri cua duong Ad con. Khi gia' giam? tu` tre^n xuong' thi` max -> min
+    my_d_max    =        myAX    *    BatDMax ;
+    my_Ad_min    =        myA     +     my_d_min;                    // Khoang dich chuyen cua duong Ad con.
+    my_Ad_max    =        myA     +     my_d_max;
+
+BearBat         =         IIf(        ( dHigh    >    my_Ad_min    )    AND        ( dHigh    < my_Ad_max )    
+                                AND    ( dLow        >=    myC            )    AND        ( dHigh    ==    H), 
+                                True, False
+                            );
+BearBat         =        BearBat     AND (dHigh        >    myB);                        // diem D cao hon B
+strPattern     =        WriteIf(BearBat ,"BEARISH BAT",strPattern);
+
+
+//=============================================================
+//                BEARISH BUTTERFLY
+//=============================================================
+    dHigh        =        HighestSince(BearButterfly4,H);        // Tinh' gia' tri min, max cua duong Ad. Duong Ad la duong con cua AD
+    dLow         =         LowestSince(BearButterfly4,L);
+
+    myX            =        ValueWhen(BearButterfly4,P1H2);
+    myA            =        ValueWhen(BearButterfly4,V1L2);
+    myAX        =        myX - myA;
+
+    myB            =        ValueWhen(BearButterfly4,P1H1);
+    myC            =        ValueWhen(BearButterfly4,V1L1);
+
+
+    my_d_min    =        myAX    *    BtDmin ;                        // Tinh' gia' tri cua duong Ad con. Khi gia' giam? tu` tre^n xuong' thi` max -> min
+    my_d_max    =        myAX    *    BtDmax ;
+    my_Ad_min    =        myA     +     my_d_min;                        // Khoang dich chuyen cua duong Ad con.
+    my_Ad_max    =        myA     +     my_d_max;
+
+BearButterfly =         IIf(        ( dHigh    >    my_Ad_min    )    AND        ( dHigh    < my_Ad_max )    
+                                AND    ( dLow        >=    myC            )    AND        ( dHigh    ==    H), 
+                                True, False
+                            );
+BearButterfly    =        BearButterfly     AND (dHigh        >    myX);                        // diem D cao hon X
+strPattern        =        WriteIf(BearButterfly ,"BEARISH BUTTERFLY",strPattern);
+
+
+
+//=============================================================
+//                BEARISH CRAB
+//=============================================================
+    dHigh        =        HighestSince(BearCrab4,H);                // Tinh' gia' tri min, max cua duong Ad. Duong Ad la duong con cua AD
+    dLow         =         LowestSince(BearCrab4,L);
+
+    myX            =        ValueWhen(BearCrab4,P1H2);
+    myA            =        ValueWhen(BearCrab4,V1L2);
+    myAX        =        myX - myA;
+
+    myB            =        ValueWhen(BearCrab4,P1H1);
+    myC            =        ValueWhen(BearCrab4,V1L1);
+
+
+    my_d_min    =        myAX    *    CDmin ;                        // Tinh' gia' tri cua duong Ad con. Khi gia' giam? tu` tre^n xuong' thi` max -> min
+    my_d_max    =        myAX    *    CDmax ;
+    my_Ad_min    =        myA     +     my_d_min;                        // Khoang dich chuyen cua duong Ad con.
+    my_Ad_max    =        myA     +     my_d_max;
+
+BearCrab         =         IIf(        ( dHigh    >    my_Ad_min    )    AND        ( dHigh    < my_Ad_max )    
+                                AND    ( dLow        >=    myC            )    AND        ( dHigh    ==    H), 
+                                True, False
+                            );
+BearCrab         =        BearCrab     AND (dHigh        >    myX);                        // diem D cao hon X
+strPattern     =        WriteIf(BearCrab ,"BEARISH CRAB",strPattern);
+
+
+
+//==========================================================
+//   VE DUONG CHO MO HINH BEARISH ABCD
+//==========================================================
+
+
+BearHar4 = BearABCD4;
+BearHar = BearABCD;
+
+Point4 = IIf(BearHar,ValueWhen(BearHar4,bi),Null);
+BearHar = IIf(BearHar, IIf(Point4 == ValueWhen(BearHar,point4,0) AND ValueWhen(BearHar,bi,0) > bi ,False,BearHar),BearHar);
+
+A = ValueWhen(BearHar4,V1L2);
+Abar = ValueWhen( BearHar4,V1bar2);
+B = ValueWhen(BearHar4,P1H1);
+Bbar = ValueWhen(BearHar4,P1bar1);
+C1 = ValueWhen(BearHar4,V1L1);
+C1bar = ValueWhen(BearHar4,V1bar1);
+D = ValueWhen(BearHar,H);
+Dbar = ValueWhen(BearHar,bi);
+
+BCdAB = (B-C1)/(B-A);
+BCdCD = (D-C1)/(B-C1);
+
+PlotPattern = Dbar > C1bar;
+
+//--------- Ve duong ------------------
+if(LastValue(Plotpattern) AND be)
+{
+        ColorX = colorYellow;
+    // Ve duong AB, BC
+        Plot(LineArray(LastValue(Abar),LastValue(A),LastValue(Bbar),LastValue(B)),"",ColorX ,styleThick);
+        Plot(LineArray(LastValue(Bbar),LastValue(B),LastValue(C1bar),LastValue(C1)),"",ColorX ,styleThick);
+        Plot(LineArray(LastValue(C1bar),LastValue(C1),LastValue(Dbar),LastValue(D)),"",ColorX ,styleThick);
+        Plot(LineArray(LastValue(Abar),LastValue(A),LastValue(C1bar),LastValue(C1)),"",ColorX ,styleDashed);
+        Plot(LineArray(LastValue(Bbar),LastValue(B),LastValue(Dbar),LastValue(D)),"",ColorX ,styleDashed);
+
+    // Viet cac gia tri Fibo tren duong AB, BC
+        PlotText(NumToStr(LastValue(BCdAB),1.2),(LastValue(C1bar)+LastValue(Abar))/2,(LastValue(C1)+LastValue(A))/2,ColorX );
+        PlotText(NumToStr(LastValue(BCdCD),1.2) ,(LastValue(Dbar)+LastValue(Bbar))/2,(LastValue(D)+LastValue(B))/2,ColorX );
+
+    //---------- Viet cac diem A, B, C, D: by binhnd---------------------
+        xlech        =    -1;
+        ylech         =     1;
+        PlotText("A",LastValue(Abar)    +     xlech,    LastValue(A)    -    ylech,    ColorX );
+        PlotText("B",LastValue(Bbar)    +     xlech,    LastValue(B)    +    ylech,    ColorX );
+        PlotText("C",LastValue(C1bar)    +     xlech,    LastValue(C1)    -    ylech,    ColorX );
+        PlotText("D",LastValue(Dbar)    +     xlech,    LastValue(D)    +    ylech,    ColorX );
+
+    //--------- Viet thuyet minh mo hinh: by binhnd--------------
+        if (strPattern!="") 
+            {
+                myStr            =    "Pattern: BEARISH AB=CD";
+                toadoaX        =    LastValue(Abar);
+                toadoY            =    LastValue(D);
+
+                PlotText(myStr,toadoaX,toadoY+1,ColorX );
+            }
+    
+}            // end of VE DUONG CHO MO HINH BEARISH ABCD
+
+
+//==========================================================
+//   VE DUONG CHO MO HINH BEARISH BAT, GARTLEY, BUTTERFLY, CRAB
+//==========================================================
+
+BearHar4 = BearGartley4 OR BearButterfly4 OR BearBat4 OR BearCrab4 ;
+BearHar = BearGartley OR BearButterfly OR BearBat OR BearCrab ;
+
+Point4 = IIf(BearHar,ValueWhen(BearHar4,bi),Null);
+BearHar = IIf(BearHar, IIf(Point4 == ValueWhen(BearHar,point4,0) AND ValueWhen(BearHar,bi,0) > bi ,False,BearHar),BearHar);
+
+X = ValueWhen(BearHar4,P1H2);
+Xbar = ValueWhen(BearHar4,P1Bar2);
+A = ValueWhen(BearHar4,V1L2);
+Abar = ValueWhen( BearHar4,V1bar2);
+B = ValueWhen(BearHar4,P1H1);
+Bbar = ValueWhen(BearHar4,P1bar1);
+C1 = ValueWhen(BearHar4,V1L1);
+C1bar = ValueWhen(BearHar4,V1bar1);
+D = ValueWhen(BearHar,H);
+Dbar = ValueWhen(BearHar,bi);
+
+ABdXA = (B-A)/(X-A);
+BCdAB = (B-C1)/(B-A);
+ADdXA = (D-A)/(X-A);
+BCdCD = (D-C1)/(B-C1);
+
+PlotPattern = Dbar > C1bar;
+
+//--------- Ve duong ------------------
+if(LastValue(Plotpattern) AND be)
+{
+        ColorX = colorRed;
+    // Ve duong XA, AB, BC
+        Plot( LineArray(LastValue(Xbar),LastValue(X),LastValue(Abar),LastValue(A)),"",ColorX ,styleThick);
+        Plot(LineArray(LastValue(Abar),LastValue(A),LastValue(Bbar),LastValue(B)),"",ColorX ,styleThick);
+        Plot(LineArray(LastValue(Bbar),LastValue(B),LastValue(C1bar),LastValue(C1)),"",ColorX ,styleThick);
+        Plot(LineArray(LastValue(C1bar),LastValue(C1),LastValue(Dbar),LastValue(D)),"",ColorX ,styleThick);
+        Plot(LineArray(LastValue(Xbar),LastValue(X),LastValue(Bbar),LastValue(B)),"",ColorX ,styleDashed);
+        Plot(LineArray(LastValue(Xbar),LastValue(X),LastValue(Abar),LastValue(A)),"",ColorX ,styleThick);
+        Plot(LineArray(LastValue(Abar),LastValue(A),LastValue(C1bar),LastValue(C1)),"",ColorX ,styleDashed);
+        Plot(LineArray(LastValue(Bbar),LastValue(B),LastValue(Dbar),LastValue(D)),"",ColorX ,styleDashed);
+        Plot(LineArray(LastValue(Xbar),LastValue(X),LastValue(Dbar),LastValue(D)),"",ColorX ,styleDashed);
+
+    // Viet cac gia tri Fibo tren duong XA, AB, BC
+        PlotText(NumToStr(LastValue(ABdXA),1.2),(LastValue(Bbar)+LastValue(Xbar))/2,(LastValue(B)+LastValue(X))/2,ColorX );
+        PlotText(NumToStr(LastValue(BCdAB),1.2),(LastValue(C1bar)+LastValue(Abar))/2,(LastValue(C1)+LastValue(A))/2,ColorX );
+        PlotText(NumToStr(LastValue(BCdCD),1.2) ,(LastValue(Dbar)+LastValue(Bbar))/2,(LastValue(D)+LastValue(B))/2,ColorX );
+        PlotText(NumToStr(LastValue(ADdXA),1.2) ,(LastValue(Dbar)+LastValue(Xbar))/2,(LastValue(D)+LastValue(X))/2,ColorX );
+
+    //---------- Viet cac diem X, A, B, C, D: by binhnd---------------------
+        xlech        =    -1;
+        ylech         =     1;
+        PlotText("X",LastValue(Xbar)    +     xlech,    LastValue(X)    +    ylech,    ColorX );
+        PlotText("A",LastValue(Abar)    +     xlech,    LastValue(A)    -    ylech,    ColorX );
+        PlotText("B",LastValue(Bbar)    +     xlech,    LastValue(B)    +    ylech,    ColorX );
+        PlotText("C",LastValue(C1bar)    +     xlech,    LastValue(C1)    -    ylech,    ColorX );
+        PlotText("D",LastValue(Dbar)    +     xlech,    LastValue(D)    +    ylech,    ColorX );
+
+    //--------- Viet thuyet minh mo hinh: by binhnd--------------
+        if (strPattern!="") 
+            {
+                strPattern     =     "Pattern: " + strPattern;
+                toadoaX        =    (LastValue(Dbar)+LastValue(Xbar))/2;
+                toadoY            =    (LastValue(D)+LastValue(X))/2;
+
+                PlotText(strPattern,toadoaX,toadoY+1,ColorX );
+            }
+    
+}            // end of VE DUONG CHO MO HINH BEARISH BAT, GARTLEY, BUTTERFLY, CRAB
+
+
+
+
+//=================================
+// Show diem ho^~ tro. va` khang' cu. ko?
+//=================================
+
+plotFractals = ParamToggle("Plot Fractals","Off|On",1);                
+if(PlotFractals)
+{
+    PlotShapes(shapeSmallCircle*P1,colorBlack,0,H,10);
+    PlotShapes(shapeSmallCircle*V1,colorBlue,0,L,-10);
+}
+
+
+
+//==============================================
+// DAT DIEU KIEN cho TIM KIEM BULL
+//==============================================
+dkBull = False;
+ListBull         =     ParamList("Type of Bullish", "None|AB=CD|Gartley|Butterfly|Bat|Crab|All Patterns", 6);
+    if     (    ListBull == "None"        )        dkBull =     True;
+    if (    ListBull =="AB=CD"        )         dkBull    =    BullABCD ;
+    if (    ListBull =="Gartley"        )         dkBull    =    BullGartley ;
+    if (    ListBull =="Butterfly"    )         dkBull    =    BullButterfly ;
+    if (    ListBull =="Bat"            )         dkBull    =    BullBat ;
+    if (    ListBull =="Crab"            )         dkBull    =    BullCrab ;
+    if (    ListBull =="All Patterns")         dkBull    =    (BullABCD) OR (BullGartley) OR (BullButterfly ) OR (BullBat ) OR (BullCrab);
+
+//==============================================
+// DAT DIEU KIEN cho TIM KIEM BEAR
+//==============================================
+dkBear = False;
+ListBear         =     ParamList("Type of Bearish", "None|AB=CD|Gartley|Butterfly|Bat|Crab|All Patterns", 0);
+    if     (    ListBear == "None"        )        dkBear =     True;
+    if (    ListBear =="AB=CD"        )         dkBear    =    BearABCD ;
+    if (    ListBear =="Gartley"        )         dkBear    =    BearGartley ;
+    if (    ListBear =="Butterfly"    )         dkBear    =    BearButterfly ;
+    if (    ListBear =="Bat"            )         dkBear    =    BearBat ;
+    if (    ListBear =="Crab"            )         dkBear =    BearCrab ;
+    if (    ListBear =="All Patterns")         dkBear =    (BearABCD ) OR (BearGartley ) OR (BearButterfly ) OR (BearBat ) OR (BearCrab );
+//===============================
+
+AddColumn(V,"Volume",1.0);
+Filter = (dkBull) AND (dkBear);
+
+_SECTION_BEGIN("Kpl System");
+/* my entry is very simple(daily data for trading)
+
+kpl system for entry only & exit as follow:
+
+1 st exit at x % from entry price only 1/3 quantity.(ie 1st profit target)
+2 nd exit when exit Signal comes from kpl sys remaining 1/3 quantity.
+3. scale-in to initial quantity if new kpl Buy Signal comes.
+re-do above scaling-out & scaling-in till filal exit.
+4. final exit all quantity when Close below 21 Day EMA.
+
+kpl system code bellow :
+*/
+//AFL by Kamalesh Langote. Email:kpl@...
+no=Param( "Swing", 8, 1, 55 );
+tsl_col=ParamColor( "Color", colorWhite );
+
+res=HHV(H,no);
+sup=LLV(L,no);
+avd=IIf(C>Ref(res,-1),1,IIf(C<Ref(sup,-1),-1,0));
+avn=ValueWhen(avd!=0,avd,1);
+tsl=IIf(avn==1,sup,res);
+Buy=Cover=Cross(C,tsl) ;
+Sell=Short=Cross(tsl,C) ;
+
+Plot(tsl, _DEFAULT_NAME(), tsl_col, styleStaircase);
+
+Buy=ExRem(Buy,Sell);
+Sell=ExRem(Sell,Buy);
+Short=ExRem(Short,Cover);
+Cover=ExRem(Cover,Short);
+
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,Low,-15);  
+PlotShapes(IIf(Sell, shapeDownArrow, shapeNone),colorYellow, 0,High,-15);  
+PlotShapes(IIf(Cover, shapeHollowCircle, shapeNone),colorWhite, 0,Close,0);  
+PlotShapes(IIf(Short, shapeHollowCircle, shapeNone),colorYellow, 0,Close,0); 
+
+
+
+SetPositionSize(300,spsShares);
+ApplyStop(0,1,10,1);
+//-----------end--------------
+Long=Flip(Buy,Sell); 
+Shrt=Flip(Sell,Buy); 
+
+BuyPrice=ValueWhen(Buy,C);
+SellPrice=ValueWhen(Sell,C);
+
+
+Edc=(
+WriteIf (Buy AND Ref(shrt,-1), " BUY @ "+C+"  ","")+ 
+WriteIf (Sell AND Ref(Long,-1), " SEll @ "+C+"  ","")+
+WriteIf(Sell , "Last Trade Profit Rs."+(C-BuyPrice)+"","")+
+WriteIf(Buy  , "Last Trade Profit Rs."+(SellPrice-C)+"",""));
+_SECTION_END();
+
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+//TRENDING RIBBON
+// Paste the code below to your price chart somewhere and green ribbon means both
+// both MACD and ADX trending up so if the red ribbon shows up the MACD and the ADX 
+// are both trending down.
+_SECTION_BEGIN("trending ribbon");
+uptrend= PDI()>MDI() AND MACD()>Signal() ;
+downtrend= MDI()>PDI() AND Signal()>MACD() ;
+Plot( 2, /* defines the height of the ribbon in percent of pane width */"",
+IIf( uptrend AND EMA(C,50)>=Ref(EMA(C,50),-1), colorLime, IIf( downtrend OR EMA(C,50)<Ref(EMA(C,50),-1),
+     colorRed, colorAqua )), /* choose color */
+styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+_SECTION_END();
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+_SECTION_BEGIN("037");
+// Amibroker AFL code by Edward Pottasch, Nov 2012
+// Alternative ZIG type function based on the ATR and VSTOP functions
+// Added multiple timeframes. Maximum timeframe set to 1440 minutes 
+// Added Fib retrace levels
+
+x=xx=BarIndex();
+tc=ParamList("Display Mode","ZIG|VSTOP|ZIG&VSTOP",0);
+disp0=ParamToggle("Display labels","Off|On",1);
+disp1=ParamToggle("Display value labels","Off|On",1);
+tf=Param("Time Frame (min)",60,1,1440,1);tfrm=in1Minute*tf;
+perBull=Param("perBull",20,1,150,1);
+perBear=Param("perBear",20,1,150,1);
+multBull=Param("multBull",2,0.05,4,0.05);
+multBear=Param("multBear",2,0.05,4,0.05);
+perc=Param("Percentage Range (S/R lines)",20,0.05,100,0.01);
+npiv=Param("N Pivots Used (S/R lines)",1,1,250,1);
+disp2=ParamToggle("Display S/R levels","Off|On",0);
+disp3=ParamToggle("Display Fibonacci levels","Off|On",0);
+nlev=Param("Number of Fib Levels to display",7,0,12,1);
+TimeFrameSet(tfrm);
+function vstop_func(trBull,trBear)
+{
+    trailArray[0]=C[0];
+    for(i=1;i<BarCount;i++)
+    {
+        prev=trailArray[i-1];
+  
+        if(C[i]>prev AND C[i-1]>prev)
+        {
+            trailArray[i]=Max(prev,C[i]-trBull[i]);
+        }
+        else if(C[i]<prev AND C[i-1]< prev)
+        {
+            trailArray[i]=Min(prev,C[i]+trBear[i]);
+        }
+        else if (C[i]>prev)
+        {
+            trailArray[i]=C[i]-trBull[i];
+        }
+        else
+        {
+            trailArray[i]=C[i]+trBear[i];   
+        }
+    }
+    return trailArray;
+}
+
+trBull=multBull*ATR(perBull);
+trBear=multBear*ATR(perBear);
+trailArray = vstop_func(trBull,trBear);
+ts=IIf(trailArray>C,trailArray,Null);
+tl=IIf(trailArray<C,trailArray,Null);
+TimeFrameRestore();
+
+ts=TimeFrameExpand(ts,tfrm,expandLast);
+tl=TimeFrameExpand(tl,tfrm,expandLast);
+  
+GraphXSpace = 5;
+SetChartOptions(0, chartShowDates);
+SetBarFillColor(IIf(C>O,ParamColor("Candle Up Color", colorBrightGreen),IIf(C<=O,ParamColor("Candle Down Color", colorRed),colorLightGrey)));
+Plot(C,"Price",IIf(C>O,ParamColor("Shadow Up Color", ColorRGB(0,255,0)),IIf(C<=O,ParamColor("Shadow Color", ColorRGB(255,0,0)),colorLightGrey)),64,0,0,0,1);
+
+lll=LLV(L,BarsSince(!IsEmpty(tl)));lll=IIf(ts,lll,Null);llls=lll;
+ttt1=IIf((!IsEmpty(ts) AND IsEmpty(Ref(ts,1))) OR BarIndex()==BarCount-1,1,Null);
+ttt=ValueWhen(ttt1,lll,0);ttt=IIf(ts,ttt,Null);ttt=IIf(ttt1,Ref(ttt,-1),ttt);
+tr=L==ttt;lll=Sum(tr,BarsSince(!IsEmpty(tl)));
+qqq=ValueWhen(ttt1,lll,0);qqq=IIf(ts,qqq,Null);qqq=IIf(ttt1,Ref(qqq,-1),qqq);tr=tr AND lll==qqq;
+tr=IIf((!IsEmpty(ts) AND IsEmpty(Ref(ts,1)) AND IsEmpty(Ref(ts,-1))),1,tr);//exception
+hhh=HHV(H,BarsSince(!IsEmpty(ts)));hhh=IIf(tl,hhh,Null);hhhs=hhh;
+ttt1=IIf((!IsEmpty(tl) AND IsEmpty(Ref(tl,1))) OR BarIndex()==BarCount-1,1,Null);
+ttt=ValueWhen(ttt1,hhh,0);ttt=IIf(tl,ttt,Null);ttt=IIf(ttt1,Ref(ttt,-1),ttt);
+pk=H==ttt;hhh=Sum(pk,BarsSince(!IsEmpty(ts)));
+sss=ValueWhen(ttt1,hhh,0);sss=IIf(tl,sss,Null);sss=IIf(ttt1,Ref(sss,-1),sss);pk=pk AND hhh==sss;
+pk=IIf((!IsEmpty(tl) AND IsEmpty(Ref(tl,1)) AND IsEmpty(Ref(tl,-1))),1,pk);//exception
+
+px0=ValueWhen(pk,x,0); tx0=ValueWhen(tr,x,0);
+px1=ValueWhen(pk,x,1); tx1=ValueWhen(tr,x,1);
+px2=ValueWhen(pk,x,2); tx2=ValueWhen(tr,x,2);
+ph0=ValueWhen(pk,H,0); tl0=ValueWhen(tr,L,0);
+ph1=ValueWhen(pk,H,1); tl1=ValueWhen(tr,L,1);
+ph2=ValueWhen(pk,H,2); tl2=ValueWhen(tr,L,2);
+
+minipk=H>=Ref(HHV(H,1),-1) AND Ref(HHV(H,1),1)<H;
+minitr=L<=Ref(LLV(L,1),-1) AND Ref(LLV(L,1),1)>L;
+
+switch(tc)
+{
+case("ZIG"):
+aa1=IIf(px0>tx1,(ph0-tl1)/(px0-tx1),0);aa1=IIf(pk,Ref(aa1,-1),aa1);ls1=aa1*(xx-tx1)+tl1;
+bb1=IIf(px0>tx1 AND px1<tx1,1,0);bb1=bb1+Ref(bb1,-1);bb1=IIf(bb1,1,0);ls1=IIf(bb1,ls1,Null);
+Plot(ls1,"",colorBlue,styleLine,0,0,2,3);
+aa1=IIf(tx0>px1,(tl0-ph1)/(tx0-px1),0);aa1=IIf(tr,Ref(aa1,-1),aa1);ls1=aa1*(xx-px1)+ph1;
+bb1=IIf(tx0>px1 AND tx1<px1,1,0);bb1=bb1+Ref(bb1,-1);bb1=IIf(bb1,1,0);ls1=IIf(bb1,ls1,Null);
+Plot(ls1,"",colorOrange,styleLine,0,0,2,3);
+break;
+case("VSTOP"):
+Plot(ts,"\ntrailShort",colorRed,styleLine,0,0,0,1,1);
+Plot(llls,"",colorRed,styleDashed,0,0,0,1,1);
+Plot(tl,"\ntrailLong",colorGreen,styleLine,0,0,0,1,1);
+Plot(hhhs,"",colorGreen,styleDashed,0,0,0,1,1);
+break;
+case("ZIG&VSTOP"):
+aa1=IIf(px0>tx1,(ph0-tl1)/(px0-tx1),0);aa1=IIf(pk,Ref(aa1,-1),aa1);ls1=aa1*(xx-tx1)+tl1;
+bb1=IIf(px0>tx1 AND px1<tx1,1,0);bb1=bb1+Ref(bb1,-1);bb1=IIf(bb1,1,0);ls1=IIf(bb1,ls1,Null);
+Plot(ls1,"",colorBlue,styleLine,0,0,0,2,3);
+aa1=IIf(tx0>px1,(tl0-ph1)/(tx0-px1),0);aa1=IIf(tr,Ref(aa1,-1),aa1);ls1=aa1*(xx-px1)+ph1;
+bb1=IIf(tx0>px1 AND tx1<px1,1,0);bb1=bb1+Ref(bb1,-1);bb1=IIf(bb1,1,0);ls1=IIf(bb1,ls1,Null);
+Plot(ls1,"",colorOrange,styleLine,0,0,0,2,3);
+Plot(ts,"\ntrailShort",colorRed,styleLine,0,0,0,1,1);
+Plot(llls,"",colorRed,styleDashed,0,0,0,1,1);
+Plot(tl,"\ntrailLong",colorGreen,styleLine,0,0,0,1,1);
+Plot(hhhs,"",colorGreen,styleDashed,0,0,0,1,1);
+break;
+}
+
+PlotShapes(shapeSmallCircle*tr,colorGreen,0,L,-10);
+PlotShapes(shapeSmallCircle*pk,colorRed,0,H,10);
+
+qq=Interval()/60;
+if(qq < 60){tf=" min";tt=qq;}
+else if(qq >= 60 AND qq < 1440){tf=" hrs";tt=qq/60;}
+else if(qq >= 1440){tf=" days";tt=(qq/60)/24;}
+qq=Max(tfrm/60,Interval()/60);
+if(qq < 60){tfa=" min";tta=qq;}
+else if(qq >= 60 AND qq < 1440){tfa=" hrs";tta=qq/60;}
+else if(qq >= 1440){tfa=" days";tta=(qq/60)/24;}
+
+Title = Name() + 
+"\nChart TF: " + tt + tf + 
+"\nZig TF: " + tta + tfa;
+
+dxhm=14;dxlm=10;dxh=0;dxl=0;dyhm=5;dylm=3;dyh=18;dyl=29;hm=30;lm=30;
+dyl2=42;dylm2=16;dyhm2=18;dyh2=31;
+function GetVisibleBarCount() 
+{
+    lvb=Status("lastvisiblebar");
+    fvb=Status("firstvisiblebar");
+    return Min(lvb-fvb,BarCount-fvb);
+} 
+function GfxConvertPixelsToBarX(Pixels)
+{
+    lvb=Status("lastvisiblebar");
+    fvb=Status("firstvisiblebar");
+    pxchartleft=Status("pxchartleft");
+    pxchartwidth=Status("pxchartwidth");
+    fac=pxchartwidth/Pixels;
+    bar=(lvb-fvb)/fac;
+    return bar;
+} 
+function GfxConvertPixelToValueY(Pixels) 
+{
+    local Miny,Maxy,pxchartbottom,pxchartheight;
+    Miny=Status("axisminy");
+    Maxy=Status("axismaxy");
+    pxchartbottom=Status("pxchartbottom");
+    pxchartheight=Status("pxchartheight");
+    fac=pxchartheight/Pixels;
+    Value=(Maxy-Miny)/fac;
+    return Value;
+} 
+
+ll=tr AND tl1<tl2;
+hl=tr AND tl1>tl2;
+hh=pk AND ph1>ph2;
+lh=pk AND ph1<ph2;
+dt=pk AND ph1==ph2;
+db=tr AND tl1==tl2;
+
+miny=Status("axisminy");
+maxy=Status("axismaxy");
+AllVisibleBars=GetVisibleBarCount();
+fvb=Status("firstvisiblebar");
+LowMargin=Miny+GfxConvertPixelToValueY(lm);
+HighMargin=Maxy-GfxConvertPixelToValueY(hm);
+dyllm=GfxConvertPixelToValueY(dylm);
+dyhhm=GfxConvertPixelToValueY(dyhm);
+dyll=GfxConvertPixelToValueY(dyl);
+dyhh=GfxConvertPixelToValueY(dyh);
+dxllm=GfxConvertPixelsToBarX(dxlm);
+dxhhm=GfxConvertPixelsToBarX(dxhm);
+dxll=GfxConvertPixelsToBarX(dxl);
+dxhh=GfxConvertPixelsToBarX(dxh);
+
+dyllm2=GfxConvertPixelToValueY(dylm2);
+dyll2=GfxConvertPixelToValueY(dyl2);
+dyhhm2=GfxConvertPixelToValueY(dyhm2);
+dyhh2=GfxConvertPixelToValueY(dyh2);
+
+if(disp0)
+{
+for(i=0;i<AllVisibleBars;i++) 
+{
+    // HH,HL etc. labels
+    if(ll[i+fvb] AND L[i+fvb]>LowMargin) PlotText("LL",i+fvb+dxll,L[i+fvb]-dyll,colorWhite,colorDefault);
+    if(ll[i+fvb] AND L[i+fvb]<=LowMargin) PlotText("LL",i+fvb+dxll+dxllm,L[i+fvb]-dyllm,colorWhite,colorDefault);
+    if(hl[i+fvb] AND L[i+fvb]>LowMargin) PlotText("HL",i+fvb+dxll,L[i+fvb]-dyll,colorWhite,colorDefault);
+    if(hl[i+fvb] AND L[i+fvb]<=LowMargin) PlotText("HL",i+fvb+dxll+dxllm,L[i+fvb]-dyllm,colorWhite,colorDefault);
+    if(db[i+fvb] AND L[i+fvb]>LowMargin) PlotText("DB",i+fvb+dxll,L[i+fvb]-dyll,colorWhite,colorDefault);
+    if(db[i+fvb] AND L[i+fvb]<=LowMargin) PlotText("DB",i+fvb+dxll+dxllm,L[i+fvb]-dyllm,colorWhite,colorDefault);    
+    if(hh[i+fvb] AND H[i+fvb]<HighMargin) PlotText("HH",i+fvb+dxhh,H[i+fvb]+dyhh,colorWhite,colorDefault);
+    if(hh[i+fvb] AND H[i+fvb]>=HighMargin) PlotText("HH",i+fvb+dxhh+dxhhm,H[i+fvb]+dyhhm,colorWhite,colorDefault);   
+    if(lh[i+fvb] AND H[i+fvb]<HighMargin) PlotText("LH",i+fvb+dxhh,H[i+fvb]+dyhh,colorWhite,colorDefault);
+    if(lh[i+fvb] AND H[i+fvb]>=HighMargin) PlotText("LH",i+fvb+dxhh+dxhhm,H[i+fvb]+dyhhm,colorWhite,colorDefault);       
+    if(dt[i+fvb] AND H[i+fvb]<HighMargin) PlotText("DT",i+fvb+dxhh,H[i+fvb]+dyhh,colorWhite,colorDefault);
+    if(dt[i+fvb] AND H[i+fvb]>=HighMargin) PlotText("DT",i+fvb+dxhh+dxhhm,H[i+fvb]+dyhhm,colorWhite,colorDefault);
+}
+}
+if(disp1)
+{
+for(i=0;i<AllVisibleBars;i++)    
+{
+    // value labels at HH,HL etc.
+    if(ll[i+fvb] AND L[i+fvb]>LowMargin) PlotText(""+L[i+fvb],i+fvb+dxll,L[i+fvb]-dyll2,colorWhite,colorDefault);
+    if(ll[i+fvb] AND L[i+fvb]<=LowMargin) PlotText(""+L[i+fvb],i+fvb+dxll+dxllm,L[i+fvb]-dyllm2,colorWhite,colorDefault);
+    if(hl[i+fvb] AND L[i+fvb]>LowMargin) PlotText(""+L[i+fvb],i+fvb+dxll,L[i+fvb]-dyll2,colorWhite,colorDefault);
+    if(hl[i+fvb] AND L[i+fvb]<=LowMargin) PlotText(""+L[i+fvb],i+fvb+dxll+dxllm,L[i+fvb]-dyllm2,colorWhite,colorDefault);
+    if(db[i+fvb] AND L[i+fvb]>LowMargin) PlotText(""+L[i+fvb],i+fvb+dxll,L[i+fvb]-dyll2,colorWhite,colorDefault);
+    if(db[i+fvb] AND L[i+fvb]<=LowMargin) PlotText(""+L[i+fvb],i+fvb+dxll+dxllm,L[i+fvb]-dyllm2,colorWhite,colorDefault);    
+    if(hh[i+fvb] AND H[i+fvb]<HighMargin) PlotText(""+H[i+fvb],i+fvb+dxhh,H[i+fvb]+dyhh2,colorWhite,colorDefault);
+    if(hh[i+fvb] AND H[i+fvb]>=HighMargin) PlotText(""+H[i+fvb],i+fvb+dxhh+dxhhm,H[i+fvb]+dyhhm2,colorWhite,colorDefault);   
+    if(lh[i+fvb] AND H[i+fvb]<HighMargin) PlotText(""+H[i+fvb],i+fvb+dxhh,H[i+fvb]+dyhh2,colorWhite,colorDefault);
+    if(lh[i+fvb] AND H[i+fvb]>=HighMargin) PlotText(""+H[i+fvb],i+fvb+dxhh+dxhhm,H[i+fvb]+dyhhm2,colorWhite,colorDefault);       
+    if(dt[i+fvb] AND H[i+fvb]<HighMargin) PlotText(""+H[i+fvb],i+fvb+dxhh,H[i+fvb]+dyhh2,colorWhite,colorDefault);
+    if(dt[i+fvb] AND H[i+fvb]>=HighMargin) PlotText(""+H[i+fvb],i+fvb+dxhh+dxhhm,H[i+fvb]+dyhhm2,colorWhite,colorDefault);
+}
+}
+if(disp2)
+{
+miny=LastVisibleValue(C)-LastVisibleValue(C)/100*perc;
+maxy=LastVisibleValue(C)+LastVisibleValue(C)/100*perc;
+for (i=1;i<=npiv;i++)
+{
+    rr=ValueWhen(pk,H,i);
+    rr=IIf(rr>maxy OR rr<miny,Null,rr);
+    ss=ValueWhen(tr,L,i);
+    ss=IIf(ss>maxy OR ss<miny,Null,ss);
+    Plot(rr,"",colorBlue,styleNoLine|styleDots,0,0,0,-1);    
+    Plot(ss,"",colorRed,styleNoLine|styleDots,0,0,0,-1);
+}
+}
+if(disp3)
+{
+fiblevel[0]=0;fiblevel[1]=0.23;fiblevel[2]=0.38;fiblevel[3]=0.5;fiblevel[4]=0.62;
+fiblevel[5]=0.78;fiblevel[6]=1;fiblevel[7]=1.27;fiblevel[8]=1.62;fiblevel[9]=2;
+fiblevel[10]=2.62;fiblevel[11]=4.24;
+rr=ValueWhen(pk,H,1);
+ss=ValueWhen(tr,L,1);
+delta=rr-ss;
+fvb=Status("firstvisiblebar");
+for(i=0;i<nlev;i++)
+{
+    l1=IIf(Flip(tr,pk),ValueWhen(tr,ss+delta*fiblevel[i]),Null);
+    Plot(l1,"",ColorRGB(255-15*i,0,0),1);
+    l2=IIf(Flip(pk,tr),ValueWhen(pk,rr-delta*fiblevel[i]),Null);
+    Plot(l2,"",ColorRGB(0,255-15*i,0),1);   
+    for(j=0;j<AllVisibleBars;j++) 
+    {
+        if(tr[j+fvb]) PlotText(""+NumToStr(fiblevel[i]),fvb+j,l1[fvb+j],colorWhite);
+        if(pk[j+fvb]) PlotText(""+NumToStr(fiblevel[i]),fvb+j,l2[fvb+j],colorWhite);
+    }
+}
+}
+_SECTION_END();
+//Fibonacci cluster
+
+_SECTION_BEGIN("Background");
+    SetChartOptions(0,chartShowArrows|chartShowDates);
+    SetChartBkColor(ParamColor("Outer panel",colorWhite)); // color of outer border 
+    SetChartBkGradientFill( ParamColor("Inner panel upper",colorWhite),ParamColor("Inner panel lower",colorWhite));
+    tchoice=Param("Title Selection ",2,1,2,1);
+
+//Plot(C, "", IIf(O>=C, colorOrange, colorGreen), ParamStyle(“Price Style”,styleCandle,maskPrice));
+//////////////////////////////////////////////////////////////////
+_SECTION_BEGIN("Fib Retracements");
+    fibs = ParamToggle("Plot Fibs","Off|On",1);
+    pctH = Param ("Pivot Hi %", 0.325,0.001,2.0,0.002);
+    HiLB = Param ("Hi LookBack",1,1,BarCount-1,1);
+    pctL = Param ("Pivot Lo %", 0.325,0.001,2.0,0.002);
+    LoLB = Param ("Lo LookBack",1,1,BarCount-1,1);
+    Back = Param ("Extend Left = 2",1,1,500,1);
+    Fwd  = Param("Plot Forward", 0, 0, 500, 1);
+    text = ParamToggle("Plot Text","Off|On",1);
+    hts  = Param ("Text Shift", -33.5,-50,50,0.10);
+    style =ParamStyle("Line Style",styleLine,styleNoLabel);
+x = BarIndex();
+pRp  = PeakBars( H, pctH, 1) == 0;
+yRp0 = SelectedValue(ValueWhen( pRp, H, HiLB));
+xRp0 = SelectedValue(ValueWhen( pRp, x, HiLB));
+pSp  = TroughBars( L, pctL, 1) == 0;
+ySp0 = SelectedValue(ValueWhen( pSp, L, LoLB));
+xSp0 = SelectedValue(ValueWhen( pSp, x, LoLB));
+Delta = yRp0 - ySp0;
+
+function fib(ret)
+{
+retval = (Delta * ret);
+Fibval = IIf(ret < 1.0 
+AND xSp0 < xRp0, yRp0 - retval, IIf(ret < 1.0 
+AND xSp0 > xRp0, ySp0 + retval,IIf(ret > 1.0 
+AND xSp0 < xRp0, yRp0 - retval, IIf(ret > 1.0 
+AND xSp0 > xRp0, ySp0 + retval, Null)))); 
+return FibVal;
+}
+
+x0 = Min(xSp0,xRp0)-Back;
+x1 = (BarCount -1);
+//////////////////////////////////////////////////////////////////
+r236 = fib(0.236);  r236I = LastValue (r236,1);
+r382 = fib(0.382);  r382I = LastValue (r382,1);
+r050 = fib(0.50);       r050I = LastValue (r050,1);
+r618 = fib(0.618);  r618I = LastValue (r618,1);
+r786 = fib(0.786);  r786I = LastValue (r786,1);
+e127 = fib(1.27);       e127I = LastValue (e127,1);
+e162 = fib(1.62);       e162I = LastValue (e162,1);
+e200 = fib(2.00);       e200I = LastValue (e200,1);
+e262 = fib(2.62);       e262I = LastValue (e262,1);
+e424 = fib(4.24);       e424I = LastValue (e424,1);
+//////////////////////////////////////////////////////////////////
+p00 = IIf(xSp0 > xRp0,ySp0,yRp0);    p00I = LastValue (p00,1);
+p100 = IIf(xSp0 < xRp0,ySp0,yRp0);   p100I = LastValue (p100,1);
+color00 =IIf(xSp0 > xRp0,colorLime,colorRed);
+color100 =IIf(xSp0 < xRp0,colorLime,colorRed);
+//////////////////////////////////////////////////////////////////
+numbars = LastValue(Cum(Status("barvisible")));
+fraction= IIf(StrRight(Name(),3) == "", 3.2, 3.2);
+//////////////////////////////////////////////////////////////////
+if(fibs==1)
+{
+Plot(LineArray(xRp0-Fwd,yRp0,x1,yRp0,Back),"PR",32,8|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(xSp0-Fwd,ySp0,x1,ySp0,Back),"PS",27,8|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,r236,x1,r236,Back),"",45,style|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,r382,x1,r382,Back),"",44,style|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,r050,x1,r050,Back),"",41,style|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,r618,x1,r618,Back),"",43,style|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,r786,x1,r786,Back),"",42,style|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,e127,x1,e127,Back),"e127",47,style|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,e162,x1,e162,Back),"e162",47,style|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,e200,x1,e200,Back),"p200",47,style|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,e262,x1,e262,Back),"p262",47,style|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,e424,x1,e424,Back),"p424",25,style|styleNoRescale,Null, Null,Fwd);
+}
+//////////////////////////////////////////////////////////////////
+if(text==1)
+{ 
+PlotText(" 0% = " + WriteVal(p00,fraction),     LastValue(BarIndex())-(numbars/hts), p00I  + 0.05, color00);
+PlotText("23% = " + WriteVal(r236,fraction), LastValue(BarIndex())-(numbars/hts), r236I + 0.05, 45);
+PlotText("38% = " + WriteVal(r382,fraction), LastValue(BarIndex())-(numbars/hts), r382I + 0.05, 44);
+PlotText("50% = " + WriteVal(r050,fraction), LastValue(BarIndex())-(numbars/hts), r050I + 0.05, 41);
+PlotText("62% = " + WriteVal(r618,fraction), LastValue(BarIndex())-(numbars/hts), r618I + 0.05, 43);
+PlotText("78% = " + WriteVal(r786,fraction), LastValue(BarIndex())-(numbars/hts), r786I + 0.05, 42);
+PlotText("100% = " + WriteVal(p100,fraction), LastValue(BarIndex())-(numbars/hts),p100I + 0.05, color100);
+PlotText("127% = " + WriteVal(e127,fraction), LastValue(BarIndex())-(numbars/hts),e127I + 0.05, 47);
+PlotText("162% = " + WriteVal(e162,fraction), LastValue(BarIndex())-(numbars/hts),e162I + 0.05, 47);
+PlotText("200% = " + WriteVal(e200,fraction), LastValue(BarIndex())-(numbars/hts),e200I + 0.05, 47);
+PlotText("262% = " + WriteVal(e262,fraction), LastValue(BarIndex())-(numbars/hts),e262I + 0.05, 47);
+PlotText("424% = " + WriteVal(e424,fraction), LastValue(BarIndex())-(numbars/hts),e424I + 0.05, 25);
+}
+_SECTION_END();
+//////////////////////////////////////////////////////////////////
+if (tchoice==1 ) 
+{
+_N(Title = EncodeColor(colorBlack)+StrFormat(" {{NAME}} -   {{INTERVAL}}      {{DATE}}    Open:  %g,    High:  %g,     Low:  %g,     Close:  %g     {{VALUES}}",O, H, L, C, SelectedValue( ROC( C, 1   ) ) ));
+}
+//////////////////////////////////////////////////////////////////
+if (tchoice==2 ) 
+{
+Title = EncodeColor(colorBlack)+  Date() + "   Tick = " + EncodeColor(5) + Interval()+
+EncodeColor(colorBlack) + "     Open = " + EncodeColor(colorBlack) + O + 
+EncodeColor(colorBlack) + "     High = " + EncodeColor(5) + H +
+EncodeColor(colorBlack) + "      Low = " + EncodeColor(colorRed) + L + 
+EncodeColor(colorBlack) + "     Close = " + EncodeColor(colorBlack) + C + "\n" +
+EncodeColor( colorBlack) +"_______________"+"\n"+
+EncodeColor( colorBlack)  + "424%   =  "    +   EncodeColor(25)+ e424 + " " +"\n"+
+EncodeColor( colorBlack)  + "262%   =  "    +   EncodeColor(47)+ e262 + " " +"\n"+
+EncodeColor( colorBlack)  + "200%   =  "    +   EncodeColor(47)+ e200 + " " +"\n"+
+EncodeColor( colorBlack)  + "162%   =  "    +   EncodeColor(47)+ e162 + " " +"\n"+
+EncodeColor( colorBlack)  + "127%   =  "    +   EncodeColor(47)+ e127 + " " +"\n"+
+EncodeColor( colorYellow) + "  Res    =  "  +   EncodeColor(32)+ p100 + " " +"\n"+
+EncodeColor( colorBlack)  + "  78%   =  "   +   EncodeColor(42)+ r786 + " " +"\n"+
+EncodeColor( colorBlack)  + "  62%   =  "   +   EncodeColor(43)+ r618 + " " +"\n"+
+EncodeColor( colorBlack)  + "  50%   =  "   +   EncodeColor(41)+ r050 + " " +"\n"+
+EncodeColor( colorBlack)  + "  38%   =  "   +   EncodeColor(44)+ r382 + " " +"\n"+
+EncodeColor( colorBlack)  + "  23%   =  "   +   EncodeColor(45)+ r236+ " " +"\n"+
+EncodeColor( colorYellow) + "  Sup   =   "  +   EncodeColor(34)+ p00 + " " ;
+}
+GraphXSpace=5;
+
+_SECTION_BEGIN("BACK COLR");
+SetChartBkGradientFill( ParamColor("BgTop", ColorRGB( 172,172,172 )),
+
+ParamColor("BgBottom", ColorRGB( 172,172,172 )),ParamColor("titleblock",ColorRGB( 172,172,172 )));
+_SECTION_END();
