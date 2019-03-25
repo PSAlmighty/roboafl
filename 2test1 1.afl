@@ -82,13 +82,15 @@ Cover[2]=Sell[2]=1;
 if(1==1) // do the buy sell works 
 {
 //Short=Cover=0;
-Buy=IIf(Fskchange10>100,1,0) ; 
-Sell=IIf(skchange5<-20,1,0) ;
+sklonger=MA(C,100);
+skshorter=MA(C,25);
+Sell=Cross(skshorter,sklonger);
+Buy=Cross(sklonger,skshorter);
 
 //Plot(skchange5<-20,"skchange5",styleDashed,styleOwnScale);
 
-Short=IIf(Fskchange10<-100,1,0) ;
-Cover=IIf(skchange5>20,1,0) ;
+Short=sell ;
+Cover=buy ;
 
 Buy=ExRem(Buy,Sell);
 Sell=ExRem(Sell,Buy);
