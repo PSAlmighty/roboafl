@@ -41,8 +41,11 @@ ma10=MA(O,10);
 atr200=MA(skatr,200);
 atr20=MA(skatr,20);
 
-maup=ma100<ma20;
-atrhigh=atr200<atr20;
+maup=IIf(ma100<ma20,1,0);
+atrhigh=IIf(atr20>atr200,1,0);
+
+printf("\natrhigh="+atrhigh);
+
 mkttype=StrToNum(NumToStr(IIf(skatr>comparewithatr,0,1)));
 
 
@@ -103,7 +106,7 @@ last3=(Ref(C,-3)-Ref(O,-3));
 
 if(mkttype==0) // do the buy sell works // for the one sided market . 
 {
-atrhigh=skatr>Ref(skatr,-1) AND Ref(skatr,-1)>Ref(skatr,-2);
+//atrhigh=skatr>Ref(skatr,-1) AND Ref(skatr,-1)>Ref(skatr,-2);
 Buy=IIf(skchange10>1,1,0) AND IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) AND skhour<15 ; 
 //Buy=0;
 //Sell=skchange2<-20 ;
@@ -137,7 +140,7 @@ if(mkttype==1) // do the buy sell works / for the market when it is zigzag .
 {
 //sktitle = ParamStr("Title","zigzag");
 //GfxTextOut( sktitle +"|"+ Date()+"|"+skday, x+720, y+5 );
-atrhigh=skatr>Ref(skatr,-1) AND Ref(skatr,-1)>Ref(skatr,-2);
+//atrhigh=skatr>Ref(skatr,-1) AND Ref(skatr,-1)>Ref(skatr,-2);
 
 Buy=IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) AND skhour<15 ; 
 //Buy=0;
@@ -225,14 +228,15 @@ Plot(atrhigh,"atrhigh",colorGreen,styleNoDraw|styleOwnScale);
 Plot(last5barmaxdiff,"last5barmaxdiff",colorGreen,styleNoDraw|styleOwnScale);
 Plot(last5trend,"last5trend",IIf(last5trend>0,colorGreen,colorRed ),styleNoDraw|styleOwnScale);
 Plot(last10bardiffavg,"\nlast10bardiffavg",colorBlue,styleNoDraw|styleOwnScale);
-//Plot(skatr,"atr",colorblue,styleDots|styleOwnScale,0,20);
-Plot(MA(skatr,200),"atr100",colorBrown,styleDots|styleOwnScale,0,20);
-Plot(MA(skatr,20),"atr10",colorYellow,styleDots|styleOwnScale,0,20);
+
+Plot(atr200,"atr200",colorBrown,styleDots|styleOwnScale,0,20);
+Plot(atr20,"atr20",colorYellow,styleDots|styleOwnScale,0,20);
+
 //Plot(comparewithatr,"compatr",colorYellow,styleDashed|styleOwnScale);
 
 SKBN=Foreign("BANKNIFTY","Close");
 //PlotForeign("BANKNIFTY","BANKNIFTY",IIf(Close>Open,colorGreen,colorRed ),styleDots|styleOwnScale);
-Plot(SKBN,"BANKNIFTY",IIf(Ref(SKBN,-1)<SKBN,colorGreen,colorRed ),styleDots|styleOwnScale);
+//Plot(SKBN,"BANKNIFTY",IIf(Ref(SKBN,-1)<SKBN,colorGreen,colorRed ),styleDots|styleOwnScale);
 
 
 _SECTION_END();
