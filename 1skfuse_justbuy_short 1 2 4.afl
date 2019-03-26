@@ -192,8 +192,9 @@ Plot(Open,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleBar);
 Plot(Open+10,"sk1",IIf(Close>Open,colorGreen,colorRed ),styleDashed);
 
 Plot(mkttype,"mkt1forzigzag",colorGreen,styleNoDraw|styleOwnScale);
-Plot(IIf(Buy,BuyPrice,IIf(Short,ShortPrice,Null)),"exeprice",colorGreen,styleNoDraw|styleOwnScale);
 Plot(mkttype,"mkt1forzigzag",colorGreen,styleNoDraw|styleOwnScale);
+Plot(IIf(Buy,BuyPrice,IIf(Short,ShortPrice,Null)),"exeprice",colorGreen,styleNoDraw|styleOwnScale);
+//Plot(mkttype,"mkt1forzigzag",colorGreen,styleNoDraw|styleOwnScale);
 Plot(Open-10,"\nsk1",IIf(Close>Open,colorGreen,colorRed ),styleDashed);
 last5trend=last5barmaxdiff-last5barmindiff*-1;
 

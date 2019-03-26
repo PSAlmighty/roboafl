@@ -27,29 +27,16 @@ skname=Name(); // get the name
 printf("\nname:"+skname+"\nDate"+Day());
 
 sktitle = ParamStr("Title","sk3");
-//GfxTextOut( sktitle +"|"+mkttype+"|"+ Date()+"|"+skday, x+720, y+5 );
+GfxTextOut( sktitle +"|"+mkttype+"|"+ Date()+"|"+skday, x+720, y+5 );
 //Buy=Sell=Short=Cover=0;
 
 dd = DateNum();
 tt = TimeNum();
 
-comparewithatr=(C*1.5/100)*15/skts;
-ma100=MA(O,100);
-ma20=MA(O,20);
-ma10=MA(O,10);
-
-atr200=MA(skatr,200);
-atr20=MA(skatr,20);
-
-maup=IIf(ma100<ma20,1,0);
-atrhigh=IIf(atr20>atr200,1,0);
-
-printf("\natrhigh="+atrhigh);
-
-//mkttype=StrToNum(NumToStr(IIf(skatr>comparewithatr,0,1)));
-mkttype=StrToNum(NumToStr(atrhigh));
 
 
+//TimeFrameRestore();
+//TimeFrameSet(1);
 }
 
 function printaction(skval,skmsg)
@@ -75,7 +62,7 @@ return skchange;
 
 if(1==1) // get the last change last bars 
 {
-printf("\ninterval:"+skts);
+//printf("\ninterval:"+skts);
 skchange120=int(changeinmins(120));
 skchange60=int(changeinmins(60));
 skchange30=int(changeinmins(30));
@@ -98,22 +85,20 @@ last2=(Ref(C,-2)-Ref(O,-2));
 last3=(Ref(C,-3)-Ref(O,-3));
 
 //Plot(skchange1,"\nskchange1",colorAqua,styleNoDraw);
-//GfxTextOut( "chg1="+skchange1+",chg2="+skchange2+",chg5="+skchange5+",chg10="+skchange10+",chg20="+skchange20+",chg30="+skchange30+",chg60="+skchange60, x+720, y+20 );
-//GfxTextOut( "CR="+CR1+",last1="+last1+",last2="+last2+",last3="+last3, x+720, y+35 );
+GfxTextOut( "chg1="+skchange1+",chg2="+skchange2+",chg5="+skchange5+",chg10="+skchange10+",chg20="+skchange20+",chg30="+skchange30+",chg60="+skchange60, x+720, y+20 );
+GfxTextOut( "CR="+CR1+",last1="+last1+",last2="+last2+",last3="+last3, x+720, y+35 );
 
 
 }
 
 
-if(mkttype==1) // do the buy sell works // for the one sided market // atr is high side. 
+if(mkttype==0) // do the buy sell works // for the one sided market . 
 {
-//atrhigh=skatr>Ref(skatr,-1) AND Ref(skatr,-1)>Ref(skatr,-2);
-//Buy=IIf(skchange10>1,1,0) AND IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) AND skhour<15 ; 
-Buy=IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) ; 
-
+atrhigh=skatr>Ref(skatr,-1) AND Ref(skatr,-1)>Ref(skatr,-2);
+Buy=IIf(skchange10>1,1,0) AND IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) AND skhour<15 ; 
 //Buy=0;
 //Sell=skchange2<-20 ;
-//Short=IIf(skchange10<-1,1,0) AND IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND Ref(C,-1)<Ref(O,-1) AND skhour<15 ;
+Short=IIf(skchange10<-1,1,0) AND IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND Ref(C,-1)<Ref(O,-1) AND skhour<15 ;
 
 if(1==0) // set sl and target
 {
@@ -127,29 +112,26 @@ Cover=Cross(O,shortslprice) OR Cross(shorttargetprice,O);
 Sell=Cross(O,buytargetprice) OR Cross(buyslprice,O);
 }
 
-twobardiff=O-Ref(C,-2) ;
-bardiffsell=-1*twobardiff>1.4*skatr;
-Sell=bardiffsell;
-
-//Cover=skchange2>=10;
-//Sell=skchange2<=-10;
-Buy=ExRem(Buy,Sell);
+Cover=skchange2>=10;
+Sell=skchange2<=-10;
 Sell=ExRem(Sell,Buy);
-
-Short=Cover=0;
+Cover=ExRem(Cover,Short);
 
 }
 
 
-if(mkttype==0) // do the buy sell works / for the market when it is zigzag .  
+if(mkttype==1) // do the buy sell works / for the market when it is zigzag .  
 {
 //sktitle = ParamStr("Title","zigzag");
 //GfxTextOut( sktitle +"|"+ Date()+"|"+skday, x+720, y+5 );
-//atrhigh=skatr>Ref(skatr,-1) AND Ref(skatr,-1)>Ref(skatr,-2);
+atrhigh=skatr>Ref(skatr,-1) AND Ref(skatr,-1)>Ref(skatr,-2);
 
-Buy=IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) ; 
+Buy=IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) AND skhour<15 ; 
 //Buy=0;
-//Short=IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND Ref(C,-1)<Ref(O,-1) AND skhour<15 ;
+
+Short=IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND Ref(C,-1)<Ref(O,-1) AND skhour<15 ;
+
+
 if(1==0) // work for lastsignal 
 {
 //Buy[1]=Short[1]=1;
@@ -191,12 +173,10 @@ Cover=Cross(O,shortslprice) OR Cross(shorttargetprice,O);
 Sell=Cross(O,buytargetprice) OR Cross(buyslprice,O);
 }
 
-twobardiff=O-Ref(O,-2) ;
-bardiffsell=-1*twobardiff>1.2*skatr;
-Sell=bardiffsell;
-Buy=ExRem(Buy,Sell);
+Sell=Short;
+Cover=Buy;
 Sell=ExRem(Sell,Buy);
-Short=Cover=0;
+Cover=ExRem(Cover,Short);
 
 //Short=IIf(skchange5<-10,1,0) AND IIf(skchange10<-20,1,0) AND IIf(skchange30<-30,1,0) AND IIf(skchange1>10,1,1);
 //printaction(1,"bb"+BarsSince(Buy)+"bs:"+BarsSince(short));
@@ -204,32 +184,31 @@ Short=Cover=0;
 //printaction(short,"sold");
 }
 
-
 if(1==1) // plot the chart needed 
 {
 _SECTION_BEGIN("Price");
+
+mkttype=StrToNum(NumToStr(IIf(skatr>(C*1.5/100),0,1)));
+
+
 SetChartOptions(0,chartShowArrows|chartShowDates);
 _N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
-Plot(Open,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleDots);
+Plot(Open,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleBar);
 //Plot(Open+10,"sk1",IIf(Close>Open,colorGreen,colorRed ),styleDashed);
-Plot(mkttype,"mkt0forzigzag",colorGreen,styleNoDraw|styleOwnScale);
+
+Plot(mkttype,"mkt1forzigzag",colorGreen,styleNoDraw|styleOwnScale);
+
+
 //Plot(Open-10,"\nsk1",IIf(Close>Open,colorGreen,colorRed ),styleDashed);
 last5trend=last5barmaxdiff-last5barmindiff*-1;
-Plot(maup,"maup",colorGreen,styleNoDraw|styleOwnScale);
-Plot(bardiffsell,"bardiffsell",colorGreen,styleNoDraw|styleOwnScale);
-Plot(atrhigh,"atrhigh",colorGreen,styleNoDraw|styleOwnScale);
+
 Plot(last5barmaxdiff,"last5barmaxdiff",colorGreen,styleNoDraw|styleOwnScale);
 Plot(last5trend,"last5trend",IIf(last5trend>0,colorGreen,colorRed ),styleNoDraw|styleOwnScale);
-Plot(last10bardiffavg,"\nlast10bardiffavg",colorBlue,styleNoDraw|styleOwnScale);
-
-//Plot(atr200,"atr200",colorBrown,styleDots|styleOwnScale,0,20);
-//Plot(atr20,"atr20",colorYellow,styleDots|styleOwnScale,0,20);
-
-//Plot(comparewithatr,"compatr",colorYellow,styleDashed|styleOwnScale);
-
+Plot(last10bardiffavg,"last10bardiffavg",colorBlue,styleNoDraw|styleOwnScale);
+Plot(skatr,"atr",colorYellow,styleDots|styleOwnScale);
 SKBN=Foreign("BANKNIFTY","Close");
 //PlotForeign("BANKNIFTY","BANKNIFTY",IIf(Close>Open,colorGreen,colorRed ),styleDots|styleOwnScale);
-Plot(SKBN,"BANKNIFTY",IIf(Ref(SKBN,-1)<SKBN,colorGreen,colorRed ),styleDashed|styleOwnScale);
+Plot(SKBN,"BANKNIFTY",IIf(Ref(SKBN,-1)<SKBN,colorGreen,colorRed ),styleDots|styleOwnScale);
 
 
 _SECTION_END();
@@ -263,7 +242,7 @@ printaction(1,"noactionnow:"+noactionnow);
 printaction(1,"noactionyet:"+noactionyet);
 }
 
-if(1==1) // draw the area of the profit or loss as bars 
+if(1==0) // draw the area of the profit or loss as bars 
 {
 BuyPrice=valuewhen(Buy,O);
 sklong=Flip(Buy,Sell);
@@ -344,7 +323,7 @@ _SECTION_END();
 
 }
 
-if(1==0) // write buy sell price on chart 
+if(1==1) // write buy sell price on chart 
 {
 dist=BrickSize;
 dist1=1.2*dist;
