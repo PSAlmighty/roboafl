@@ -189,6 +189,9 @@ if(1==1) // plot the chart needed
 _SECTION_BEGIN("Price");
 
 comparewithatr=(C*1.5/100)*15/skts;
+maup=MA(O,100)<MA(O,20);
+atrhigh=MA(skatr,40)<MA(skatr,20);
+
 mkttype=StrToNum(NumToStr(IIf(skatr>comparewithatr,0,1)));
 
 
@@ -202,14 +205,16 @@ Plot(mkttype,"mkt1forzigzag",colorGreen,styleNoDraw|styleOwnScale);
 
 //Plot(Open-10,"\nsk1",IIf(Close>Open,colorGreen,colorRed ),styleDashed);
 last5trend=last5barmaxdiff-last5barmindiff*-1;
-
+Plot(maup,"maup",colorGreen,styleNoDraw|styleOwnScale);
+Plot(atrhigh,"atrhigh",colorGreen,styleNoDraw|styleOwnScale);
 Plot(last5barmaxdiff,"last5barmaxdiff",colorGreen,styleNoDraw|styleOwnScale);
 Plot(last5trend,"last5trend",IIf(last5trend>0,colorGreen,colorRed ),styleNoDraw|styleOwnScale);
 Plot(last10bardiffavg,"\nlast10bardiffavg",colorBlue,styleNoDraw|styleOwnScale);
-Plot(skatr,"atr",colorYellow,styleDots|styleOwnScale);
-Plot(comparewithatr,"compatr",colorYellow,styleDashed|styleOwnScale);
-Plot(MA(O,50),"ma100",colorBrown,styleDashed|styleOwnScale);
-Plot(MA(O,20),"ma20",colorBlue,styleDashed|styleOwnScale);
+//Plot(skatr,"atr",colorYellow,styleDots|styleOwnScale);
+Plot(MA(skatr,50),"atr100",colorBrown,styleDots|styleOwnScale);
+Plot(MA(skatr,25),"atr10",colorYellow,styleDots|styleOwnScale);
+//Plot(comparewithatr,"compatr",colorYellow,styleDashed|styleOwnScale);
+
 SKBN=Foreign("BANKNIFTY","Close");
 //PlotForeign("BANKNIFTY","BANKNIFTY",IIf(Close>Open,colorGreen,colorRed ),styleDots|styleOwnScale);
 Plot(SKBN,"BANKNIFTY",IIf(Ref(SKBN,-1)<SKBN,colorGreen,colorRed ),styleDots|styleOwnScale);
