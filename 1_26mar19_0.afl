@@ -46,7 +46,8 @@ atrhigh=IIf(atr20>atr200,1,0);
 
 printf("\natrhigh="+atrhigh);
 
-mkttype=StrToNum(NumToStr(IIf(skatr>comparewithatr,0,1)));
+//mkttype=StrToNum(NumToStr(IIf(skatr>comparewithatr,0,1)));
+mkttype=StrToNum(NumToStr(atrhigh));
 
 
 }
@@ -104,10 +105,12 @@ last3=(Ref(C,-3)-Ref(O,-3));
 }
 
 
-if(mkttype==0) // do the buy sell works // for the one sided market . 
+if(mkttype==1) // do the buy sell works // for the one sided market // atr is high side. 
 {
 //atrhigh=skatr>Ref(skatr,-1) AND Ref(skatr,-1)>Ref(skatr,-2);
-Buy=IIf(skchange10>1,1,0) AND IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) AND skhour<15 ; 
+//Buy=IIf(skchange10>1,1,0) AND IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) AND skhour<15 ; 
+Buy=IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) ; 
+
 //Buy=0;
 //Sell=skchange2<-20 ;
 //Short=IIf(skchange10<-1,1,0) AND IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND Ref(C,-1)<Ref(O,-1) AND skhour<15 ;
@@ -125,10 +128,10 @@ Sell=Cross(O,buytargetprice) OR Cross(buyslprice,O);
 }
 
 twobardiff=O-Ref(C,-2) ;
-bardiffsell=-1*twobardiff>1.0*skatr;
+bardiffsell=-1*twobardiff>1.4*skatr;
 Sell=bardiffsell;
 
-Cover=skchange2>=10;
+//Cover=skchange2>=10;
 //Sell=skchange2<=-10;
 Buy=ExRem(Buy,Sell);
 Sell=ExRem(Sell,Buy);
@@ -138,13 +141,13 @@ Short=Cover=0;
 }
 
 
-if(mkttype==1) // do the buy sell works / for the market when it is zigzag .  
+if(mkttype==0) // do the buy sell works / for the market when it is zigzag .  
 {
 //sktitle = ParamStr("Title","zigzag");
 //GfxTextOut( sktitle +"|"+ Date()+"|"+skday, x+720, y+5 );
 //atrhigh=skatr>Ref(skatr,-1) AND Ref(skatr,-1)>Ref(skatr,-2);
 
-Buy=IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) AND skhour<15 ; 
+Buy=IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) ; 
 //Buy=0;
 //Short=IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND Ref(C,-1)<Ref(O,-1) AND skhour<15 ;
 if(1==0) // work for lastsignal 
@@ -189,7 +192,7 @@ Sell=Cross(O,buytargetprice) OR Cross(buyslprice,O);
 }
 
 twobardiff=O-Ref(O,-2) ;
-bardiffsell=-1*twobardiff>1.8*skatr;
+bardiffsell=-1*twobardiff>1.2*skatr;
 Sell=bardiffsell;
 Buy=ExRem(Buy,Sell);
 Sell=ExRem(Sell,Buy);
