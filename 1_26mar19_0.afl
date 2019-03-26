@@ -34,11 +34,15 @@ dd = DateNum();
 tt = TimeNum();
 
 comparewithatr=(C*1.5/100)*15/skts;
-ma100=MA(0,20);
-ma20=MA(O,10);
-ma10=MA(0,10);
+ma100=MA(O,100);
+ma20=MA(O,20);
+ma10=MA(O,10);
+
+atr200=MA(skatr,200);
+atr20=MA(skatr,20);
+
 maup=ma100<ma20;
-atrhigh=MA(skatr,40)<MA(skatr,20);
+atrhigh=atr200<atr20;
 mkttype=StrToNum(NumToStr(IIf(skatr>comparewithatr,0,1)));
 
 
@@ -221,9 +225,9 @@ Plot(atrhigh,"atrhigh",colorGreen,styleNoDraw|styleOwnScale);
 Plot(last5barmaxdiff,"last5barmaxdiff",colorGreen,styleNoDraw|styleOwnScale);
 Plot(last5trend,"last5trend",IIf(last5trend>0,colorGreen,colorRed ),styleNoDraw|styleOwnScale);
 Plot(last10bardiffavg,"\nlast10bardiffavg",colorBlue,styleNoDraw|styleOwnScale);
-Plot(skatr,"atr",colorblue,styleDots|styleOwnScale,0,20);
-Plot(MA(skatr,500),"atr100",colorBrown,styleDots|styleOwnScale,0,20);
-Plot(MA(skatr,10),"atr10",colorYellow,styleDots|styleOwnScale,0,20);
+//Plot(skatr,"atr",colorblue,styleDots|styleOwnScale,0,20);
+Plot(MA(skatr,200),"atr100",colorBrown,styleDots|styleOwnScale,0,20);
+Plot(MA(skatr,20),"atr10",colorYellow,styleDots|styleOwnScale,0,20);
 //Plot(comparewithatr,"compatr",colorYellow,styleDashed|styleOwnScale);
 
 SKBN=Foreign("BANKNIFTY","Close");
