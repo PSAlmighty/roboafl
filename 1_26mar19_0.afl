@@ -33,10 +33,15 @@ sktitle = ParamStr("Title","sk3");
 dd = DateNum();
 tt = TimeNum();
 
+comparewithatr=(C*1.5/100)*15/skts;
+ma100=MA(0,20);
+ma20=MA(O,10);
+ma10=MA(0,10);
+maup=ma100<ma20;
+atrhigh=MA(skatr,40)<MA(skatr,20);
+mkttype=StrToNum(NumToStr(IIf(skatr>comparewithatr,0,1)));
 
 
-//TimeFrameRestore();
-//TimeFrameSet(1);
 }
 
 function printaction(skval,skmsg)
@@ -112,8 +117,12 @@ Cover=Cross(O,shortslprice) OR Cross(shorttargetprice,O);
 Sell=Cross(O,buytargetprice) OR Cross(buyslprice,O);
 }
 
+twobardiff=O-Ref(C,-2) ;
+bardiffsell=-1*twobardiff>1.2*skatr;
+Sell=bardiffsell;
+
 Cover=skchange2>=10;
-Sell=skchange2<=-10;
+//Sell=skchange2<=-10;
 Sell=ExRem(Sell,Buy);
 Cover=ExRem(Cover,Short);
 
@@ -173,7 +182,10 @@ Cover=Cross(O,shortslprice) OR Cross(shorttargetprice,O);
 Sell=Cross(O,buytargetprice) OR Cross(buyslprice,O);
 }
 
-Sell=Short;
+twobardiff=O-Ref(O,-2) ;
+bardiffsell=-1*twobardiff>1.2*skatr;
+Sell=bardiffsell;
+
 Cover=Buy;
 Sell=ExRem(Sell,Buy);
 Cover=ExRem(Cover,Short);
@@ -184,22 +196,12 @@ Cover=ExRem(Cover,Short);
 //printaction(short,"sold");
 }
 
-if(1==1) // custome sell cover option used 
-{
-twobardiff=O-Ref(O,-2) ;
-bardiffsell=-1*twobardiff>skatr;
-Sell=Sell OR bardiffsell;
-}
 
 if(1==1) // plot the chart needed 
 {
 _SECTION_BEGIN("Price");
 
-comparewithatr=(C*1.5/100)*15/skts;
-maup=MA(O,100)<MA(O,20);
-atrhigh=MA(skatr,40)<MA(skatr,20);
 
-mkttype=StrToNum(NumToStr(IIf(skatr>comparewithatr,0,1)));
 
 
 
@@ -219,9 +221,9 @@ Plot(atrhigh,"atrhigh",colorGreen,styleNoDraw|styleOwnScale);
 Plot(last5barmaxdiff,"last5barmaxdiff",colorGreen,styleNoDraw|styleOwnScale);
 Plot(last5trend,"last5trend",IIf(last5trend>0,colorGreen,colorRed ),styleNoDraw|styleOwnScale);
 Plot(last10bardiffavg,"\nlast10bardiffavg",colorBlue,styleNoDraw|styleOwnScale);
-//Plot(skatr,"atr",colorYellow,styleDots|styleOwnScale);
-Plot(MA(skatr,50),"atr100",colorBrown,styleDots|styleOwnScale);
-Plot(MA(skatr,25),"atr10",colorYellow,styleDots|styleOwnScale);
+Plot(skatr,"atr",colorblue,styleDots|styleOwnScale);
+Plot(MA(skatr,10000),"atr100",colorBrown,styleDots|styleOwnScale);
+Plot(MA(skatr,5),"atr10",colorYellow,styleDots|styleOwnScale);
 //Plot(comparewithatr,"compatr",colorYellow,styleDashed|styleOwnScale);
 
 SKBN=Foreign("BANKNIFTY","Close");
