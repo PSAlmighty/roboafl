@@ -184,6 +184,13 @@ Cover=ExRem(Cover,Short);
 //printaction(short,"sold");
 }
 
+if(1==1) // custome sell cover option used 
+{
+twobardiff=O-Ref(O,-2) ;
+bardiffsell=-1*twobardiff>skatr;
+Sell=Sell OR bardiffsell;
+}
+
 if(1==1) // plot the chart needed 
 {
 _SECTION_BEGIN("Price");
@@ -193,6 +200,7 @@ maup=MA(O,100)<MA(O,20);
 atrhigh=MA(skatr,40)<MA(skatr,20);
 
 mkttype=StrToNum(NumToStr(IIf(skatr>comparewithatr,0,1)));
+
 
 
 SetChartOptions(0,chartShowArrows|chartShowDates);
@@ -206,6 +214,7 @@ Plot(mkttype,"mkt1forzigzag",colorGreen,styleNoDraw|styleOwnScale);
 //Plot(Open-10,"\nsk1",IIf(Close>Open,colorGreen,colorRed ),styleDashed);
 last5trend=last5barmaxdiff-last5barmindiff*-1;
 Plot(maup,"maup",colorGreen,styleNoDraw|styleOwnScale);
+Plot(bardiffsell,"bardiffsell",colorGreen,styleNoDraw|styleOwnScale);
 Plot(atrhigh,"atrhigh",colorGreen,styleNoDraw|styleOwnScale);
 Plot(last5barmaxdiff,"last5barmaxdiff",colorGreen,styleNoDraw|styleOwnScale);
 Plot(last5trend,"last5trend",IIf(last5trend>0,colorGreen,colorRed ),styleNoDraw|styleOwnScale);
