@@ -33,7 +33,7 @@ GfxTextOut( sktitle +"|"+mkttype+"|"+ Date()+"|"+skday, x+720, y+5 );
 dd = DateNum();
 tt = TimeNum();
 
-mkttype=StrToNum(NumToStr(IIf(skatr>(C*1.5/100),0,1)));
+
 
 //TimeFrameRestore();
 //TimeFrameSet(1);
@@ -187,14 +187,18 @@ Cover=ExRem(Cover,Short);
 if(1==1) // plot the chart needed 
 {
 _SECTION_BEGIN("Price");
+
+mkttype=StrToNum(NumToStr(IIf(skatr>(C*1.5/100),0,1)));
+
+
 SetChartOptions(0,chartShowArrows|chartShowDates);
 _N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
 Plot(Open,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleBar);
 //Plot(Open+10,"sk1",IIf(Close>Open,colorGreen,colorRed ),styleDashed);
 
 Plot(mkttype,"mkt1forzigzag",colorGreen,styleNoDraw|styleOwnScale);
-Plot(IIf(Buy,BuyPrice,IIf(Short,ShortPrice,Null)),"exeprice",colorGreen,styleNoDraw|styleOwnScale);
-Plot(mkttype,"mkt1forzigzag",colorGreen,styleNoDraw|styleOwnScale);
+
+
 //Plot(Open-10,"\nsk1",IIf(Close>Open,colorGreen,colorRed ),styleDashed);
 last5trend=last5barmaxdiff-last5barmindiff*-1;
 
