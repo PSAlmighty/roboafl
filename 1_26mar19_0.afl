@@ -221,9 +221,9 @@ Plot(atrhigh,"atrhigh",colorGreen,styleNoDraw|styleOwnScale);
 Plot(last5barmaxdiff,"last5barmaxdiff",colorGreen,styleNoDraw|styleOwnScale);
 Plot(last5trend,"last5trend",IIf(last5trend>0,colorGreen,colorRed ),styleNoDraw|styleOwnScale);
 Plot(last10bardiffavg,"\nlast10bardiffavg",colorBlue,styleNoDraw|styleOwnScale);
-Plot(skatr,"atr",colorblue,styleDots|styleOwnScale);
-Plot(MA(skatr,10000),"atr100",colorBrown,styleDots|styleOwnScale);
-Plot(MA(skatr,5),"atr10",colorYellow,styleDots|styleOwnScale);
+Plot(skatr,"atr",colorblue,styleDots|styleOwnScale,0,20);
+Plot(MA(skatr,500),"atr100",colorBrown,styleDots|styleOwnScale,0,20);
+Plot(MA(skatr,10),"atr10",colorYellow,styleDots|styleOwnScale,0,20);
 //Plot(comparewithatr,"compatr",colorYellow,styleDashed|styleOwnScale);
 
 SKBN=Foreign("BANKNIFTY","Close");
@@ -343,7 +343,7 @@ _SECTION_END();
 
 }
 
-if(1==1) // write buy sell price on chart 
+if(1==0) // write buy sell price on chart 
 {
 dist=BrickSize;
 dist1=1.2*dist;
