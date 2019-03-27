@@ -131,7 +131,6 @@ twobardiff=O-Ref(C,-2) ;
 bardiffsell=-1*twobardiff>1.4*skatr;
 Sell=bardiffsell;
 
-
 bardiffCover=1*twobardiff>1.4*skatr;
 Cover=bardiffCover;
 
@@ -279,7 +278,7 @@ printaction(1,"noactionnow:"+noactionnow);
 printaction(1,"noactionyet:"+noactionyet);
 }
 
-if(1==1) // draw the area of the profit or loss as bars 
+if(1==0) // draw the area of the profit or loss as bars 
 {
 BuyPrice=valuewhen(Buy,O);
 sklong=Flip(Buy,Sell);
@@ -287,8 +286,10 @@ skshort=Flip(Short,Cover);
 skprofit=IIf(Sell,O-BuyPrice,IIf(Cover,O-CoverPrice,Null));
 skprofitcolor=IIf(skprofit>=0,IIf(Sell,colorGreen,colorBlue),IIf(Sell,colorRed,colorBrown));
 Plot(skprofit, "Profit", skprofitcolor, styleArea|styleOwnScale, -50, 50, 0, 1,1);
-Plot(IIf(sklong , BuyPrice,Null), "XP", IIf(C-BuyPrice>0,colorGreen,colorRed), styleThick, Null, Null, 0, 1, 1);
-Plot(IIf(skshort , ShortPrice,Null), "XP", IIf(ShortPrice-C>0,colorBlue,colorRed), styleThick	, Null, Null, 0, 1, 1);
+//Plot(IIf(sklong , BuyPrice,Null), "XP", IIf(C-BuyPrice>0,colorGreen,colorRed), styleThick, Null, Null, 0, 1, 1);
+//Plot(IIf(skshort , ShortPrice,Null), "XP", IIf(ShortPrice-C>0,colorBlue,colorRed), styleThick	, Null, Null, 0, 1, 1);
+//Plot(IIf(sklong , BuyPrice,Null), "XP", colorGreen, styleThick, Null, Null, 0, 1, 1);
+Plot(IIf(skshort , ShortPrice,Null), "XP", colorRed, styleThick	, Null, Null, 0, 1, 1);
 /*
 SLtriggershape=(Cover_SSL OR Sell_LSL ) * shapeHollowCircle * ( Sell OR Cover ) ;
 TGtriggershape=(Cover_ST1 OR Sell_LT1 ) * shapeStar * ( Sell OR Cover );
