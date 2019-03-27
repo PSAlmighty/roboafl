@@ -33,7 +33,7 @@ sktitle = ParamStr("Title","sk3");
 dd = DateNum();
 tt = TimeNum();
 
-comparewithatr=(C*1.5/100)*15/skts;
+	comparewithatr=(C*1.5/100)*15/skts;
 ma100=MA(O,100);
 ma20=MA(O,20);
 ma10=MA(O,10);
@@ -133,7 +133,7 @@ Sell=bardiffsell;
 
 //Cover=skchange2>=10;
 //Sell=skchange2<=-10;
-Buy=ExRem(Buy,Sell);
+//Buy=ExRem(Buy,Sell);
 Sell=ExRem(Sell,Buy);
 
 Short=Cover=0;
@@ -194,7 +194,7 @@ Sell=Cross(O,buytargetprice) OR Cross(buyslprice,O);
 twobardiff=O-Ref(O,-2) ;
 bardiffsell=-1*twobardiff>1.2*skatr;
 Sell=bardiffsell;
-Buy=ExRem(Buy,Sell);
+//Buy=ExRem(Buy,Sell);
 Sell=ExRem(Sell,Buy);
 Short=Cover=0;
 
