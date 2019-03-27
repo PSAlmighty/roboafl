@@ -113,7 +113,7 @@ Buy=IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND
 
 //Buy=0;
 //Sell=skchange2<-20 ;
-//Short=IIf(skchange10<-1,1,0) AND IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND Ref(C,-1)<Ref(O,-1) AND skhour<15 ;
+Short=IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND Ref(C,-1)<Ref(O,-1) ;
 
 if(1==0) // set sl and target
 {
@@ -131,12 +131,18 @@ twobardiff=O-Ref(C,-2) ;
 bardiffsell=-1*twobardiff>1.4*skatr;
 Sell=bardiffsell;
 
+
+bardiffCover=1*twobardiff>1.4*skatr;
+Cover=bardiffCover;
+
 //Cover=skchange2>=10;
 //Sell=skchange2<=-10;
 Buy=ExRem(Buy,Sell);
 Sell=ExRem(Sell,Buy);
 
-Short=Cover=0;
+Short=ExRem(Short,Cover);
+Cover=ExRem(Cover,Short);
+//Short=Cover=0;
 
 }
 
@@ -149,7 +155,7 @@ if(mkttype==0) // do the buy sell works / for the market when it is zigzag .
 
 Buy=IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) ; 
 //Buy=0;
-//Short=IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND Ref(C,-1)<Ref(O,-1) AND skhour<15 ;
+Short=IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND Ref(C,-1)<Ref(O,-1)  ;
 if(1==0) // work for lastsignal 
 {
 //Buy[1]=Short[1]=1;
@@ -194,9 +200,19 @@ Sell=Cross(O,buytargetprice) OR Cross(buyslprice,O);
 twobardiff=O-Ref(O,-2) ;
 bardiffsell=-1*twobardiff>1.2*skatr;
 Sell=bardiffsell;
+
+
+bardiffCover=1*twobardiff>1.4*skatr;
+Cover=bardiffCover;
+
+//Cover=skchange2>=10;
+//Sell=skchange2<=-10;
 Buy=ExRem(Buy,Sell);
 Sell=ExRem(Sell,Buy);
-Short=Cover=0;
+
+Short=ExRem(Short,Cover);
+Cover=ExRem(Cover,Short);
+//Short=Cover=0;
 
 //Short=IIf(skchange5<-10,1,0) AND IIf(skchange10<-20,1,0) AND IIf(skchange30<-30,1,0) AND IIf(skchange1>10,1,1);
 //printaction(1,"bb"+BarsSince(Buy)+"bs:"+BarsSince(short));
