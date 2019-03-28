@@ -105,7 +105,7 @@ last3=(Ref(C,-3)-Ref(O,-3));
 }
 
 
-if(1==1) // do the buy sell works // for the one sided market // atr is high side. 
+if(mkttype==1) // do the buy sell works // for the one sided market // atr is high side. 
 {
 //Buy=IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) ; 
 
@@ -120,7 +120,7 @@ Cover=0;
 }
 
 
-if(1==0) // do the buy sell works / for the market when it is zigzag .  
+if(mkttype==0) // do the buy sell works / for the market when it is zigzag .  
 {
 
 //Buy=IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) ; 
