@@ -26,8 +26,8 @@ skactionmsg="\nAction:";
 skname=Name(); // get the name 
 printf("\nname:"+skname+"\nDate"+Day());
 
-sktitle = ParamStr("Title","sk3");
-//GfxTextOut( sktitle +"|"+mkttype+"|"+ Date()+"|"+skday, x+720, y+5 );
+
+GfxTextOut( "Buy" +"|"+mkttype+"|"+ Date()+"|"+skday, x+730, y+5 );
 //Buy=Sell=Short=Cover=0;
 
 dd = DateNum();
@@ -107,103 +107,31 @@ last3=(Ref(C,-3)-Ref(O,-3));
 
 if(mkttype==1) // do the buy sell works // for the one sided market // atr is high side. 
 {
-//atrhigh=skatr>Ref(skatr,-1) AND Ref(skatr,-1)>Ref(skatr,-2);
-//Buy=IIf(skchange10>1,1,0) AND IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) AND skhour<15 ; 
 Buy=IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) ; 
-
 //Buy=0;
-//Sell=skchange2<-20 ;
+
 //Short=IIf(skchange10<-1,1,0) AND IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND Ref(C,-1)<Ref(O,-1) AND skhour<15 ;
-
-if(1==0) // set sl and target
-{
-shorttargetprice=valuewhen(Short,O)-20;
-shortslprice=valuewhen(Short,O)+10;
-buytargetprice=ValueWhen(Buy,O)+20;
-buyslprice=ValueWhen(Buy,O)-10;
-
-
-Cover=Cross(O,shortslprice) OR Cross(shorttargetprice,O);
-Sell=Cross(O,buytargetprice) OR Cross(buyslprice,O);
-}
-
-//twobardiff=O-Ref(C,-2) ;
-//bardiffsell=-1*twobardiff>1.4*skatr;
-//Sell=bardiffsell;
-
-//Cover=skchange2>=10;
-//Sell=skchange2<=-10;
-//Buy=ExRem(Buy,Sell);
+Short=0;
+//Sell=skchange2<-20 ;
 Sell=0;
 
-Short=Cover=0;
+Cover=0;
 
 }
 
 
 if(mkttype==0) // do the buy sell works / for the market when it is zigzag .  
 {
-//sktitle = ParamStr("Title","zigzag");
-//GfxTextOut( sktitle +"|"+ Date()+"|"+skday, x+720, y+5 );
-//atrhigh=skatr>Ref(skatr,-1) AND Ref(skatr,-1)>Ref(skatr,-2);
 
 Buy=IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) ; 
 //Buy=0;
-//Short=IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND Ref(C,-1)<Ref(O,-1) AND skhour<15 ;
-if(1==0) // work for lastsignal 
-{
-//Buy[1]=Short[1]=1;
-//Cover[2]=Sell[2]=1;
-lastsignal[0]=0;
-if(LastValue(lastsignal)==0)
-{
-lastsignal=0;
-
-if(LastValue(Buy)==1)
-lastsignal=1;
-if(LastValue(Short)==1)
-lastsignal=-1;
-
-// lastsignal=IIf(Buy,1,IIf(Short,-1,0));
-
-}
-//lastsignal=IIf(Short,-1,0);
-
-//lastsignal=IIf(sell,3,Null);
-//lastsignal=IIf(Cover,4,Null);
-
-Buy=Buy AND LastValue(lastsignal)==0;
-Short=Short AND LastValue(lastsignal)==0;
-Plot(lastsignal,"lastsignal",colorBrown,styleStaircase|styleOwnScale);
-
-}
-//Short=IIf(Fskchange10<-100,1,0) ;
-//Cover=IIf(skchange5>20,1,0) ;
-
-if(1==0) // set sl and target 
-{
-shorttargetprice=valuewhen(Short,O)-20;
-shortslprice=valuewhen(Short,O)+10;
-buytargetprice=ValueWhen(Buy,O)+20;
-buyslprice=ValueWhen(Buy,O)-10;
-
-Cover=Cross(O,shortslprice) OR Cross(shorttargetprice,O);
-Sell=Cross(O,buytargetprice) OR Cross(buyslprice,O);
-}
-
-//twobardiff=O-Ref(O,-2) ;
-//bardiffsell=-1*twobardiff>1.2*skatr;
-//Sell=bardiffsell;
-//Buy=ExRem(Buy,Sell);
 Sell=0;
+//Short=IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND Ref(C,-1)<Ref(O,-1) AND skhour<15 ;
 Short=0;
-Cover=0;
+Cover=0;;
 
-//Short=IIf(skchange5<-10,1,0) AND IIf(skchange10<-20,1,0) AND IIf(skchange30<-30,1,0) AND IIf(skchange1>10,1,1);
-//printaction(1,"bb"+BarsSince(Buy)+"bs:"+BarsSince(short));
-//printaction(Buy,"bought");
-//printaction(short,"sold");
 }
+
 
 
 if(1==1) // plot the chart needed 
@@ -339,7 +267,7 @@ ST1=shorttargetprice;
 SSL=shortslprice;
 LSL=buyslprice;
 }
-Interval() AmigoC1(Open, High, Low, Close, Volume, Buy, Sell, Short, Cover);
+ AmigoC1(Open, High, Low, Close, Volume, Buy, Sell, Short, Cover);
  
 _SECTION_END();
 
@@ -360,7 +288,7 @@ for( i = 0; i < BarCount; i++ )
 skrvars_print="-O:"+Open[i]+"C:"+Close[i];  // for using the current signal for buy sell signals 
 skrvars_print=".";
  if( Buy[i]) 
-  PlotText( "BUY@" + BuyPrice[ i ] + skrvars_print , i, Low[ i ]-dist[i], colorGreen);
+  PlotText( "mkt="+mkttype[i]+"\nBUY@" + BuyPrice[ i ] + "\nTGT="+BuyPrice[ i ]*1.03 , i, Low[ i ]-dist[i], colorGreen);
   
  if( Short[i] )
    PlotText( "Short@" + ShortPrice[ i ] + skrvars_print , i, High[ i ]+dist[i], colorRed);
