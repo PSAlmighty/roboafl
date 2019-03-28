@@ -21,6 +21,7 @@ function FillRun( dir, num, changedir )
 }
 SetBarsRequired( sbrAll, sbrAll );
 Brick = Param( "Brick Size", 0.001, 0.0001, 1.00, 0.001 );
+Brick=8;
 skreverse = 2;
 intra = ParamToggle( "Intraday", "No|Yes", 0 );
 modified = ParamToggle( "Modified", "No|Yes", 0 );
