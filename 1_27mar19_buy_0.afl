@@ -14,7 +14,7 @@ mkttype=Param("mkttype",0,0,1,1);
 skstepsize=Param( "StepSL", 50, 1, 200 );
 skstepsizeP=Param( "StepProfit", 30, 0, 200 );
 BrickSize = Param( "BrickSize ",5, 0, 200,1 );
-skts=Interval();
+skts=iif(Interval()>1,Interval(),1);
 sktime=TimeNum();
 skdate=DateTime();
 skday=Day();
@@ -33,7 +33,7 @@ sktitle = ParamStr("Title","sk3");
 dd = DateNum();
 tt = TimeNum();
 
-	comparewithatr=(C*1.5/100)*15/skts;
+comparewithatr=(C*1.5/100)*15/skts;
 ma100=MA(O,100);
 ma20=MA(O,20);
 ma10=MA(O,10);
@@ -195,8 +195,9 @@ Sell=Cross(O,buytargetprice) OR Cross(buyslprice,O);
 //bardiffsell=-1*twobardiff>1.2*skatr;
 //Sell=bardiffsell;
 //Buy=ExRem(Buy,Sell);
-Sell=0
-Short=Cover=0;
+Sell=0;
+Short=0;
+Cover=0;
 
 //Short=IIf(skchange5<-10,1,0) AND IIf(skchange10<-20,1,0) AND IIf(skchange30<-30,1,0) AND IIf(skchange1>10,1,1);
 //printaction(1,"bb"+BarsSince(Buy)+"bs:"+BarsSince(short));
@@ -216,7 +217,7 @@ Plot(mkttype,"mkt0forzigzag",colorGreen,styleNoDraw|styleOwnScale);
 //Plot(Open-10,"\nsk1",IIf(Close>Open,colorGreen,colorRed ),styleDashed);
 last5trend=last5barmaxdiff-last5barmindiff*-1;
 Plot(maup,"maup",colorGreen,styleNoDraw|styleOwnScale);
-Plot(bardiffsell,"bardiffsell",colorGreen,styleNoDraw|styleOwnScale);
+//Plot(bardiffsell,"bardiffsell",colorGreen,styleNoDraw|styleOwnScale);
 Plot(atrhigh,"atrhigh",colorGreen,styleNoDraw|styleOwnScale);
 Plot(last5barmaxdiff,"last5barmaxdiff",colorGreen,styleNoDraw|styleOwnScale);
 Plot(last5trend,"last5trend",IIf(last5trend>0,colorGreen,colorRed ),styleNoDraw|styleOwnScale);
