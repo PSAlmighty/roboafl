@@ -1,0 +1,104 @@
+Title =" ";
+_SECTION_BEGIN("STRATEGY");
+
+VAR1 = Param("ATR PERIOD", 10, 1, 50, 1);
+VAR2 = Param("ATR MULTIPLIER", 4, 0.5, 10, 0.5);
+
+AVAR1=(High + Low)/2 - VAR2 * ATR(VAR1);
+AVAR2=(High + Low)/2 + VAR2 * ATR(VAR1);
+
+FLAG1 = False;
+FLAG2 = False;
+VAR3= Null;
+VAR4 = Null;
+AVAR3 = Null;
+AVAR3[VAR1-1] = 0;
+AVAR4 = Null;
+AVAR4[VAR1-1] = 0;
+AVART1 = Null;
+AVART2 = Null;
+
+for(i = VAR1; i < BarCount; i++)
+{
+	//Buy Signal Generation
+	if(AVAR4[i-1] < Close[i-1] && FLAG1 == False)
+	{
+		AVART1[i] = True;
+		FLAG1 = True;
+		VAR3 = AVAR1[i];
+	}
+	else
+	{
+		AVART1[i] = False;
+	}
+	
+	//Trailing Stop Loss Buy
+	if(FLAG1 == True)
+	{
+		if(VAR3 < AVAR1[i])
+		{
+			VAR3 = AVAR1[i];
+		}
+		AVAR3[i] = VAR3;
+	}
+	else
+	{
+		AVAR3[i] = Null;
+	}
+	
+	//Short Signal Generation
+	if(AVAR3[i-1] > Close[i-1] && FLAG1 == True)
+	{
+		AVART2[i] = True;
+		FLAG1 = False;
+		VAR4 = AVAR2[i];
+	}
+	else
+	{
+		AVART2[i] = False;
+	}
+	
+	//Trailing Stop Loss Short
+	if(FLAG1 == False)
+	{
+		if(VAR4 > AVAR2[i])
+		{
+			VAR4 = AVAR2[i];
+		}
+		AVAR4[i] = VAR4;
+	}
+	else
+	{
+		AVAR4[i] = Null;
+	}
+}
+
+Buy = ExRem(AVART1, AVART2);
+Short = ExRem(AVART2, AVART1);
+
+Sell = Short;
+Cover = Buy;
+
+AVAR10 = IIf(IsNull(AVAR3), L - 0.1, AVAR3);
+AVAR11 = IIf(IsNull(AVAR4), H + 0.1, AVAR4);
+
+Plot(AVAR10, "SL1", IIf(IsNull(AVAR3), colorBlack, colorBrightGreen), styleStaircase|styleDashed);
+Plot(AVAR11, "SL2", IIf(IsNull(AVAR4), colorBlack, colorOrange), styleStaircase|styleDashed);
+
+Buyshape = Buy * shapeUpArrow;
+SellShape = Sell * shapeDownArrow;
+PlotShapes( Buyshape, colorBrightGreen, 0, Low );
+PlotShapes( SellShape, colorRed, 0, High );
+
+Shortshape = Short * shapeDownArrow;
+CoverShape = Cover * shapeUpArrow;
+PlotShapes( Shortshape, colorOrange, 0, High, -30);
+PlotShapes( CoverShape, colorTurquoise, 0, Low, -30 );
+
+_SECTION_END();
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+SetBarFillColor(IIf(C>O,ParamColor("Candle UP Color", colorBlack),IIf(C<=O,ParamColor("Candle Down Color", colorBlack),colorLightGrey)));
+Plot(C,"\nPrice",IIf(C>O,ParamColor("Wick UP Color", colorBrightGreen),IIf(C<=O,ParamColor("Wick Down Color", colorRed),colorLightGrey)),64|styleNoTitle,0,0,0,0);
+_SECTION_END();
