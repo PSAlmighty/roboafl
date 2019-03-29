@@ -130,11 +130,11 @@ Sell=Cross(O,buytargetprice) OR Cross(buyslprice,O);
 twobardiff=O-Ref(C,-2) ;
 bardiffsell=-1*twobardiff>1.4*skatr;
 Sell=bardiffsell;
-
+printaction(Sell,"sell signal");
 //Cover=skchange2>=10;
 //Sell=skchange2<=-10;
-Buy=ExRem(Buy,Sell);
-Sell=ExRem(Sell,Buy);
+//Buy=ExRem(Buy,Sell);
+//Sell=ExRem(Sell,Buy);
 
 Short=Cover=0;
 
@@ -192,10 +192,12 @@ Sell=Cross(O,buytargetprice) OR Cross(buyslprice,O);
 }
 
 twobardiff=O-Ref(O,-2) ;
-bardiffsell=-1*twobardiff>1.2*skatr;
+bardiffsell=-1*twobardiff>1.5*skatr;
 Sell=bardiffsell;
-Buy=ExRem(Buy,Sell);
-Sell=ExRem(Sell,Buy);
+
+printaction(Sell,"sell signal");
+//Buy=ExRem(Buy,Sell);
+//Sell=ExRem(Sell,Buy);
 Short=Cover=0;
 
 //Short=IIf(skchange5<-10,1,0) AND IIf(skchange10<-20,1,0) AND IIf(skchange30<-30,1,0) AND IIf(skchange1>10,1,1);
@@ -205,7 +207,7 @@ Short=Cover=0;
 }
 
 
-if(1==1) // plot the chart needed 
+if(1==0) // plot the chart needed 
 {
 _SECTION_BEGIN("Price");
 SetChartOptions(0,chartShowArrows|chartShowDates);
@@ -263,7 +265,7 @@ printaction(1,"noactionnow:"+noactionnow);
 printaction(1,"noactionyet:"+noactionyet);
 }
 
-if(1==1) // draw the area of the profit or loss as bars 
+if(1==0) // draw the area of the profit or loss as bars 
 {
 BuyPrice=valuewhen(Buy,O);
 sklong=Flip(Buy,Sell);
