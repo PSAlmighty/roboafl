@@ -1,0 +1,31 @@
+HI balaji I need below method of stop loss which I believe should be done by anyone of the stoploss type ( step on target ) or ( Trail T1 ) . 
+
+1. set the initial SL  and T1 in AMIGO options given. 
+2. then when profit less then 0 . the SL will be as per setting in AMIGO . 
+3. if Profit is more then 0 but less then T1 then also SL will be as per setting in AMIGO . 
+4. if profit is above T1 . then SL should move to become profit - T1 . 
+
+in the ster in getting that setting correct . 
+
+
+Buy 
+
+I want to fetch the price of executed order .
+
+so some fucntion which gives from amigo . 
+
+let Say a Short is done manually from the amigo control. 
+
+Now in my afl . 
+I want to use the ShortPrice when it was done . 
+
+skshortprice=function(interectwith amigo AND fetch the last ShortPrice ) . 
+
+AmigoC1(signale i give you use then in your amigo to execute ) . 
+
+similarly I want a function 
+
+trailt1 .
+
+ - 100 , 110 , 120 , 130 140 150 
+   
