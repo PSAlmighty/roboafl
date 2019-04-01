@@ -187,15 +187,18 @@ for( i = 1; i < BarCount; i++ )
     }
 
 }
+}
 
-PlotShapes(Buy*shapeUpArrow,colorGreen,0,Low);
+if(1==1) // plot charts 2 
+{
+//PlotShapes(Buy*shapeUpArrow,colorGreen,0,Low);
 //PlotShapes(Buy*shapeUpArrow,coloraqua,0,Low*1.01);
-PlotShapes(Sell*shapeDownArrow,colorRed,0,High);
+//PlotShapes(Sell*shapeDownArrow,colorRed,0,High);
 
-Plot(Open,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleDashed);
+//Plot(Open,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleDashed);
 Plot( trailARRAY,"trailing stop level", colorAqua , styleDots );
-Plot( tgtarray,"trailing stop level", colorGreen , styleDots );
-Plot( tgtarray,"trailing stop level", colorGreen , styleDots );
+//Plot( tgtarray,"trailing stop level", colorGreen , styleDots );
+//Plot( tgtarray,"trailing stop level", colorGreen , styleDots );
 }
 
 
@@ -298,7 +301,7 @@ Plot( Close,"Price",colorBlack,styleDashed);
 Plot( trailARRAY,"trailing stop level", colorRed );
 }
 
-if(1==0) // plot the chart needed 
+if(1==1) // plot the chart needed 
 {
 _SECTION_BEGIN("Price");
 SetChartOptions(0,chartShowArrows|chartShowDates);
@@ -403,7 +406,7 @@ PlotShapes( CoverShape, colorBrown, 0, CoverPrice, -1 )	;
 
 }
 
-if(1==0) // buy sell signal sent to amigo 
+if(1==1) // buy sell signal sent to amigo 
 {
 
 // from here the buy and sell signals . 
