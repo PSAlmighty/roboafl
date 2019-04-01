@@ -186,11 +186,13 @@ for( i = 1; i < BarCount; i++ )
        }
     }
 
+/*
 if( Buy[i]) 
   PlotText( "mkt="+mkttype[i]+"\nBUY@" + BuyPrice[ i ] + "\nTGT="+BuyPrice[ i ]*(100+skstep)/100 + "\nSL="+BuyPrice[ i ]*(100-initSL)/100 , i, Low[ i ], colorGreen);
    
  if( Sell[i] )
    PlotText( "Sell@" + SellPrice[ i ]  ,i, High[ i ], colorBlue);
+   */
 }
 }
 
@@ -452,7 +454,7 @@ _SECTION_END();
 
 }
 
-if(1==0) // write buy sell price on chart 
+if(1==1) // write buy sell price on chart 
 {
 dist=BrickSize;
 dist1=1.2*dist;
