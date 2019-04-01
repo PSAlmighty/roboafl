@@ -49,6 +49,12 @@ printf("\natrhigh="+atrhigh);
 //mkttype=StrToNum(NumToStr(IIf(skatr>comparewithatr,0,1)));
 mkttype=StrToNum(NumToStr(atrhigh));
 
+initSL = Param("initial stop %", 20, 0.1, 100, 0.1);
+StopLevel = 1 - Param("initial stop %", 3, 0.1, 100, 0.1)/100;
+skstep = Param("initial stop %", 1, 0.1, 100, 0.1);
+skatrpercent=LastValue(skatr)/LastValue(O)*100;
+initSL=skatrpercent*5;
+skstep=skatrpercent*2;
 
 }
 
@@ -134,12 +140,7 @@ Cover=0;;
 if(1==1) // check and fill last action and SL // using only open price . 
 {
 
-initSL = Param("initial stop %", 20, 0.1, 100, 0.1);
-StopLevel = 1 - Param("initial stop %", 3, 0.1, 100, 0.1)/100;
-skstep = Param("initial stop %", 1, 0.1, 100, 0.1);
-skatrpercent=LastValue(skatr)/LastValue(O)*100;
-initSL=skatrpercent*5;
-skstep=skatrpercent*2;
+
 
 trailARRAY = Null;
 tgtarray=Null;
@@ -315,6 +316,8 @@ _N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Cl
 Plot(Open,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleDots);
 //Plot(Open+10,"sk1",IIf(Close>Open,colorGreen,colorRed ),styleDashed);
 Plot(mkttype,"mkt0forzigzag",colorGreen,styleNoDraw|styleOwnScale);
+Plot(initSL,"initSL",colorGreen,styleNoDraw|styleOwnScale);
+Plot(skstep,"T1",colorGreen,styleNoDraw|styleOwnScale);
 //Plot(Open-10,"\nsk1",IIf(Close>Open,colorGreen,colorRed ),styleDashed);
 last5trend=last5barmaxdiff-last5barmindiff*-1;
 //Plot(maup,"maup",colorGreen,styleNoDraw|styleOwnScale);
