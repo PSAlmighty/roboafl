@@ -369,6 +369,8 @@ skprofitcolor=IIf(skprofit>=0,IIf(Sell,colorGreen,colorBlue),IIf(Sell,colorRed,c
 Plot(skprofit, "Profit", skprofitcolor, styleArea|styleOwnScale, -50, 50, 0, 1,1);
 Plot(IIf(sklong , BuyPrice,Null), "XP", IIf(C-BuyPrice>0,colorGreen,colorRed), styleThick, Null, Null, 0, 1, 1);
 Plot(IIf(skshort , ShortPrice,Null), "XP", IIf(ShortPrice-C>0,colorBlue,colorRed), styleThick	, Null, Null, 0, 1, 1);
+Plot(IIf(sklong , BuyPrice*(100+skstep)/100,Null), "XP", colorAqua|styleDashed, Null, Null, 0, 1, 1);
+//Plot(BuyPrice[ i ]*(100+skstep)/100,"step1",colorAqua,styleDashed);
 /*
 SLtriggershape=(Cover_SSL OR Sell_LSL ) * shapeHollowCircle * ( Sell OR Cover ) ;
 TGtriggershape=(Cover_ST1 OR Sell_LT1 ) * shapeStar * ( Sell OR Cover );
@@ -455,7 +457,10 @@ for( i = 0; i < BarCount; i++ )
 skrvars_print="-O:"+Open[i]+"C:"+Close[i];  // for using the current signal for buy sell signals 
 skrvars_print=".";
  if( Buy[i]) 
-  PlotText( "mkt="+mkttype[i]+"\nBUY@" + BuyPrice[ i ] + "\nTGT="+BuyPrice[ i ]*1.01 , i, Low[ i ]-dist[i], colorGreen);
+ {
+  PlotText( "mkt="+mkttype[i]+"\nBUY@" + BuyPrice[ i ] + "\nTGT="+BuyPrice[ i ]*(100+skstep)/100 + "\nSL="+BuyPrice[ i ]*(100-initSL)/100 , i, Low[ i ]-dist[i], colorGreen);
+   
+  }
   
  if( Short[i] )
    PlotText( "Short@" + ShortPrice[ i ] + skrvars_print , i, High[ i ]+dist[i], colorRed);
