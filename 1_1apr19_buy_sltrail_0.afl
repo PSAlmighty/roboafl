@@ -104,7 +104,6 @@ last3=(Ref(C,-3)-Ref(O,-3));
 
 }
 
-
 if(mkttype==1) // do the buy sell works // for the one sided market // atr is high side. 
 {
 Buy=IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) ; 
@@ -119,7 +118,6 @@ Cover=0;
 
 }
 
-
 if(mkttype==0) // do the buy sell works / for the market when it is zigzag .  
 {
 
@@ -132,7 +130,6 @@ Short=0;
 Cover=0;;
 
 }
-
 
 if(1==1) // check and fill last action and SL // using only open price . 
 {
@@ -213,8 +210,6 @@ Plot( trailARRAY,"trailing stop level", colorAqua , styleDots );
 //Plot( tgtarray,"trailing stop level", colorGreen , styleDots );
 }
 
-
-
 if(1==0) // check and fill last action and SL // using LOW and HIGH
 {
 
@@ -272,7 +267,6 @@ Plot( trailARRAY,"trailing stop level", colorAqua , styleDots );
 Plot( tgtarray,"trailing stop level", colorAqua , styleDots );
 }
 
-
 if(1==0) // show stoploss  // fill stop loss in array 
 {
 initSL = 1 - Param("initial stop %", 3, 0.1, 100, 0.1)/100;
@@ -323,17 +317,17 @@ Plot(Open,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleDots);
 Plot(mkttype,"mkt0forzigzag",colorGreen,styleNoDraw|styleOwnScale);
 //Plot(Open-10,"\nsk1",IIf(Close>Open,colorGreen,colorRed ),styleDashed);
 last5trend=last5barmaxdiff-last5barmindiff*-1;
-Plot(maup,"maup",colorGreen,styleNoDraw|styleOwnScale);
+//Plot(maup,"maup",colorGreen,styleNoDraw|styleOwnScale);
 //Plot(bardiffsell,"bardiffsell",colorGreen,styleNoDraw|styleOwnScale);
-Plot(atrhigh,"atrhigh",colorGreen,styleNoDraw|styleOwnScale);
-Plot(last5barmaxdiff,"last5barmaxdiff",colorGreen,styleNoDraw|styleOwnScale);
-Plot(last5trend,"last5trend",IIf(last5trend>0,colorGreen,colorRed ),styleNoDraw|styleOwnScale);
-Plot(last10bardiffavg,"\nlast10bardiffavg",colorBlue,styleNoDraw|styleOwnScale);
+//Plot(atrhigh,"atrhigh",colorGreen,styleNoDraw|styleOwnScale);
+//Plot(last5barmaxdiff,"last5barmaxdiff",colorGreen,styleNoDraw|styleOwnScale);
+//Plot(last5trend,"last5trend",IIf(last5trend>0,colorGreen,colorRed ),styleNoDraw|styleOwnScale);
+//Plot(last10bardiffavg,"\nlast10bardiffavg",colorBlue,styleNoDraw|styleOwnScale);
 
 //Plot(atr200,"atr200",colorBrown,styleDots|styleOwnScale,0,20);
 //Plot(atr20,"atr20",colorYellow,styleDots|styleOwnScale,0,20);
 
-Plot(skatr,"skatr",colorYellow,styleDashed|styleOwnScale);
+//Plot(skatr,"skatr",colorYellow,styleDashed|styleOwnScale);
 
 SKBN=Foreign("BANKNIFTY","Close");
 //PlotForeign("BANKNIFTY","BANKNIFTY",IIf(Close>Open,colorGreen,colorRed ),styleDots|styleOwnScale);
@@ -378,7 +372,7 @@ sklong=Flip(Buy,Sell);
 skshort=Flip(Short,Cover);
 skprofit=IIf(Sell,O-BuyPrice,IIf(Cover,O-CoverPrice,Null));
 skprofitcolor=IIf(skprofit>=0,IIf(Sell,colorGreen,colorBlue),IIf(Sell,colorRed,colorBrown));
-Plot(skprofit, "Profit", skprofitcolor, styleArea|styleOwnScale, -50, 50, 0, 1,1);
+Plot(IIf(Sell,skprofit,Null), "skProfit", skprofitcolor, styleArea|styleOwnScale, -50, 50, 0, 1,1);
 Plot(IIf(sklong , BuyPrice,Null), "XP", IIf(C-BuyPrice>0,colorGreen,colorRed), styleThick, Null, Null, 0, 1, 1);
 Plot(IIf(skshort , ShortPrice,Null), "XP", IIf(ShortPrice-C>0,colorBlue,colorRed), styleThick	, Null, Null, 0, 1, 1);
 Plot(IIf(sklong , BuyPrice*(100+skstep)/100,Null), "XP", colorAqua|styleDashed, Null, Null, 0, 1, 1);
