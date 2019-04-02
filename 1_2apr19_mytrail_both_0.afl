@@ -49,12 +49,12 @@ mkttype=StrToNum(NumToStr(atrhigh));
 initSL = Param("initial stop %", 20, 0.1, 100, 0.1);
 StopLevel = 1 - Param("initial stop %", 3, 0.1, 100, 0.1)/100;
 skstep = Param("initial stop %", 1, 0.1, 100, 0.1);
-skstep1=round(O/100);
-skatrpercent=LastValue(skstep1)/LastValue(O)*100;
+pricestep1=round(O/100);
+skatrpercent=LastValue(maxatr)/LastValue(O)*100;
 initSL=skatrpercent*5;
 skstep=skatrpercent*2;
 
-GfxTextOut( "2apr19_both_trl|atr:"+LastValue(skstep1)+"|"+mkttype+"|"+ Date()+"|", x+730, y+15 );
+GfxTextOut( "2apr19_both_trl|atr:"+LastValue(maxatr)+"|"+mkttype+"|"+ Date()+"|", x+730, y+15 );
 
 }
 
