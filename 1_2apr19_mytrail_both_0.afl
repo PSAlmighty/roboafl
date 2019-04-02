@@ -38,12 +38,10 @@ ma10=MA(O,10);
 
 atr200=MA(skatr,200);
 atr20=MA(skatr,20);
-maxatr=Peak(skatr,5,1);
+maxatr=Peak(skatr,10,1);
 
 maup=IIf(ma100<ma20,1,0);
 atrhigh=IIf(atr20>atr200,1,0);
-
-printf("\natrhigh="+atrhigh);
 
 //mkttype=StrToNum(NumToStr(IIf(skatr>comparewithatr,0,1)));
 mkttype=StrToNum(NumToStr(atrhigh));
@@ -51,11 +49,12 @@ mkttype=StrToNum(NumToStr(atrhigh));
 initSL = Param("initial stop %", 20, 0.1, 100, 0.1);
 StopLevel = 1 - Param("initial stop %", 3, 0.1, 100, 0.1)/100;
 skstep = Param("initial stop %", 1, 0.1, 100, 0.1);
-skatrpercent=LastValue(skatr)/LastValue(O)*100;
+
+skatrpercent=LastValue(atr20)/LastValue(O)*100;
 initSL=skatrpercent*5;
 skstep=skatrpercent*2;
 
-GfxTextOut( "2apr19_both_trl|"+LastValue(maxatr)+"|"+mkttype+"|"+ Date()+"|"+skday, x+730, y+5 );
+GfxTextOut( "2apr19_both_trl|atr:"+LastValue(maxatr)+"|"+mkttype+"|"+ Date()+"|", x+730, y+15 );
 
 }
 
@@ -140,9 +139,6 @@ Cover=0;;
 
 if(1==1) // check and fill last action and SL // using only open price . 
 {
-
-
-
 trailARRAY = Null;
 tgtarray=Null;
 trailstop = 0;
@@ -207,7 +203,7 @@ if(1==1) // plot charts 2
 //PlotShapes(Sell*shapeDownArrow,colorRed,0,High);
 
 //Plot(Open,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleDashed);
-Plot( trailARRAY,"trailing stop level", colorAqua , styleDots|styleOwnScale );
+Plot( trailARRAY,"trailing stop level", colorRose , styleDots );
 //Plot( tgtarray,"trailing stop level", colorGreen , styleDots );
 //Plot( tgtarray,"trailing stop level", colorGreen , styleDots );
 }
@@ -317,7 +313,7 @@ _N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Cl
 //Plot(Open,"\nClose",IIf(Close>Open,colorGreen,colorRed ),styleDots);
 PlotOHLC(O,H,L,C,Name(),IIf(Close>Open,colorGreen,colorRed ),styleBar);
 //Plot(Open+10,"sk1",IIf(Close>Open,colorGreen,colorRed ),styleDashed);
-Plot(mkttype,"mkt0forzigzag",colorGreen,styleNoDraw|styleOwnScale);
+Plot(mkttype,"\nmkt0forzigzag",colorGreen,styleNoDraw|styleOwnScale);
 Plot(initSL,"initSL",colorGreen,styleNoDraw|styleOwnScale);
 Plot(skstep,"T1",colorGreen,styleNoDraw|styleOwnScale);
 //Plot(Open-10,"\nsk1",IIf(Close>Open,colorGreen,colorRed ),styleDashed);
@@ -330,14 +326,13 @@ last5trend=last5barmaxdiff-last5barmindiff*-1;
 //Plot(last10bardiffavg,"\nlast10bardiffavg",colorBlue,styleNoDraw|styleOwnScale);
 
 //Plot(atr200,"atr200",colorBrown,styleDots|styleOwnScale,0,20);
-//Plot(atr20,"atr20",colorYellow,styleDots|styleOwnScale,0,20);
+Plot(atr20,"atr20",colorYellow,styleNoDraw|styleOwnScale,0,20);
 
-Plot(skatr,"skatr",colorYellow,styleDashed|styleOwnScale);
+Plot(skatr,"skatr",colorGrey40,styleDashed|styleOwnScale);
 
 SKBN=Foreign("BANKNIFTY","Close");
 //PlotForeign("BANKNIFTY","BANKNIFTY",IIf(Close>Open,colorGreen,colorRed ),styleDots|styleOwnScale);
 Plot(SKBN,"BANKNIFTY",IIf(Ref(SKBN,-1)<SKBN,colorGreen,colorRed ),styleDashed|styleOwnScale);
-
 
 _SECTION_END();
 
