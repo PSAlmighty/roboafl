@@ -134,11 +134,11 @@ Cover=0;
 if(mkttype==0) // do the buy sell works / for the market when it is zigzag .  
 {
 
-Buy=IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) ; 
-//Buy=0;
+//Buy=IIf(skchange5<-1,1,0) AND IIf(skchange2<-1,1,0) AND IIf(skchange1<=0,1,0)  AND  Ref(C,-1)>Ref(O,-1) ; 
+Buy=0;
 Sell=0;
 //ApplyStop( stopTypeTrailing, stopModePercent, 10, True );
-//Short=IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND Ref(C,-1)<Ref(O,-1) AND skhour<15 ;
+Short=IIf(skchange5>1,1,0) AND IIf(skchange2>1,1,0) AND IIf(skchange1>=0,1,0)  AND Ref(C,-1)<Ref(O,-1) AND skhour<15 ;
 Short=0;
 Cover=0;;
 
@@ -151,6 +151,7 @@ tgtarray=Null;
 trailstop = 0;
 skaction=0;
 skbuyprice=0;
+//Buy[0]=Short[0]=Cover[0]=Sell[0]=0;
 
 for( i = 1; i < BarCount; i++ )
  {
