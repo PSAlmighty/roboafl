@@ -8,7 +8,6 @@ x=Param("xposn",1,0,1000,1);
 y=Param("yposn",1,0,1000,1);
 //sktitle = ParamStr("Title","skself1");
 skatr=ATR(16);
-
 skaction="Action";
 mkttype=Param("mkttype",0,0,1,1);
 skstepsize=Param( "StepSL", 50, 1, 200 );
@@ -45,6 +44,7 @@ atrhigh=IIf(atr20>atr200,1,0);
 
 //mkttype=StrToNum(NumToStr(IIf(skatr>comparewithatr,0,1)));
 mkttype=StrToNum(NumToStr(atrhigh));
+mkttype=LastValue(atrhigh);
 
 initSL = Param("initial stop %", 20, 0.1, 100, 0.1);
 StopLevel = 1 - Param("initial stop %", 3, 0.1, 100, 0.1)/100;
@@ -318,7 +318,7 @@ Plot(initSL,"initSL",colorGreen,styleNoDraw|styleOwnScale);
 Plot(skstep,"T1",colorGreen,styleNoDraw|styleOwnScale);
 //Plot(Open-10,"\nsk1",IIf(Close>Open,colorGreen,colorRed ),styleDashed);
 last5trend=last5barmaxdiff-last5barmindiff*-1;
-//Plot(maup,"maup",colorGreen,styleNoDraw|styleOwnScale);
+Plot(maup,"maup",colorGreen,styleNoDraw|styleOwnScale);
 //Plot(bardiffsell,"bardiffsell",colorGreen,styleNoDraw|styleOwnScale);
 //Plot(atrhigh,"atrhigh",colorGreen,styleNoDraw|styleOwnScale);
 //Plot(last5barmaxdiff,"last5barmaxdiff",colorGreen,styleNoDraw|styleOwnScale);
@@ -328,7 +328,7 @@ last5trend=last5barmaxdiff-last5barmindiff*-1;
 //Plot(atr200,"atr200",colorBrown,styleDots|styleOwnScale,0,20);
 Plot(atr20,"atr20",colorYellow,styleNoDraw|styleOwnScale,0,20);
 
-Plot(skatr,"skatr",colorGrey40,styleDashed|styleOwnScale);
+Plot(skatr,"skatr",colorYellow,styleDashed|styleOwnScale);
 
 SKBN=Foreign("BANKNIFTY","Close");
 //PlotForeign("BANKNIFTY","BANKNIFTY",IIf(Close>Open,colorGreen,colorRed ),styleDots|styleOwnScale);
