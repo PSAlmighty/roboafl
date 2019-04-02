@@ -1,0 +1,30 @@
+ODIN2AmiPro   , @583V-YHWX-W9RD-BTB7-SC53-ZHX8-6X@,     iamsachinrajput@gmail.com   ,             9650049980    ,             1112E103E16001
+, 3.0.9, 
+Software Loopback Interface 1::00-00-00-00-00-00::24
+WAN Miniport (L2TP)::00-00-00-00-00-00::131
+WAN Miniport (SSTP)::00-00-00-00-00-00::131
+WAN Miniport (IKEv2)::00-00-00-00-00-00::131
+WAN Miniport (PPTP)::00-00-00-00-00-00::131
+WAN Miniport (PPPOE)::00-00-00-00-00-00::23
+WAN Miniport (IP)::00-00-00-00-00-00::6
+WAN Miniport (IPv6)::00-00-00-00-00-00::6
+WAN Miniport (Network Monitor)::00-00-00-00-00-00::6
+Microsoft Kernel Debug Network Adapter::00-00-00-00-00-00::6
+RAS Async Adapter::00-00-00-00-00-00::23
+Red Hat VirtIO Ethernet Adapter::90-12-14-DD-29-4C::6
+Microsoft ISATAP Adapter::00-00-00-00-00-00::131
+Microsoft 6to4 Adapter::00-00-00-00-00-00::131
+Realtek RTL8139C+ Fast Ethernet NIC::90-12-14-41-73-0A::6
+Realtek RTL8139C+ Fast Ethernet NIC #2::00-16-3E-10-2E-11::6
+Realtek RTL8139C+ Fast Ethernet NIC #2-WFP Native MAC Layer LightWeight Filter-0000::00-16-3E-10-2E-11::6
+Realtek RTL8139C+ Fast Ethernet NIC #2-QoS Packet Scheduler-0000::00-16-3E-10-2E-11::6
+Realtek RTL8139C+ Fast Ethernet NIC #2-WFP 802.3 MAC Layer LightWeight Filter-0000::00-16-3E-10-2E-11::6
+WAN Miniport (IP)-WFP Native MAC Layer LightWeight Filter-0000::00-00-00-00-00-00::6
+WAN Miniport (IP)-QoS Packet Scheduler-0000::00-00-00-00-00-00::6
+WAN Miniport (IPv6)-WFP Native MAC Layer LightWeight Filter-0000::00-00-00-00-00-00::6
+WAN Miniport (IPv6)-QoS Packet Scheduler-0000::00-00-00-00-00-00::6
+WAN Miniport (Network Monitor)-WFP Native MAC Layer LightWeight Filter-0000::00-00-00-00-00-00::6
+WAN Miniport (Network Monitor)-QoS Packet Scheduler-0000::00-00-00-00-00-00::6
+
+17CBFBFF000106A59Intel64 Family 6 Model 26 Stepping 50c172ab0-4320-474a-bf24-3de88c541c2fQM00001QEMU HARDDISK ATA Device827547477
+17CBFBFF000106A59Intel64 Family 6 Model 26 Stepping 50c172ab0-4320-474a-bf24-3de88c541c2fQM00001QEMU HARDDISK ATA Device827547477
