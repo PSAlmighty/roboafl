@@ -53,9 +53,10 @@ mkttype=StrToNum(NumToStr(atrhigh));
 
 initSL = Param("initial stop %", 20, 0.1, 100, 0.1);
 StopLevel = 1 - Param("initial stop %", 3, 0.1, 100, 0.1)/100;
-skstep = Param("initial stop %", 1, 0.1, 100, 0.1);
-pricestep1=round(O/100);
+sksteppercent = Param("initial stop %", 1, 0.1, 100, 0.1);
+skstep=round(O/100);
 skatrpercent=LastValue(maxatr)/LastValue(O)*100;
+initsl=
 initSL=skatrpercent*5;
 skstep=skatrpercent*2;
 
@@ -166,6 +167,16 @@ for( i = 1; i < BarCount; i++ )
     }
     else Buy[ i ] = 0; // remove excess buy signals
 
+   if( trailstop == 0 AND Short[ i ] ) 	// set the SL when buy is on . 
+    { 
+       trailstop = Open[ i ] * (100-initSL)/100;
+       skaction=1;
+       skshortprice=Open[i];
+       sktgt=Open[i]-skstep;
+       skdiffpercent=(Open[i]-skshortprice)/skshortprice*100;
+    }
+    else Short[ i ] = 0; // remove excess buy signals
+    
    if( trailstop > 0 )		// ensure the SL is never going backward . 
     {   
     skdiffpercent=(Open[i]-skbuyprice)/skbuyprice*100;
