@@ -1,0 +1,11 @@
+Filter=1; 
+SetOption("NoDefaultColumns", True );
+AddTextColumn(Name(), "Name"); 
+
+AddColumn( DateTime(), "Date", formatDateTime );
+AddColumn(O,"Open"); 
+AddColumn(H,"High"); 
+AddColumn(L,"Low"); 
+AddColumn(C,"Close"); 
+AddColumn(V,"Volume",1.0); 
+AddColumn(OpenInt,"OI");
